@@ -2,7 +2,7 @@
 # Create .txt files from
 # x1d COS images
 #
-# Written by: Paul A. Wilson
+# Written by: Dr. Paul A. Wilson
 # pwilson@iap.fr
 #
 
