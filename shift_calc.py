@@ -100,6 +100,9 @@ def shift_spec(ref,spec,error,wave,start,stop):
 	error	= error[start:stop]
 	wave	= wave[start:stop]
 	
+	mean_ref = np.mean(ref)
+	mean_spec = np.mean(spec)
+	
 	ref = ref - np.mean(ref)
 	spec = spec - np.mean(spec)
 
@@ -123,7 +126,7 @@ def shift_spec(ref,spec,error,wave,start,stop):
 	  zeros = np.zeros(units)
 	  spec	= np.concatenate((spec, zeros), axis=1)[units:]
 	
-	return wave,spec,error
+	return wave,spec,error,mean_ref,mean_spec
 
 def main():
     fits_location = '/home/paw/science/betapic/data/HST/2016/visit_2/'
@@ -135,36 +138,46 @@ def main():
     wavelength2, flux2, err2 	= Extract(fits_location+fits[2])
     wavelength3, flux3, err3 	= Extract(fits_location+fits[3])
 
-    start	= 10000
-    stop	= 16000
+    start	= 7200
+    stop	= 7900
     
     F = [[] for _ in range(len(fits)-1)]
     W = [[] for _ in range(len(fits)-1)]
     E = [[] for _ in range(len(fits)-1)]
+    Mr= [[] for _ in range(len(fits)-1)]
+    Ms= [[] for _ in range(len(fits)-1)]
     
-    W[0],F[0],E[0]	=	shift_spec(flux,flux,err,wavelength,start,stop)
-    W[1],F[1],E[1]	=	shift_spec(flux,flux1,err1,wavelength,start,stop)
-    W[2],F[2],E[2]	=	shift_spec(flux,flux2,err2,wavelength,start,stop)
-    W[3],F[3],E[3]	=	shift_spec(flux,flux3,err3,wavelength,start,stop)
+    W[0],F[0],E[0],Mr[0],Ms[0]	=	shift_spec(flux,flux,err,wavelength,start,stop)
+    W[1],F[1],E[1],Mr[1],Ms[1]	=	shift_spec(flux,flux1,err1,wavelength,start,stop)
+    W[2],F[2],E[2],Mr[2],Ms[2]	=	shift_spec(flux,flux2,err2,wavelength,start,stop)
+    W[3],F[3],E[3],Mr[3],Ms[3]	=	shift_spec(flux,flux3,err3,wavelength,start,stop)
 
     F = np.array(F)
     E = np.array(E)
-    print E[1]
-    print E[1][-1]
+    
+    F[0]=F[0]+Mr[0]
+    F[1]=F[1]+Ms[1]
+    F[2]=F[2]+Ms[2]
+    F[3]=F[3]+Ms[3]
 
     F_median = np.median(F, axis=0)
     F_ave =  np.average(F, axis=0)
     F_ave_w =  np.average(F, axis=0,weights=1/E**2)
 
     #plt.errorbar(W[0],F[3],yerr=E[3])
-    plt.step(W[0],F[0])
-    #plt.plot(W[0],F_median)
+    #plt.step(W[0],F[0])
+    #plt.step(W[0],F_median)
     #plt.plot(W[0],F_ave)
-    plt.step(W[0],F_ave_w)
+    smooth = savitzky_golay(F_ave_w, 41, 3)
+    plt.step(W[0],F_ave_w,color='#C0C0C0')
+    plt.step(W[0],smooth,color='red')
+    
     #plt.plot(W[0],F_ave-F_ave_w)
     
     #plt.plot((x-(flux.size-1)),c)
     plt.show()
+    
+    np.savetxt(fits_location+"NI_weighted_mean_no_err_visit2.dat",np.column_stack((W[0],F_ave_w)))
     
 if __name__ == '__main__':
     main()
