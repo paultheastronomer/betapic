@@ -23,8 +23,8 @@ def main():
     dir_contents = os.listdir(fits_location)
     fits = sorted([fn for fn in dir_contents if fn.startswith('l') and fn.endswith('sum.fits')])
 
-    wavelength, flux, err 		= Extract(fits_location+fits[0])
-    wavelength1, flux1, err1 	= Extract(fits_location+fits[1])
+    wavelength, flux, err 		= Extract(fits_location+fits[0]) # Ref spec
+    wavelength1, flux1, err1 	= Extract(fits_location+fits[1]) # Comparison spec
     
     start	= 10000
     stop	= 14000
@@ -43,7 +43,6 @@ def main():
     else:
       c = np.correlate(flux,flux1,mode='full')
       print "Shift:",wavelength[flux.size-1]-wavelength[np.argmax(c)]
-    print len(wavelength),len(c)
     
     plt.plot((x-(flux.size-1)),c)
     plt.show()
