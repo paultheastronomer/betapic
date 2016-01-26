@@ -98,45 +98,77 @@ def Bin_data(x,y1,y2,y3,bin_pnts):
 
 def main():
 
-    w0,f0, err0 = np.loadtxt('/home/paw/science/betapic/owens/BP_AllS_B.dat',unpack=True)
+    #w0,f0, err0 = np.loadtxt('/home/paw/science/betapic/python/sky_background_model/BP_AllS_A.dat',unpack=True)
+    w0,f0, err0 = np.loadtxt('/home/paw/science/betapic/data/HST/2014/dat/2014_beta_sum_A.dat',unpack=True)
     
-    w0 = w0[7203:7903]
-    f0 = f0[7203:7903]
+    ws0,fs0, errs0 = np.loadtxt('/home/paw/science/betapic/data/HST/2014/dat/AG_2014_A.dat',unpack=True)
+    #ws0,fs0, errs0 = np.loadtxt('/home/paw/science/betapic/data/HST/2014/dat/2014_sky_sum.dat',unpack=True)
+
+
+    w0 = w0[12000:13000]
+    f0 = f0[12000:13000]
     
+    ws0 = ws0[12000:13000]
+    fs0 = fs0[12000:13000]  
 
-    w1,f1 = np.loadtxt('/home/paw/science/betapic/data/HST/2016/visit_1/NI_weighted_mean_no_err_visit1.dat',unpack=True)
-   
-    w2,f2 = np.loadtxt('/home/paw/science/betapic/data/HST/2016/visit_2/NI_weighted_mean_no_err_visit2.dat',unpack=True)
+    w1,f1 = np.loadtxt('/home/paw/science/betapic/data/HST/2015/visit_1/SiV_weighted_mean_no_err_visit1.dat',unpack=True) 
+    w2,f2 = np.loadtxt('/home/paw/science/betapic/data/HST/2015/visit_2/SiV_weighted_mean_no_err_visit2.dat',unpack=True)
 
+    k = 1.5
+    #f0 = f0 - k*fs0
+    
     bin_pnts = 3
-    #x0_bin, f0_bin, f1_bin, f2_bin	=	Bin_data(w0,f0,f1,f2,bin_pnts)
     w1_bin, f0_bin, f1_bin, f2_bin	=	Bin_data(w1,f0,f1,f2,bin_pnts)
-  
-    #plt.step(w0,f0,label='Visit 2014')
-    #plt.step(w2,f2,label='Visit 2, 2015')
-    #plt.step(w1,f1,label='Visit 1, 2015')
     
-    diff = np.median(f1_bin[182:]) - np.median(f2_bin[182:])
+    diff = np.median(f1_bin[:120]) - np.median(f2_bin[:120])
+    diff2 = np.median(f1_bin[:120]) - np.median(f0_bin[:120])
     f2_bin_corr = f2_bin+diff
+    f0_bin_corr = f0_bin+diff2
+
+
+    fig = plt.figure(figsize=(10,6))
+    fontlabel_size = 18
+    tick_size = 18
+    params = {'backend': 'wxAgg', 'lines.markersize' : 2, 'axes.labelsize': fontlabel_size, 'text.fontsize': fontlabel_size, 'legend.fontsize': fontlabel_size, 'xtick.labelsize': tick_size, 'ytick.labelsize': tick_size, 'text.usetex': True}
+    plt.rcParams.update(params)
+    plt.rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
     
     #'''
-    plt.step(w1_bin,f0_bin,label='Visit 2014')
-    plt.step(w1_bin,f2_bin_corr,label='Visit 2, 2015')
-    #plt.step(w1_bin[182:],f2_bin[182:],label='Visit 2, 2015')
-    plt.step(w1_bin,f1_bin,label='Visit 1, 2015')    
+    plt.step(w1_bin,f0_bin_corr,color="black",lw=2.5)
+    plt.step(w1_bin,f0_bin_corr,color="#FF281C",lw=1.2,label='Visit 2014')
+    
+    plt.step(w1_bin,f2_bin_corr,color="black",lw=2.5)
+    plt.step(w1_bin,f2_bin_corr,color="#0386ff",lw=1.2,label='Visit 2, 2015')
+    
+    plt.step(w1_bin,f1_bin,color="black",lw=2.5)
+    plt.step(w1_bin,f1_bin,color="#FF9303",lw=1.2,label='Visit 1, 2015')
+    #plt.step(w1_bin[:120],f2_bin[:120],label='CUT')
+    #plt.step(w0,f0,label='2014')
+    #plt.step(w1,f1,label='2015v1')
+    #plt.step(w2,f2,label='2015v2')
+    #plt.step(w0_,f0_,label='Beta SUM')
+    #plt.step(wss0,fss0,label='AG')
+    #plt.step(ws0,fs0,label='Air Glow')  
     #'''
-    #comets = savitzky_golay(f1_bin-f2_bin_corr, 11, 3)
+    #c0 = savitzky_golay(f0_bin_corr, 7, 3)
+    #c2 = savitzky_golay(f2_bin_corr, 7, 3)
+    #c1 = savitzky_golay(f1_bin, 7, 3)
     
     #plt.step(w1_bin,f1_bin-f2_bin_corr,color='black')
-    #plt.step(w1_bin,comets,color='red')
+    #plt.step(w1_bin,c0,color='black')
+    #plt.step(w1_bin,c2,color='red')
+    #plt.step(w1_bin,c1,color='blue')
     
     
     plt.xlabel('Wavelength ($\AA$)')
     plt.ylabel('Flux')
-    plt.legend(loc='upper right', numpoints=1)
-    plt.xlim(1198,1202)
+    plt.legend(loc='lower left', numpoints=1)
+    
+    locs,labels = plt.xticks()
+    plt.xticks(locs, map(lambda x: "%g" % x, locs))
     #plt.ylim(0,2e-14)
-    #plt.savefig('AG.pdf', bbox_inches='tight', pad_inches=0.1)
+    plt.xlim(1399,1407)
+    plt.savefig('SiV.pdf', bbox_inches='tight', pad_inches=0.1)
     plt.show()
 
 if __name__ == '__main__':
