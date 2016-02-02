@@ -11,90 +11,19 @@ import numpy as np
 import sys
 
 
-def Extract(fits_file):
+def Extract(fits_file, part,start,stop):
     f = pyfits.open(fits_file)
     tbdata = f[1].data
     wavelength = tbdata['WAVELENGTH']
     flux = tbdata['FLUX']
     err = tbdata['ERROR']
-    return wavelength[1], flux[1], err[1]
-
-#https://scipy.github.io/old-wiki/pages/Cookbook/SavitzkyGolay
-def savitzky_golay(y, window_size, order, deriv=0, rate=1):
-    r"""Smooth (and optionally differentiate) data with a Savitzky-Golay filter.
-    The Savitzky-Golay filter removes high frequency noise from data.
-    It has the advantage of preserving the original shape and
-    features of the signal better than other types of filtering
-    approaches, such as moving averages techniques.
-    Parameters
-    ----------
-    y : array_like, shape (N,)
-        the values of the time history of the signal.
-    window_size : int
-        the length of the window. Must be an odd integer number.
-    order : int
-        the order of the polynomial used in the filtering.
-        Must be less then `window_size` - 1.
-    deriv: int
-        the order of the derivative to compute (default = 0 means only smoothing)
-    Returns
-    -------
-    ys : ndarray, shape (N)
-        the smoothed signal (or it's n-th derivative).
-    Notes
-    -----
-    The Savitzky-Golay is a type of low-pass filter, particularly
-    suited for smoothing noisy data. The main idea behind this
-    approach is to make for each point a least-square fit with a
-    polynomial of high order over a odd-sized window centered at
-    the point.
-    Examples
-    --------
-    t = np.linspace(-4, 4, 500)
-    y = np.exp( -t**2 ) + np.random.normal(0, 0.05, t.shape)
-    ysg = savitzky_golay(y, window_size=31, order=4)
-    import matplotlib.pyplot as plt
-    plt.plot(t, y, label='Noisy signal')
-    plt.plot(t, np.exp(-t**2), 'k', lw=1.5, label='Original signal')
-    plt.plot(t, ysg, 'r', label='Filtered signal')
-    plt.legend()
-    plt.show()
-    References
-    ----------
-    .. [1] A. Savitzky, M. J. E. Golay, Smoothing and Differentiation of
-       Data by Simplified Least Squares Procedures. Analytical
-       Chemistry, 1964, 36 (8), pp 1627-1639.
-    .. [2] Numerical Recipes 3rd Edition: The Art of Scientific Computing
-       W.H. Press, S.A. Teukolsky, W.T. Vetterling, B.P. Flannery
-       Cambridge University Press ISBN-13: 9780521880688
-    """
-    import numpy as np
-    from math import factorial
-    
-    try:
-        window_size = np.abs(np.int(window_size))
-        order = np.abs(np.int(order))
-    except ValueError, msg:
-        raise ValueError("window_size and order have to be of type int")
-    if window_size % 2 != 1 or window_size < 1:
-        raise TypeError("window_size size must be a positive odd number")
-    if window_size < order + 2:
-        raise TypeError("window_size is too small for the polynomials order")
-    order_range = range(order+1)
-    half_window = (window_size -1) // 2
-    # precompute coefficients
-    b = np.mat([[k**i for i in order_range] for k in range(-half_window, half_window+1)])
-    m = np.linalg.pinv(b).A[deriv] * rate**deriv * factorial(deriv)
-    # pad the signal at the extremes with
-    # values taken from the signal itself
-    firstvals = y[0] - np.abs( y[1:half_window+1][::-1] - y[0] )
-    lastvals = y[-1] + np.abs(y[-half_window-1:-1][::-1] - y[-1])
-    y = np.concatenate((firstvals, y, lastvals))
-    return np.convolve( m[::-1], y, mode='valid')
+    if part == 'A':
+        return wavelength[0][start:-stop], flux[0][start:-stop], err[0][start:-stop]
+    else:
+        return wavelength[1][start:-stop], flux[1][start:-stop], err[1][start:-stop]
 
 def shift_spec(ref,spec,error,wave,start,stop):
-	#ref		= savitzky_golay(ref, 41, 3)[start:stop]
-	#spec	= savitzky_golay(spec, 41, 3)[start:stop]
+
 	ref		= ref[start:stop]
 	spec	= spec[start:stop]	
 	error	= error[start:stop]
@@ -115,6 +44,7 @@ def shift_spec(ref,spec,error,wave,start,stop):
 	if ref.size-1 > c_max:
 	  shift = wave[ref.size-1]-wave[np.argmax(c)]
 	  units = (ref.size-1)-np.argmax(c)
+	  print "Units: ",units
 	  print "Shift:",shift,"Angstrom or ",units,"pixel elements" #flux.size-1 because python starts index at 0
 	  zeros = np.zeros(units)
 	  spec	= np.concatenate((zeros, spec), axis=1)[:-units]
@@ -122,62 +52,211 @@ def shift_spec(ref,spec,error,wave,start,stop):
 	  c = np.correlate(ref,spec,mode='full')
 	  shift = wave[np.argmax(c)]-wave[ref.size-1]
 	  units	= abs(np.argmax(c)-(ref.size-1))
+	  print "Units: ",units
 	  print "Shift:",shift,"Angstrom or",-1*units,"pixel elements"
 	  zeros = np.zeros(units)
 	  spec	= np.concatenate((spec, zeros), axis=1)[units:]
 	
-	return wave,spec,error,mean_ref,mean_spec
+	return wave,spec,error
 
-def main():
-    fits_location = '/home/paw/science/betapic/data/HST/2016/visit_2/'
+def manual_shift(flux_,err_,units,start,stop):
+    flux_ = flux_[start:stop]
+    err_ = err_[start:stop]
+    zeros = np.zeros(abs(units))
+    if units > 0:
+        print "Shifting right"
+        spec	= np.concatenate((zeros, flux_), axis=1)[:-units]
+    else:
+        print "Shifting left"
+        spec	= np.concatenate((flux_, zeros), axis=1)[abs(units):]
+    return spec,err_
+
+def getData(fits_location,part,start,stop):
     dir_contents = os.listdir(fits_location)
     fits = sorted([fn for fn in dir_contents if fn.startswith('l') and fn.endswith('sum.fits')])
+    NumFits = len(fits)
+    # Extracting data from fits files
+    wavelength0, flux0, err0 	= Extract(fits_location+fits[0],part,start,stop)
 
-    wavelength, flux, err 		= Extract(fits_location+fits[0]) # Ref spec
-    wavelength1, flux1, err1 	= Extract(fits_location+fits[1]) # Comparison spec
-    wavelength2, flux2, err2 	= Extract(fits_location+fits[2])
-    wavelength3, flux3, err3 	= Extract(fits_location+fits[3])
-
-    start	= 7200
-    stop	= 7900
+    if fits_location[-13:] == '2014/visit_1/':
+        return wavelength0, flux0 ,err0, NumFits
     
-    F = [[] for _ in range(len(fits)-1)]
+    elif fits_location[-13:] == '2015/visit_1/':
+        wavelength1, flux1, err1 	= Extract(fits_location+fits[1],part,start,stop)
+        wavelength2, flux2, err2 	= Extract(fits_location+fits[2],part,start,stop)
+        return wavelength0, wavelength1, wavelength2, flux0, flux1, flux2, err0, err1, err2, NumFits
+    
+    else:
+        wavelength1, flux1, err1 	= Extract(fits_location+fits[1],part,start,stop)
+        wavelength2, flux2, err2 	= Extract(fits_location+fits[2],part,start,stop)
+        wavelength3, flux3, err3 	= Extract(fits_location+fits[3],part,start,stop)
+        return wavelength0, wavelength1, wavelength2, wavelength3, flux0, flux1, flux2, flux3, err0, err1, err2, err3,NumFits
+
+def Bin_data(x,y0,y1,y2,y3,bin_pnts):
+    bin_size = int(len(x)/bin_pnts)
+    bins = np.linspace(x[0], x[-1], bin_size)
+    digitized = np.digitize(x, bins)
+    bin_y0 = np.array([y0[digitized == i].mean() for i in range(0, len(bins))])
+    bin_y1 = np.array([y1[digitized == i].mean() for i in range(0, len(bins))])
+    bin_y2 = np.array([y2[digitized == i].mean() for i in range(0, len(bins))])
+    bin_y3 = np.array([y3[digitized == i].mean() for i in range(0, len(bins))])
+    return bins, bin_y0, bin_y1, bin_y2, bin_y3        
+
+def replace_with_median(X):
+    X[np.isnan(X)] = 0
+    m = np.median(X[X > 0])
+    X[X == 0] = m
+    return X
+
+def main():
+    
+    # Configure these paramters before running
+    ##########################################
+    start       = 1000  # Wavelength element
+    stop	    = 800   # start/stp[ point.
+    part        = 'A'   # A = red, B = blue
+    bin_pnts    = 10.
+    x_lim1      = 1288
+    x_lim2      = 1433   
+    ##########################################
+
+    fits_location = '/home/paw/science/betapic/data/HST/2015/'
+
+    # Load data visit 1 2014
+    fits_location = '/home/paw/science/betapic/data/HST/2014/visit_1/'
+    w0_0,f0_0,e0_0,NumFits_0               = getData(fits_location,part,start,stop)
+    
+    # Load data visit 1 2015
+    fits_location = '/home/paw/science/betapic/data/HST/2015/visit_1/'
+    w0_1,w1_1,w2_1,f0_1,f1_1,f2_1,e0_1,e1_1,e2_1,NumFits_1                = getData(fits_location,part,start,stop)
+    
+    # Load data visit 2 2015
+    fits_location = '/home/paw/science/betapic/data/HST/2015/visit_2/'
+    w0_2,w1_2,w2_2,w3_2,f0_2,f1_2,f2_2,f3_2,e0_2,e1_2,e2_2,e3_2,NumFits_2 = getData(fits_location,part,start,stop)
+
+    # Load data visit 3 2015
+    fits_location = '/home/paw/science/betapic/data/HST/2016/visit_3/'
+    w0_3,w1_3,w2_3,w3_3,f0_3,f1_3,f2_3,f3_3,e0_3,e1_3,e2_3,e3_3,NumFits_3 = getData(fits_location,part,start,stop)    
+    
+    # Bin the data by bin_pnts (defined above)
+    w_bin, y0_bin, y1_bin, y2_bin, y3_bin = Bin_data(w0_0,f0_0,f0_1,f0_2,f0_3,bin_pnts)
+    
+    y0_bin = replace_with_median(y0_bin)
+    y1_bin = replace_with_median(y1_bin)
+    y2_bin = replace_with_median(y2_bin)
+    y3_bin = replace_with_median(y3_bin)
+
+    ratio1 = y0_bin/y1_bin
+    ratio2 = y0_bin/y2_bin
+    ratio3 = y0_bin/y3_bin
+
+    m1 = np.median(ratio1)
+    m2 = np.median(ratio2)
+    m3 = np.median(ratio3)
+    
+    s1 = np.std(ratio1)
+    s2 = np.std(ratio2)
+    s3 = np.std(ratio3)
+
+
+    fig = plt.figure(figsize=(10,14))
+    fontlabel_size = 18
+    tick_size = 18
+    params = {'backend': 'wxAgg', 'lines.markersize' : 2, 'axes.labelsize': fontlabel_size, 'text.fontsize': fontlabel_size, 'legend.fontsize': fontlabel_size, 'xtick.labelsize': tick_size, 'ytick.labelsize': tick_size, 'text.usetex': True}
+    plt.rcParams.update(params)
+    plt.rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
+    plt.rcParams['text.usetex'] = True
+    plt.rcParams['text.latex.unicode'] = True   
+
+
+    ax = plt.subplot(211)
+
+    plt.plot([1301,1301],[0,3],lw=3,linestyle='--',color="black",alpha=0.75)
+    plt.plot([1322,1322],[0,3],lw=3,linestyle='--',color="black",alpha=0.75)
+    plt.plot([1344,1344],[0,3],lw=3,linestyle='--',color="black",alpha=0.75)
+    plt.plot([1366,1366],[0,3],lw=3,linestyle='--',color="black",alpha=0.75)
+    plt.plot([1392,1392],[0,3],lw=3,linestyle='--',color="black",alpha=0.75)
+    plt.plot([1419,1419],[0,3],lw=3,linestyle='--',color="black",alpha=0.75)
+    plt.plot([1422,1422],[0,3],lw=3,linestyle='--',color="black",alpha=0.75)
+
+    # Plot the ratios of the specra
+    plt.step(w_bin,ratio1+0.5,label='2014/2015v1',color="#FF32B1") 
+    plt.step(w_bin,ratio2,label='2014/2015v2',color="#13C1CC")
+    plt.step(w_bin,ratio3-0.5,label='2014/2016v3',color="#BDAC42")
+    plt.xlim(x_lim1,x_lim2)
+    plt.ylim(0.25,2.3)
+    plt.legend(loc='upper left', numpoints=1)
+    
+
+    
+    # Define new start and stop values
+    # which determine the region to be
+    # cross correlated.
+    start = 5500
+    stop  = 10000
+    
+    ax2 = plt.subplot(212)
+
+    plt.plot([1301,1301],[0,1.4e-12],lw=3,linestyle='--',color="black",alpha=0.75)
+    plt.plot([1322,1322],[0,1.4e-12],lw=3,linestyle='--',color="black",alpha=0.75)
+    plt.plot([1344,1344],[0,1.4e-12],lw=3,linestyle='--',color="black",alpha=0.75)
+    plt.plot([1366,1366],[0,1.4e-12],lw=3,linestyle='--',color="black",alpha=0.75)
+    plt.plot([1392,1392],[0,1.4e-12],lw=3,linestyle='--',color="black",alpha=0.75)
+    plt.plot([1419,1419],[0,1.4e-12],lw=3,linestyle='--',color="black",alpha=0.75)
+    plt.plot([1422,1422],[0,1.4e-12],lw=3,linestyle='--',color="black",alpha=0.75)   
+
+
+    plt.step(w_bin,y0_bin+6e-13,lw=1.2,color="#FF281C",label='2014')
+    plt.step(w_bin,y1_bin+4e-13,lw=1.2,color="#FF9303",label='2015v1')
+    plt.step(w_bin,y2_bin+2e-13,lw=1.2,color="#0386ff",label='2015v2')
+    plt.step(w_bin,y3_bin,lw=1.2,color="#00B233",label='2016v3') 
+    plt.xlim(x_lim1,x_lim2)
+    plt.ylim(0.,1.2e-12)   
+
+    
+    #plt.step(w0_0[start:stop],f0_0[start:stop])
+    plt.legend(loc='upper left', numpoints=1)
+
+    fig.tight_layout()
+    #plt.savefig('FEB_quiet_regions.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
+    plt.show()
+    sys.exit()
+
+    # Creating empty arrays to be filled with
+    # shifted spectra
+    F = [[] for _ in range(len(Numfits)-1)]    # -1 because we want to avoid the airglow observation
     W = [[] for _ in range(len(fits)-1)]
     E = [[] for _ in range(len(fits)-1)]
-    Mr= [[] for _ in range(len(fits)-1)]
-    Ms= [[] for _ in range(len(fits)-1)]
-    
-    W[0],F[0],E[0],Mr[0],Ms[0]	=	shift_spec(flux,flux,err,wavelength,start,stop)
-    W[1],F[1],E[1],Mr[1],Ms[1]	=	shift_spec(flux,flux1,err1,wavelength,start,stop)
-    W[2],F[2],E[2],Mr[2],Ms[2]	=	shift_spec(flux,flux2,err2,wavelength,start,stop)
-    W[3],F[3],E[3],Mr[3],Ms[3]	=	shift_spec(flux,flux3,err3,wavelength,start,stop)
 
+    # Check if you wish to manually shift the spectra
+    # or cross-correlate them
+
+    W[0],F[0],E[0]	=	shift_spec(flux,flux,err,wavelength,start,stop)
+    W[1],F[1],E[1]	=	shift_spec(flux,flux1,err1,wavelength,start,stop)
+    W[2],F[2],E[2]	=	shift_spec(flux,flux2,err2,wavelength,start,stop)
+    if fits_location[-8:] != 'visit_1/':
+        W[3],F[3],E[3]	=	shift_spec(flux,flux3,err3,wavelength,start,stop)
+
+    
     F = np.array(F)
     E = np.array(E)
     
-    F[0]=F[0]+Mr[0]
-    F[1]=F[1]+Ms[1]
-    F[2]=F[2]+Ms[2]
-    F[3]=F[3]+Ms[3]
-
-    F_median = np.median(F, axis=0)
+    #F_median = np.median(F, axis=0)
     F_ave =  np.average(F, axis=0)
-    F_ave_w =  np.average(F, axis=0,weights=1/E**2)
+    F_ave_w =  np.average(F, axis=0,weights=1./E**2)
 
-    #plt.errorbar(W[0],F[3],yerr=E[3])
-    #plt.step(W[0],F[0])
-    #plt.step(W[0],F_median)
-    #plt.plot(W[0],F_ave)
-    smooth = savitzky_golay(F_ave_w, 41, 3)
-    plt.step(W[0],F_ave_w,color='#C0C0C0')
-    plt.step(W[0],smooth,color='red')
-    
-    #plt.plot(W[0],F_ave-F_ave_w)
-    
-    #plt.plot((x-(flux.size-1)),c)
+    plt.step(W[0],F[0])
+    plt.step(W[0],F[1])
+    plt.step(W[0],F[2])
+    if fits_location[-8:] != 'visit_1/':
+        plt.step(W[0],F[3])
+
+    plt.step(W[0],F_ave_w,color='black',lw=2)
+
+
     plt.show()
     
-    np.savetxt(fits_location+"NI_weighted_mean_no_err_visit2.dat",np.column_stack((W[0],F_ave_w)))
+    #np.savetxt(fits_location+"SiV_weighted_mean_no_err_visit2_M.dat",np.column_stack((W[0],F_ave_w)))
     
 if __name__ == '__main__':
     main()
