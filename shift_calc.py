@@ -23,40 +23,40 @@ def Extract(fits_file, part,start,stop):
         return wavelength[1][start:-stop], flux[1][start:-stop], err[1][start:-stop]
 
 def shift_spec(ref,spec,error,wave,start,stop):
-
-	ref		= ref[start:stop]
-	spec	= spec[start:stop]	
-	error	= error[start:stop]
-	wave	= wave[start:stop]
+    # This routine correlates the spectrum: spec
+    # with the reference spectrum: ref
+	ref_c	= ref[start:stop]   # Reference spectrum
+	spec_c	= spec[start:stop]	# Spectrum to be shifted
+	error_c	= error[start:stop] # Error on spec to be shifted
+	wave_c	= wave[start:stop]  # Wavelength of spec to be shifted
 	
-	mean_ref = np.mean(ref)
-	mean_spec = np.mean(spec)
-	
-	ref = ref - np.mean(ref)
-	spec = spec - np.mean(spec)
+	ref_c       = ref_c - np.mean(ref_c)
+	spec_c      = spec_c - np.mean(spec_c)
 
-	c = np.correlate(spec,ref,mode='full')
+	c           = np.correlate(spec_c,ref_c,mode='full')
 
-	x = np.arange(c.size)
-	c_max = np.argmax(c)
+	x           = np.arange(c.size)
+	c_max       = np.argmax(c)      # Maximum correlation
 
-    
-	if ref.size-1 > c_max:
-	  shift = wave[ref.size-1]-wave[np.argmax(c)]
-	  units = (ref.size-1)-np.argmax(c)
-	  print "Units: ",units
-	  print "Shift:",shift,"Angstrom or ",units,"pixel elements" #flux.size-1 because python starts index at 0
+	print "=================================="
+	if ref_c.size-1 > c_max:        # If spectrum is redshifted
+	  #ref_c.size-1 because python starts index at 0
+	  shift = wave_c[ref_c.size-1]-wave_c[np.argmax(c)]
+	  units = (ref_c.size-1)-np.argmax(c)
+	  print "Pixel Shift:\t",units
+	  print "Angstrom Shift:\t",shift
 	  zeros = np.zeros(units)
 	  spec	= np.concatenate((zeros, spec), axis=1)[:-units]
-	else:
-	  c = np.correlate(ref,spec,mode='full')
-	  shift = wave[np.argmax(c)]-wave[ref.size-1]
-	  units	= abs(np.argmax(c)-(ref.size-1))
-	  print "Units: ",units
-	  print "Shift:",shift,"Angstrom or",-1*units,"pixel elements"
-	  zeros = np.zeros(units)
+	else:                           # If spectrum is blueshifted
+	  c = np.correlate(ref_c,spec_c,mode='full')
+	  shift = wave_c[np.argmax(c)]-wave_c[ref_c.size-1]
+	  units	= abs(np.argmax(c)-(ref_c.size-1))
+	  print "Pixel Shift:\t",units
+	  print "Angstrom Shift:\t",shift
+	  zeros     = np.zeros(units)
 	  spec	= np.concatenate((spec, zeros), axis=1)[units:]
-	
+	print "=================================="
+
 	return wave,spec,error
 
 def getData(fits_location,part,start,stop):
@@ -96,6 +96,30 @@ def replace_with_median(X):
     X[X == 0] = m
     return X
 
+def ExportShitedSpectra(w0,f0,f1,f2,f3,f4,e0,e1,e2,e3,e4,NumFits,start,stop):
+   
+    # Creating empty arrays to be filled with
+    # shifted spectra
+    F = [[] for _ in range(NumFits-1)]    # -1 because we want to avoid the airglow observation
+    W = [[] for _ in range(NumFits-1)]
+    E = [[] for _ in range(NumFits-1)]    
+
+    W[0],F[0],E[0]	=	shift_spec(f0,f1,e1,w0,start,stop)
+    W[1],F[1],E[1]	=	shift_spec(f0,f2,e2,w0,start,stop)
+    W[2],F[2],E[2]	=	shift_spec(f0,f3,e3,w0,start,stop)
+
+    if NumFits > 4:
+        W[3],F[3],E[3]	=	shift_spec(f0,f4,e4,w0,start,stop)
+
+    F = np.array(F)
+    E = np.array(E)
+    
+    F_ave =  np.average(F, axis=0)
+    F_ave_w =  np.average(F, axis=0,weights=1./E**2)
+    
+    return W[0], F_ave_w
+
+
 def main():
     
     # Configure these paramters before running
@@ -105,7 +129,8 @@ def main():
     part        = 'A'   # A = red, B = blue
     bin_pnts    = 10.
     x_lim1      = 1288
-    x_lim2      = 1433   
+    x_lim2      = 1433
+    dat_directory = "/home/paw/science/betapic/data/HST/dat/"   
     ##########################################
 
     fits_location = '/home/paw/science/betapic/data/HST/2015/'
@@ -122,7 +147,7 @@ def main():
     fits_location = '/home/paw/science/betapic/data/HST/2015/visit_2/'
     w0_2,w1_2,w2_2,w3_2,f0_2,f1_2,f2_2,f3_2,e0_2,e1_2,e2_2,e3_2,NumFits_2 = getData(fits_location,part,start,stop)
 
-    # Load data visit 3 2015
+    # Load data visit 3 2016
     fits_location = '/home/paw/science/betapic/data/HST/2016/visit_3/'
     w0_3,w1_3,w2_3,w3_3,f0_3,f1_3,f2_3,f3_3,e0_3,e1_3,e2_3,e3_3,NumFits_3 = getData(fits_location,part,start,stop)    
     
@@ -158,15 +183,6 @@ def main():
 
 
     ax = plt.subplot(211)
-
-    plt.plot([1301,1301],[0,3],lw=3,linestyle='--',color="black",alpha=0.75)
-    plt.plot([1322,1322],[0,3],lw=3,linestyle='--',color="black",alpha=0.75)
-    plt.plot([1344,1344],[0,3],lw=3,linestyle='--',color="black",alpha=0.75)
-    plt.plot([1366,1366],[0,3],lw=3,linestyle='--',color="black",alpha=0.75)
-    plt.plot([1392,1392],[0,3],lw=3,linestyle='--',color="black",alpha=0.75)
-    plt.plot([1419,1419],[0,3],lw=3,linestyle='--',color="black",alpha=0.75)
-    plt.plot([1422,1422],[0,3],lw=3,linestyle='--',color="black",alpha=0.75)
-
     # Plot the ratios of the specra
     plt.step(w_bin,ratio1+0.5,label='2014/2015v1',color="#FF32B1") 
     plt.step(w_bin,ratio2,label='2014/2015v2',color="#13C1CC")
@@ -174,77 +190,67 @@ def main():
     plt.xlim(x_lim1,x_lim2)
     plt.ylim(0.25,2.3)
     plt.legend(loc='upper left', numpoints=1)
-    
 
-    
     # Define new start and stop values
     # which determine the region to be
     # cross correlated.
-    start = 5500
-    stop  = 10000
+    start = 5300
+    stop  = 10300
     
     ax2 = plt.subplot(212)
-
-    plt.plot([1301,1301],[0,1.4e-12],lw=3,linestyle='--',color="black",alpha=0.75)
-    plt.plot([1322,1322],[0,1.4e-12],lw=3,linestyle='--',color="black",alpha=0.75)
-    plt.plot([1344,1344],[0,1.4e-12],lw=3,linestyle='--',color="black",alpha=0.75)
-    plt.plot([1366,1366],[0,1.4e-12],lw=3,linestyle='--',color="black",alpha=0.75)
-    plt.plot([1392,1392],[0,1.4e-12],lw=3,linestyle='--',color="black",alpha=0.75)
-    plt.plot([1419,1419],[0,1.4e-12],lw=3,linestyle='--',color="black",alpha=0.75)
-    plt.plot([1422,1422],[0,1.4e-12],lw=3,linestyle='--',color="black",alpha=0.75)   
-
-
+    # Plot of the individual spectra
     plt.step(w_bin,y0_bin+6e-13,lw=1.2,color="#FF281C",label='2014')
     plt.step(w_bin,y1_bin+4e-13,lw=1.2,color="#FF9303",label='2015v1')
-    plt.step(w_bin,y2_bin+2e-13,lw=1.2,color="#0386ff",label='2015v2')
+    plt.step(w_bin,y2_bin+2e-13,lw=1.2,color="#0386FF",label='2015v2')
     plt.step(w_bin,y3_bin,lw=1.2,color="#00B233",label='2016v3') 
     plt.xlim(x_lim1,x_lim2)
     plt.ylim(0.,1.2e-12)   
 
-    
-    #plt.step(w0_0[start:stop],f0_0[start:stop])
+    plt.step(w0_0[start:stop],f0_0[start:stop])
     plt.legend(loc='upper left', numpoints=1)
 
     fig.tight_layout()
     #plt.savefig('FEB_quiet_regions.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
     plt.show()
-    sys.exit()
 
-    # Creating empty arrays to be filled with
-    # shifted spectra
-    F = [[] for _ in range(len(Numfits)-1)]    # -1 because we want to avoid the airglow observation
-    W = [[] for _ in range(len(fits)-1)]
-    E = [[] for _ in range(len(fits)-1)]
-
-    # Check if you wish to manually shift the spectra
-    # or cross-correlate them
-
-    W[0],F[0],E[0]	=	shift_spec(flux,flux,err,wavelength,start,stop)
-    W[1],F[1],E[1]	=	shift_spec(flux,flux1,err1,wavelength,start,stop)
-    W[2],F[2],E[2]	=	shift_spec(flux,flux2,err2,wavelength,start,stop)
-    if fits_location[-8:] != 'visit_1/':
-        W[3],F[3],E[3]	=	shift_spec(flux,flux3,err3,wavelength,start,stop)
-
+    # These are dummy arrays used for the 10 Dec 2015 observations
+    f_empty = []
+    e_empty = []
     
-    F = np.array(F)
-    E = np.array(E)
+    print "\n\nShifting 10 Dec 2015 observations:"
+    W, F_ave_w_1 = ExportShitedSpectra(w0_0,f0_0,f0_1,f1_1,f2_1,f_empty,e0_0,e0_1,e1_1,e2_1,e_empty,NumFits_1,start,stop)
     
-    #F_median = np.median(F, axis=0)
-    F_ave =  np.average(F, axis=0)
-    F_ave_w =  np.average(F, axis=0,weights=1./E**2)
+    print "\n\nShifting 24 Dec 2015 observations:"
+    W, F_ave_w_2 = ExportShitedSpectra(w0_0,f0_0,f0_2,f1_2,f2_2,f3_2,e0_0,e0_2,e1_2,e2_2,e3_2,NumFits_2,start,stop)
+    
+    print "\n\nShifting 30 Jan 2016 observations:"
+    W, F_ave_w_3 = ExportShitedSpectra(w0_0,f0_0,f0_3,f1_3,f2_3,f3_3,e0_0,e0_3,e1_3,e2_3,e3_3,NumFits_3,start,stop)
 
-    plt.step(W[0],F[0])
-    plt.step(W[0],F[1])
-    plt.step(W[0],F[2])
-    if fits_location[-8:] != 'visit_1/':
-        plt.step(W[0],F[3])
-
-    plt.step(W[0],F_ave_w,color='black',lw=2)
-
-
+    fig = plt.figure(figsize=(14,10))
+    fontlabel_size = 18
+    tick_size = 18
+    params = {'backend': 'wxAgg', 'lines.markersize' : 2, 'axes.labelsize': fontlabel_size, 'text.fontsize': fontlabel_size, 'legend.fontsize': fontlabel_size, 'xtick.labelsize': tick_size, 'ytick.labelsize': tick_size, 'text.usetex': True}
+    plt.rcParams.update(params)
+    plt.rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
+    plt.rcParams['text.usetex'] = True
+    plt.rcParams['text.latex.unicode'] = True  
+    
+    plt.step(w0_0,f0_0,color='#FF281C',lw=1.2,label='2014')
+    plt.step(W,F_ave_w_1,color='#FF9303',lw=1.2,label='2015v1')
+    plt.step(W,F_ave_w_2,color='#0386FF',lw=1.2,label='2015v2')
+    plt.step(W,F_ave_w_3,color='#00B233',lw=1.2,label='2016v3')
+    plt.legend(loc='upper left', numpoints=1)
+    plt.xlabel('Wavelength \AA')
+    plt.ylabel('Flux (erg/s/cm$^2$/\AA)')
+    fig.tight_layout()
+    #plt.savefig('all_data_A.pdf', bbox_inches='tight', pad_inches=0.1)
     plt.show()
     
-    #np.savetxt(fits_location+"SiV_weighted_mean_no_err_visit2_M.dat",np.column_stack((W[0],F_ave_w)))
+    F_ave_w_1   = replace_with_median(F_ave_w_1)
+    F_ave_w_2   = replace_with_median(F_ave_w_2)
+    F_ave_w_3   = replace_with_median(F_ave_w_3)
+    
+    #np.savetxt(dat_directory+"A.dat",np.column_stack((W,f0_0,F_ave_w_1,F_ave_w_2,F_ave_w_3)))
     
 if __name__ == '__main__':
     main()
