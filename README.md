@@ -2,6 +2,8 @@
 
 This is a collection of python programs used to work with _HST_/COS data.
 
-**create_dat.py** - Converts the .fits file into a .dat file with columns: wavelength, flux, err, net
+**create_STIS_dat.py** - Converts a STIS .fits file into a .dat file with columns: wavelength, flux, err
+
+**create_dat.py** - Converts a .fits file into a .dat file with columns: wavelength, flux, err, net
 
 **read_file.py** - Plots calibrated *sum.fits files.
