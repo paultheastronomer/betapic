@@ -59,18 +59,6 @@ def shift_spec(ref,spec,error,wave,start,stop):
 	
 	return wave,spec,error
 
-def manual_shift(flux_,err_,units,start,stop):
-    flux_ = flux_[start:stop]
-    err_ = err_[start:stop]
-    zeros = np.zeros(abs(units))
-    if units > 0:
-        print "Shifting right"
-        spec	= np.concatenate((zeros, flux_), axis=1)[:-units]
-    else:
-        print "Shifting left"
-        spec	= np.concatenate((flux_, zeros), axis=1)[abs(units):]
-    return spec,err_
-
 def getData(fits_location,part,start,stop):
     dir_contents = os.listdir(fits_location)
     fits = sorted([fn for fn in dir_contents if fn.startswith('l') and fn.endswith('sum.fits')])
@@ -113,7 +101,7 @@ def main():
     # Configure these paramters before running
     ##########################################
     start       = 1000  # Wavelength element
-    stop	    = 800   # start/stp[ point.
+    stop	    = 800   # start/stop point.
     part        = 'A'   # A = red, B = blue
     bin_pnts    = 10.
     x_lim1      = 1288
