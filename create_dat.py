@@ -1,15 +1,6 @@
-#
-# Create .txt files from
-# x1d COS images
-#
-# Written by: Dr. Paul A. Wilson
-# pwilson@iap.fr
-#
-
 import pyfits
 import os
 import numpy as np
-
 
 def Extract(fits_file):
     f = pyfits.open(fits_file)
@@ -23,13 +14,13 @@ def Extract(fits_file):
     return wavelength[0], flux[0], err[0], net[0]
 
 def main():
-    fits_location = '/home/paw/science/betapic/data/new_data/'
+    fits_location = '/home/paw/science/betapic/data/HST/2014/fits/x1dsum/'
     dir_contents = os.listdir(fits_location)
-    fits = sorted([fn for fn in dir_contents if fn.startswith('l') and fn.endswith('_x1dsum.fits')])
+    fits = sorted([fn for fn in dir_contents if fn.startswith('lc9e01020') and fn.endswith('_x1dsum.fits')])
         
     for i in range(len(fits)):
       wavelength, flux, err, net = Extract(fits_location+fits[i])
-      np.savetxt("data/spectrum.dat",np.column_stack((wavelength,flux,err)))
+      np.savetxt("/home/paw/science/betapic/data/HST/2014/dat/AG_2014_A.dat",np.column_stack((wavelength,flux,err)))
 
 if __name__ == '__main__':
     main()
