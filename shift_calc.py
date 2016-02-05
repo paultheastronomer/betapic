@@ -99,6 +99,13 @@ def replace_with_median(X):
     X[X == 0] = m
     return X
 
+def wave2RV(Wave,rest_wavelength,RV_BP):
+    c = 299792458
+    rest_wavelength = rest_wavelength*(RV_BP*1.e3)/c + rest_wavelength # Convert to beta pic reference frame
+    delta_wavelength = Wave-rest_wavelength
+    RV = ((delta_wavelength/rest_wavelength)*c)/1.e3	# km/s
+    return RV
+
 def ExportShitedSpectra(w0,f0,f1,f2,f3,f4,AG,e0,e1,e2,e3,e4,eAG,NumFits,start,stop):
    
     # Creating empty arrays to be filled with
@@ -255,6 +262,10 @@ def main():
     print "\n\nShifting 30 Jan 2016 observations:"
     W, F1_3, F2_3, F3_3, F4_3, AG3, F_ave_w_3 = ExportShitedSpectra(w0_0,f0_0,f0_3,f1_3,f2_3,f3_3,f_AG_3,e0_0,e0_3,e1_3,e2_3,e3_3,e_AG_3,NumFits_3,start,stop)
 
+    LyA = 1215.6737
+    RV_BP = 20.5
+
+
     fig = plt.figure(figsize=(8,6))
     fontlabel_size = 18
     tick_size = 18
@@ -280,6 +291,8 @@ def main():
     
     # Binning the AirGlow Observations
     Wb, AG0b, AG1b, AG2b, AG3b = Bin_data(W,f_AG_0, AG1, AG2, AG3, bin_pnts)  
+
+    RV = wave2RV(Wb,LyA,RV_BP)
     
     #plt.step(Wb,f0_0b,color='#FF281C',lw=1.2,label='2014')
     #plt.step(Wb,AG0b,color='#FF281C',lw=1.2,alpha=0.5)
@@ -297,12 +310,16 @@ def main():
 
 
 
+    '''   
+    plt.step(Wb,F1_2b,lw=1.2,label='0')
+    plt.step(Wb,F3_2b,lw=1.2,label='0.8')
+    plt.step(Wb,F4_2b,lw=1.2,label='1.1')
     
-    #plt.step(Wb,F_ave_w_2b,color='#0386FF',lw=1.2,label='2015v2')
-    plt.step(Wb,AG2b,color='black',lw=1.2,alpha=0.5,label='Airglow')
-    plt.step(Wb,F1_2b-AG2b*0.26,color='#FF9303',lw=1.2,label='no shift')            # First exposure 0.0"
-    plt.step(Wb,F3_2b-AG2b*0.047,color='#0386FF',lw=1.2,label='0.8\" shift')            # Second Last exposure 0.8"
-    plt.step(Wb,F4_2b-AG2b*0.0075,color='#00B233',lw=1.2,label='1.1\" shift')            # Last exposure 1.1"
+    '''
+    plt.step(RV,AG2b,color='black',lw=1.5,alpha=0.5,label='Airglow')
+    plt.step(RV,F1_2b-AG2b*0.26,color='#FF9303',lw=1.5,label='no shift')            # First exposure 0.0"
+    plt.step(RV,F3_2b-AG2b*0.047,color='#0386FF',lw=1.5,label='0.8 arcsec shift')            # Second Last exposure 0.8"
+    plt.step(RV,F4_2b-AG2b*0.0075,color='#00B233',lw=1.5,label='1.1 arcsec shift')            # Last exposure 1.1"
 
 
 
@@ -315,21 +332,21 @@ def main():
     #plt.step(Wb,F_ave_w_3b-AG3b*0.456,color='#00B233',lw=1.2,label='2016v3')    # ALL DATA
     #plt.step(Wb,F4_3b-AG3b*0.02,color='#00B233',lw=1.2,label='2016v3')
     
-    LyA = 1215.6737
+
     
-    plt.text(LyA,0.73e-13,r'Ly-$\alpha$',ha='center')# at '+str(LyA)+'\AA',va='center')
-    plt.plot([LyA,LyA],[0.6e-13,0.7e-13],'-k',lw=1.2)
-    plt.plot([1200,1230],[0,0],'--k',lw=1.2)
+    plt.text(0,0.73e-13,r'Ly-$\alpha$',ha='center')# at '+str(LyA)+'\AA',va='center')
+    plt.plot([0,0],[0.6e-13,0.7e-13],'-k',lw=1.2)
+    plt.plot([-40,500],[0,0],'--k',lw=1.2)
 
-    tickpos = [1216,1217,1218,1219]
+    #tickpos = [1216,1217,1218,1219]
 
-    plt.xticks(tickpos,tickpos)
+    #plt.xticks(tickpos,tickpos)
     
     #ax.xaxis.set_minor_locator(AutoMinorLocator(3))
     #ax.xaxis.set_minor_formatter(FormatStrFormatter("%.0f"))
     
     plt.legend(loc='upper right', numpoints=1)
-    plt.xlabel('Wavelength (\AA)')
+    plt.xlabel('RV (km/s)')
     plt.ylabel('Flux (erg/s/cm$^2$/\AA)')
     fig.tight_layout()
     
@@ -337,7 +354,8 @@ def main():
     
     #plt.ylim(-0.5e-13,4.5e-13)
     plt.ylim(-0.5e-14,0.9e-13)
-    plt.xlim(1215.25,1219.75)
+    #plt.xlim(1215.25,1219.75)
+    plt.xlim(-35,440)
     #plt.savefig('Ly-a.pdf', bbox_inches='tight', pad_inches=0.1)
     plt.show()
     
