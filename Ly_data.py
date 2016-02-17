@@ -1,11 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy import special
-import sys
-
-from matplotlib.ticker import LinearLocator, FormatStrFormatter
-from scipy.optimize import leastsq
-
 
 def ND(flux,ref,n1,n2):
     return 1. - np.mean(flux[n1:n2])/np.mean(ref[n1:n2])
@@ -16,13 +10,20 @@ def weighted_avg_and_std(values, weights):
 
     values, weights -- Numpy ndarrays with the same shape.
     """
-    average = np.average(values,axis=0, weights=weights)
-    variance = np.average((values-average)**2,axis=0, weights=weights)  # Fast and numerically precise
+    average = np.average(values, axis=0, weights=weights)
+    variance = np.average((values-average)**2, axis=0, weights=weights)  # Fast and numerically precise
     return average, np.sqrt(variance)
 
 def main():    
 
     # Load shifted spectra from files
+    #
+    # W = wavelength, RV = radial velocity, F = flux, E = error, AG = airglow, AGerr = airglow error
+    #
+    # FX_Y      => X = position, Y= visit number (starting from 0)
+    #
+    # i.e. F1_2 => Flux measurement during second position during the third visit)
+    #
     ############################################################################################# 
     W, RV, F0_0, E0_0, AG0, AG0err = np.genfromtxt('/home/paw/science/betapic/data/HST/dat/B_2014.dat',unpack=True,skiprows=7000,skip_footer=6080)
 
@@ -33,7 +34,8 @@ def main():
     W, RV, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3 = np.genfromtxt('/home/paw/science/betapic/data/HST/dat/B_30Jan.dat',unpack=True,skiprows=7000,skip_footer=6080)
     ############################################################################################# 
 
-    # Choose a region to normalise the spectra 
+    # Choose a region to normalise the spectra
+    # units refer to array elements. 450 = start at the 451st element 
     n1 = 450
     n2 = 800
     
@@ -47,29 +49,29 @@ def main():
     Fc = [[] for _ in range(len(N))]
     Ec = [[] for _ in range(len(N))]
     for i in range(len(N)):
-        Fc[i] = F[i]+N[i]*np.mean(F0_0[n1:n2])
-        Ec[i] = np.sqrt(E[i]**2+(N[i]*E0_0)**2)
+        Fc[i] = F[i]+N[i]*np.mean(F0_0[n1:n2])      # Correct for missing flux
+        Ec[i] = np.sqrt(E[i]**2+(N[i]*E0_0)**2)     # Increase uncertainty if flux difference is large
 
-    # 0.8" left Ly wing
+    # -0.8" Ly-alpha wing
     #############################################################################################    
     F1_errs                 =  np.array([Ec[1],Ec[4],Ec[8]])
     F1_ave_w, F1_ave_err    =  weighted_avg_and_std([Fc[1],Fc[4],Fc[8]], 1./F1_errs**2)
     #############################################################################################    
 
-    # 0.8" right Ly wing
+    # 0.8" Ly-alpha wing
     #############################################################################################
     F2_errs                 =  np.array([Ec[2],Ec[5],Ec[9]])
     F2_ave_w, F2_ave_err    =  weighted_avg_and_std([Fc[2],Fc[5],Fc[9]], 1./F2_errs**2)
     #############################################################################################
 
-    # 1.1" right Ly wing
+    # 1.1" Ly-alpha wing
     #############################################################################################
     F3_errs                 =  np.array([E3_2,E3_3])
     F3_ave_w, F3_ave_err    =  weighted_avg_and_std([Fc[6],Fc[10]], 1./F3_errs**2)
     #############################################################################################
 
 
-    # Combining 0.8" and 1.1" data of the right Ly wing
+    # Combining 0.8" and 1.1" data of the Ly-alpha wing
     F_errs                  = np.array([F2_ave_err,F3_ave_err])
     F_ave_r_w, F_ave_r_err  = weighted_avg_and_std([F2_ave_w,F3_ave_w], 1./F_errs**2)
 
@@ -77,6 +79,8 @@ def main():
     E_tot               = np.array([E0_0,Ec[0],Ec[1],Ec[2],Ec[3],Ec[4],Ec[5],Ec[6],Ec[7],Ec[8],Ec[9],Ec[10]])
     F_tot, F_tot_err    = weighted_avg_and_std([F0_0,Fc[0],Fc[1],Fc[2],Fc[3],Fc[4],Fc[5],Fc[6],Fc[7],Fc[8],Fc[9],Fc[10]], 1./E_tot**2)
     
+    # Decide at which RV airglow affects the different measurements
+    # Units in km/s
     shift_0_l       = -337.5
     shift_0_r       =  271.7
     shift_08_l      = -183.3
