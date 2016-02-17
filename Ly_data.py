@@ -70,7 +70,6 @@ def main():
     F3_ave_w, F3_ave_err    =  weighted_avg_and_std([Fc[6],Fc[10]], 1./F3_errs**2)
     #############################################################################################
 
-
     # Combining 0.8" and 1.1" data of the Ly-alpha wing
     F_errs                  = np.array([F2_ave_err,F3_ave_err])
     F_ave_r_w, F_ave_r_err  = weighted_avg_and_std([F2_ave_w,F3_ave_w], 1./F_errs**2)
@@ -88,7 +87,7 @@ def main():
     shift_11_r      =  120
 
     # Plot the spectra using the cuts above and write to .dat file.
-    f = open('Ha.dat', 'w+')
+    f = open('La.dat', 'w+')
     for j in range(len(RV)):
         if RV[j] < shift_0_l or RV[j] > shift_0_r:
             plt.errorbar(RV[j],F_tot[j],yerr=F_tot_err[j],color='black')
@@ -105,7 +104,7 @@ def main():
     f.close()
     
     # Plot the region used for normalisation
-    plt.step(RV[n1:n2],F_tot[n1:n2],color='green')    
+    plt.step(RV[n1:n2],F_tot[n1:n2],color='green')
 
     plt.xlabel(r'RV (km/s)')
     plt.ylabel('Flux')  
