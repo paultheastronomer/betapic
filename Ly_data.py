@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+# Here is a comment
+
 def ND(flux,ref,n1,n2):
     return 1. - np.mean(flux[n1:n2])/np.mean(ref[n1:n2])
 
@@ -80,7 +82,7 @@ def main():
     
     # Decide at which RV airglow affects the different measurements
     # Units in km/s
-    shift_0_l       = -337.5
+    shift_0_l       = -450#-337.5
     shift_0_r       =  271.7
     shift_08_l      = -183.3
     shift_08_r      =  142.5
