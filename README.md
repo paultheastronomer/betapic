@@ -11,3 +11,5 @@ This is a collection of python programs used to work with _HST_/COS data.
 **shift_calc.py** - Shift the offset COS spectra and output aligned spectra.
 
 **spec_line.py** - Plots all COS data centered on a particular line
+
+**Ly_data.py** - Creates the data file containing obsevations around the Ly-alpha line.
