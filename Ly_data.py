@@ -19,6 +19,7 @@ def weighted_avg_and_std(values, weights):
 
 def main():    
 
+    # This is a test!
     # Load shifted spectra from files
     #
     # W = wavelength, RV = radial velocity, F = flux, E = error, AG = airglow, AGerr = airglow error
