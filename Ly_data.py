@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Here is a comment
+# Here is the comment from Alain !!
 
 def ND(flux,ref,n1,n2):
     return 1. - np.mean(flux[n1:n2])/np.mean(ref[n1:n2])
