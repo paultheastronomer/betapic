@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 
+# Test
+
 def CF(flux,flux_err,ref,ref_err,n1,n2):
     ratio = np.average(flux[n1:n2], axis=0, weights=1./(flux_err[n1:n2]**2))/ \
             np.average(ref[n1:n2],  axis=0, weights=1./(ref_err[n1:n2]**2 ))                       
