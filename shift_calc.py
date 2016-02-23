@@ -1,15 +1,13 @@
 import pyfits, os
 import matplotlib.pyplot as plt
 import numpy as np
-import sys
-
 
 def Extract(fits_file, part,start,stop):
-    f = pyfits.open(fits_file)
-    tbdata = f[1].data
-    wavelength = tbdata['WAVELENGTH']
-    flux = tbdata['FLUX']
-    err = tbdata['ERROR']
+    f           = pyfits.open(fits_file)
+    tbdata      = f[1].data
+    wavelength  = tbdata['WAVELENGTH']
+    flux        = tbdata['FLUX']
+    err         = tbdata['ERROR']
     if part == 'A':
         return wavelength[0][start:-stop], flux[0][start:-stop], err[0][start:-stop]
     else:
@@ -141,7 +139,7 @@ def main():
     start       = 1000#1000  # Wavelength element
     stop	    = 1000#800   # start/stop point.
     part        = 'B'   # A = red, B = blue
-    bin_pnts    = 1.
+    bin_pnts    = 10.
     x_lim1      = 1132#1288
     x_lim2      = 1281#1433
     dat_directory = "/home/paw/science/betapic/data/HST/dat/"   
@@ -169,10 +167,17 @@ def main():
     
    
     
+    # The next part of the code is aimed at finding quiet regions in the spectra
+    # not affected by FEB activity. The binning of the data is done so that
+    # the quiet regions can be better seen.
+    
+    
     # Bin the data by bin_pnts (defined above)
     w_bin, y0_bin, y1_bin, y2_bin, y3_bin = Bin_data(w0_0,f0_0,f0_1,f0_2,f0_3,bin_pnts)
     w_AG_bin, AG0_bin, AG1_bin, AG2_bin, AG3_bin = Bin_data(w_AG_0,f_AG_0,f_AG_1,f_AG_2,f_AG_3,bin_pnts)
     
+    # To avoid dividing my 0 when calculating the ratios below, NaN and 0's are
+    # replaced by the median. Again, this is only for visual purposes.
     y0_bin = replace_with_median(y0_bin)
     y1_bin = replace_with_median(y1_bin)
     y2_bin = replace_with_median(y2_bin)
@@ -187,14 +192,7 @@ def main():
     ratio2 = y0_bin/y2_bin
     ratio3 = y0_bin/y3_bin
 
-    m1 = np.median(ratio1)
-    m2 = np.median(ratio2)
-    m3 = np.median(ratio3)
-    
-    s1 = np.std(ratio1)
-    s2 = np.std(ratio2)
-    s3 = np.std(ratio3)
-
+    # Creates a figure showing the quiet regions of the spectra.
     fig = plt.figure(figsize=(10,14))
     fontlabel_size = 18
     tick_size = 18
@@ -204,6 +202,8 @@ def main():
     plt.rcParams['text.usetex'] = True
     plt.rcParams['text.latex.unicode'] = True   
 
+    # Top plot shows the ratio between the spectra. Flat regions are
+    # indicative of low FEB activity.
     ax1 = plt.subplot(211)
     # Plot the ratios of the specra
     plt.step(w_bin,ratio1+0.5,label='2014/2015v1',color="#FF32B1") 
@@ -213,12 +213,12 @@ def main():
     if part == 'A':
       plt.ylim(0.25,2.3)
     else:
-      plt.ylim(0.,15.0)
+      plt.ylim(0.,3.0)
     plt.legend(loc='upper left', numpoints=1)
 
     # Define new start and stop values
     # which determine the region to be
-    # cross correlated.
+    # cross correlated. This region will be marked in blue in the lower panel.
     if part == 'A':
         start = 5300
         stop  = 10300
@@ -247,6 +247,11 @@ def main():
     #plt.savefig('FEB_quiet_regions.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
     plt.show()
 
+    # --------------------------------------------------------------------------
+    # The heart of the code. This is where the the quiet region of the spectra
+    # are used to cross correlate the spectra and calculate the shift.
+    # --------------------------------------------------------------------------
+    
     # These are dummy arrays used for the 10 Dec 2015 observations
     f_empty = []
     e_empty = []
