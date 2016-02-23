@@ -1,22 +1,13 @@
-#
-# Shift spectra
-#
-# Written by: Paul A. Wilson
-# pwilson@iap.fr
-#
-
 import pyfits, os
 import matplotlib.pyplot as plt
 import numpy as np
-import sys
-
 
 def Extract(fits_file, part,start,stop):
-    f = pyfits.open(fits_file)
-    tbdata = f[1].data
-    wavelength = tbdata['WAVELENGTH']
-    flux = tbdata['FLUX']
-    err = tbdata['ERROR']
+    f           = pyfits.open(fits_file)
+    tbdata      = f[1].data
+    wavelength  = tbdata['WAVELENGTH']
+    flux        = tbdata['FLUX']
+    err         = tbdata['ERROR']
     if part == 'A':
         return wavelength[0][start:-stop], flux[0][start:-stop], err[0][start:-stop]
     else:
@@ -32,6 +23,7 @@ def shift_spec(ref,spec,error,wave,start,stop):
 	
 	ref_c       = ref_c - np.mean(ref_c)
 	spec_c      = spec_c - np.mean(spec_c)
+	error_c       = error_c - np.mean(error_c)
 
 	c           = np.correlate(spec_c,ref_c,mode='full')
 
@@ -47,6 +39,7 @@ def shift_spec(ref,spec,error,wave,start,stop):
 	  print "Angstrom Shift:\t",shift
 	  zeros = np.zeros(units)
 	  spec	= np.concatenate((zeros, spec), axis=1)[:-units]
+	  error	= np.concatenate((zeros, error), axis=1)[:-units]
 	else:                           # If spectrum is blueshifted
 	  c = np.correlate(ref_c,spec_c,mode='full')
 	  shift = wave_c[np.argmax(c)]-wave_c[ref_c.size-1]
@@ -55,6 +48,7 @@ def shift_spec(ref,spec,error,wave,start,stop):
 	  print "Angstrom Shift:\t",shift
 	  zeros     = np.zeros(units)
 	  spec	= np.concatenate((spec, zeros), axis=1)[units:]
+	  error	= np.concatenate((error, zeros), axis=1)[units:]
 	print "=================================="
 
 	return wave,spec,error
@@ -84,14 +78,17 @@ def getData(fits_location,part,start,stop):
         return wavelength0, wavelength1, wavelength2, wavelength3, flux0, flux1, flux2, flux3, err0, err1, err2, err3, wavelength_AG, flux_AG, err_AG, NumFits
 
 def Bin_data(x,y0,y1,y2,y3,bin_pnts):
-    bin_size = int(len(x)/bin_pnts)
-    bins = np.linspace(x[0], x[-1], bin_size)
-    digitized = np.digitize(x, bins)
-    bin_y0 = np.array([y0[digitized == i].mean() for i in range(0, len(bins))])
-    bin_y1 = np.array([y1[digitized == i].mean() for i in range(0, len(bins))])
-    bin_y2 = np.array([y2[digitized == i].mean() for i in range(0, len(bins))])
-    bin_y3 = np.array([y3[digitized == i].mean() for i in range(0, len(bins))])
-    return bins, bin_y0, bin_y1, bin_y2, bin_y3        
+    if bin_pnts > 1:
+        bin_size = int(len(x)/bin_pnts)
+        bins = np.linspace(x[0], x[-1], bin_size)
+        digitized = np.digitize(x, bins)
+        bin_y0 = np.array([y0[digitized == i].mean() for i in range(0, len(bins))])
+        bin_y1 = np.array([y1[digitized == i].mean() for i in range(0, len(bins))])
+        bin_y2 = np.array([y2[digitized == i].mean() for i in range(0, len(bins))])
+        bin_y3 = np.array([y3[digitized == i].mean() for i in range(0, len(bins))])
+        return bins, bin_y0, bin_y1, bin_y2, bin_y3
+    else:
+        return x,y0,y1,y2,y3     
 
 def replace_with_median(X):
     X[np.isnan(X)] = 0
@@ -124,16 +121,15 @@ def ExportShitedSpectra(w0,f0,f1,f2,f3,f4,AG,e0,e1,e2,e3,e4,eAG,NumFits,start,st
     F = np.array(F)
     E = np.array(E)
     
-    #F_ave =  np.average(F, axis=0)
     F_ave_w =  np.average(F, axis=0,weights=1./E**2)
     
 
     if NumFits > 4:
-        return W[0], F[0], F[1], F[2], F[3], AG, F_ave_w
+        return W[0], F[0], E[0], F[1], E[1], F[2], E[2], F[3], E[3], AG, eAG, F_ave_w
     elif NumFits < 4:
-        return W[0], F[0], AG, F_ave_w
+        return W[0], F[0], E[0], AG, eAG, F_ave_w
     else:
-        return W[0], F[0], F[1], F[2], AG, F_ave_w
+        return W[0], F[0], E[0], F[1], E[1], F[2], E[2], AG, eAG, F_ave_w
 
 
 def main():
@@ -143,10 +139,12 @@ def main():
     start       = 1000#1000  # Wavelength element
     stop	    = 1000#800   # start/stop point.
     part        = 'B'   # A = red, B = blue
-    bin_pnts    = 3.
+    bin_pnts    = 10.
     x_lim1      = 1132#1288
     x_lim2      = 1281#1433
     dat_directory = "/home/paw/science/betapic/data/HST/dat/"   
+    LyA = 1215.6737 # Ly-alpha wavelength
+    RV_BP = 0       # RV reference frame.
     ##########################################
 
     fits_location = '/home/paw/science/betapic/data/HST/2015/'
@@ -154,7 +152,7 @@ def main():
     # Load data visit 1 2014
     fits_location = '/home/paw/science/betapic/data/HST/2014/visit_1/'
     w0_0,f0_0,e0_0,w_AG_0,f_AG_0,e_AG_0,NumFits_0               = getData(fits_location,part,start,stop)
-    
+
     # Load data visit 1 2015
     fits_location = '/home/paw/science/betapic/data/HST/2015/visit_1/'
     w0_1,w1_1,w2_1,f0_1,f1_1,f2_1,e0_1,e1_1,e2_1,w_AG_1,f_AG_1,e_AG_1,NumFits_1                = getData(fits_location,part,start,stop)
@@ -165,12 +163,21 @@ def main():
 
     # Load data visit 3 2016
     fits_location = '/home/paw/science/betapic/data/HST/2016/visit_3/'
-    w0_3,w1_3,w2_3,w3_3,f0_3,f1_3,f2_3,f3_3,e0_3,e1_3,e2_3,e3_3,w_AG_3,f_AG_3,e_AG_3,NumFits_3 = getData(fits_location,part,start,stop)    
+    w0_3,w1_3,w2_3,w3_3,f0_3,F0_3,F1_3,F2_3,e0_3,e1_3,e2_3,e3_3,w_AG_3,f_AG_3,e_AG_3,NumFits_3 = getData(fits_location,part,start,stop)    
+    
+   
+    
+    # The next part of the code is aimed at finding quiet regions in the spectra
+    # not affected by FEB activity. The binning of the data is done so that
+    # the quiet regions can be better seen.
+    
     
     # Bin the data by bin_pnts (defined above)
     w_bin, y0_bin, y1_bin, y2_bin, y3_bin = Bin_data(w0_0,f0_0,f0_1,f0_2,f0_3,bin_pnts)
     w_AG_bin, AG0_bin, AG1_bin, AG2_bin, AG3_bin = Bin_data(w_AG_0,f_AG_0,f_AG_1,f_AG_2,f_AG_3,bin_pnts)
     
+    # To avoid dividing my 0 when calculating the ratios below, NaN and 0's are
+    # replaced by the median. Again, this is only for visual purposes.
     y0_bin = replace_with_median(y0_bin)
     y1_bin = replace_with_median(y1_bin)
     y2_bin = replace_with_median(y2_bin)
@@ -185,15 +192,7 @@ def main():
     ratio2 = y0_bin/y2_bin
     ratio3 = y0_bin/y3_bin
 
-    m1 = np.median(ratio1)
-    m2 = np.median(ratio2)
-    m3 = np.median(ratio3)
-    
-    s1 = np.std(ratio1)
-    s2 = np.std(ratio2)
-    s3 = np.std(ratio3)
-
-    '''
+    # Creates a figure showing the quiet regions of the spectra.
     fig = plt.figure(figsize=(10,14))
     fontlabel_size = 18
     tick_size = 18
@@ -203,7 +202,8 @@ def main():
     plt.rcParams['text.usetex'] = True
     plt.rcParams['text.latex.unicode'] = True   
 
-
+    # Top plot shows the ratio between the spectra. Flat regions are
+    # indicative of low FEB activity.
     ax1 = plt.subplot(211)
     # Plot the ratios of the specra
     plt.step(w_bin,ratio1+0.5,label='2014/2015v1',color="#FF32B1") 
@@ -213,19 +213,19 @@ def main():
     if part == 'A':
       plt.ylim(0.25,2.3)
     else:
-      plt.ylim(0.,2.8)
+      plt.ylim(0.,3.0)
     plt.legend(loc='upper left', numpoints=1)
-    '''
+
     # Define new start and stop values
     # which determine the region to be
-    # cross correlated.
+    # cross correlated. This region will be marked in blue in the lower panel.
     if part == 'A':
         start = 5300
         stop  = 10300
     else:
         start = 9000
         stop  = 12400
-    '''            
+    #'''            
     ax2 = plt.subplot(212, sharex=ax1)
     # Plot of the individual spectra
     plt.step(w_bin,y0_bin+6e-13,lw=1.2,color="#FF281C",label='2014')
@@ -243,127 +243,38 @@ def main():
     plt.legend(loc='upper left', numpoints=1)
     
     fig.tight_layout()
+    plt.xlabel(r'Wavelength \AA')
     #plt.savefig('FEB_quiet_regions.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
     plt.show()
-    '''
 
+    # --------------------------------------------------------------------------
+    # The heart of the code. This is where the the quiet region of the spectra
+    # are used to cross correlate the spectra and calculate the shift.
+    # --------------------------------------------------------------------------
+    
     # These are dummy arrays used for the 10 Dec 2015 observations
     f_empty = []
     e_empty = []
     
-    # W[0], F[0], F[1], F[2], F[3], AG, F_ave_w
-    
     print "\n\nShifting 10 Dec 2015 observations:"
-    W, F1_1, F2_1, F3_1, AG1, F_ave_w_1 = ExportShitedSpectra(w0_0,f0_0,f0_1,f1_1,f2_1,f_empty,f_AG_1,e0_0,e0_1,e1_1,e2_1,e_empty,e_AG_1,NumFits_1,start,stop)
+    W, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1 = ExportShitedSpectra(w0_0,f0_0,f0_1,f1_1,f2_1,f_empty,f_AG_1,e0_0,e0_1,e1_1,e2_1,e_empty,e_AG_1,NumFits_1,start,stop)
     
     print "\n\nShifting 24 Dec 2015 observations:"
-    W, F1_2, F2_2, F3_2, F4_2, AG2, F_ave_w_2 = ExportShitedSpectra(w0_0,f0_0,f0_2,f1_2,f2_2,f3_2,f_AG_2,e0_0,e0_2,e1_2,e2_2,e3_2,e_AG_2,NumFits_2,start,stop)
+    W, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2 = ExportShitedSpectra(w0_0,f0_0,f0_2,f1_2,f2_2,f3_2,f_AG_2,e0_0,e0_2,e1_2,e2_2,e3_2,e_AG_2,NumFits_2,start,stop)
     
     print "\n\nShifting 30 Jan 2016 observations:"
-    W, F1_3, F2_3, F3_3, F4_3, AG3, F_ave_w_3 = ExportShitedSpectra(w0_0,f0_0,f0_3,f1_3,f2_3,f3_3,f_AG_3,e0_0,e0_3,e1_3,e2_3,e3_3,e_AG_3,NumFits_3,start,stop)
-
-    LyA = 1215.6737
-    RV_BP = 20.5
+    W, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3 = ExportShitedSpectra(w0_0,f0_0,f0_3,F0_3,F1_3,F2_3,f_AG_3,e0_0,e0_3,e1_3,e2_3,e3_3,e_AG_3,NumFits_3,start,stop)
 
 
-    fig = plt.figure(figsize=(8,6))
-    fontlabel_size = 18
-    tick_size = 18
-    params = {'backend': 'wxAgg', 'lines.markersize' : 2, 'axes.labelsize': fontlabel_size, 'font.size': fontlabel_size, 'legend.fontsize': fontlabel_size, 'xtick.labelsize': tick_size, 'ytick.labelsize': tick_size, 'text.usetex': True}
-    plt.rcParams.update(params)
-    plt.rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
-    plt.rcParams['text.usetex'] = True
-    plt.rcParams['text.latex.unicode'] = True
+    # Convert from wavlength to radial velocity
+    RV = wave2RV(W,LyA,RV_BP)
     
-    ax = plt.subplot('111')
-    bin_pnts = 3.
-    
-    # Binning Dec 10 Observations
-    Wb, F1_0b, F1_1b, F2_1b, F3_1b = Bin_data(W,f0_0,F1_1,F2_1,F3_1,bin_pnts)
+    # Save data into .dat file
+    np.savetxt(dat_directory+part+"_2014.dat",np.column_stack((W, RV, f0_0, e0_0, f_AG_0, e_AG_0)))
+    np.savetxt(dat_directory+part+"_10Dec.dat",np.column_stack((W, RV, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1)))
+    np.savetxt(dat_directory+part+"_24Dec.dat",np.column_stack((W, RV, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2)))
+    np.savetxt(dat_directory+part+"_30Jan.dat",np.column_stack((W, RV, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3)))
 
-    # Binning Dec 24 Observations
-    Wb, F1_2b, F2_2b, F3_2b, F4_2b = Bin_data(W,F1_2,F2_2,F3_2,F4_2,bin_pnts)
-
-    # Binning Jan 30 Observations
-    Wb, F1_3b, F2_3b, F3_3b, F4_3b = Bin_data(W,F1_3,F2_3,F3_3,F4_3,bin_pnts)
-
-    Wb,F1_0b,F_ave_w_1b,F_ave_w_2b,F_ave_w_3b = Bin_data(W,f0_0,F_ave_w_1,F_ave_w_2,F_ave_w_3,bin_pnts)
-    
-    # Binning the AirGlow Observations
-    Wb, AG0b, AG1b, AG2b, AG3b = Bin_data(W,f_AG_0, AG1, AG2, AG3, bin_pnts)  
-
-    RV = wave2RV(Wb,LyA,RV_BP)
-    
-    #plt.step(Wb,f0_0b,color='#FF281C',lw=1.2,label='2014')
-    #plt.step(Wb,AG0b,color='#FF281C',lw=1.2,alpha=0.5)
-    #plt.step(Wb,f0_0b,color='#FF281C',lw=1.2,label='2014')
-    #plt.step(Wb,F1_0b-AG0b*1.34,color='black',lw=1.2,label='2014',alpha=0.5)    # ALL DATA
-     
-    #plt.step(Wb,F_ave_w_1b,color='#FF9303',lw=1.2,label='2015v1')
-    #plt.step(Wb,AG1b,color='#FF9303',lw=1.2,alpha=0.5)
-    #plt.step(Wb,F_ave_w_1b-AG1b*1.35,color='#FF9303',lw=1.2,label='2015v1')
-    #plt.step(Wb,F_ave_w_1b-AG1b*1.296,color='#FF9303',lw=1.2,label='2015v1')    # ALL DATA
-    #plt.step(Wb,F1_1b-AG1b*1.35,color='#FF9303',lw=1.2,label='2015v1, 0.0 arcsec shift')            # First exposure 0.0"
-    #plt.step(Wb,F3_1b-AG1b*0.09,color='#FF9303',lw=1.2,label='2015v1, 0.8\" shift')            # Last exposure 0.8"
-
-
-
-
-
-    '''   
-    plt.step(Wb,F1_2b,lw=1.2,label='0')
-    plt.step(Wb,F3_2b,lw=1.2,label='0.8')
-    plt.step(Wb,F4_2b,lw=1.2,label='1.1')
-    
-    '''
-    plt.step(RV,AG2b,color='black',lw=1.5,alpha=0.5,label='Airglow')
-    plt.step(RV,F1_2b-AG2b*0.26,color='#FF9303',lw=1.5,label='no shift')            # First exposure 0.0"
-    plt.step(RV,F3_2b-AG2b*0.047,color='#0386FF',lw=1.5,label='0.8 arcsec shift')            # Second Last exposure 0.8"
-    plt.step(RV,F4_2b-AG2b*0.0075,color='#00B233',lw=1.5,label='1.1 arcsec shift')            # Last exposure 1.1"
-
-
-
-
-
-
-    
-    #plt.step(Wb,F_ave_w_3b,color='#00B233',lw=1.2,label='2016v3')
-    #plt.step(Wb,AG3b,color='#00B233',lw=1.2,alpha=0.5)
-    #plt.step(Wb,F_ave_w_3b-AG3b*0.456,color='#00B233',lw=1.2,label='2016v3')    # ALL DATA
-    #plt.step(Wb,F4_3b-AG3b*0.02,color='#00B233',lw=1.2,label='2016v3')
-    
-
-    
-    plt.text(0,0.73e-13,r'Ly-$\alpha$',ha='center')# at '+str(LyA)+'\AA',va='center')
-    plt.plot([0,0],[0.6e-13,0.7e-13],'-k',lw=1.2)
-    plt.plot([-40,500],[0,0],'--k',lw=1.2)
-
-    #tickpos = [1216,1217,1218,1219]
-
-    #plt.xticks(tickpos,tickpos)
-    
-    #ax.xaxis.set_minor_locator(AutoMinorLocator(3))
-    #ax.xaxis.set_minor_formatter(FormatStrFormatter("%.0f"))
-    
-    plt.legend(loc='upper right', numpoints=1)
-    plt.xlabel('RV (km/s)')
-    plt.ylabel('Flux (erg/s/cm$^2$/\AA)')
-    fig.tight_layout()
-    
-
-    
-    #plt.ylim(-0.5e-13,4.5e-13)
-    plt.ylim(-0.5e-14,0.9e-13)
-    #plt.xlim(1215.25,1219.75)
-    plt.xlim(-35,440)
-    #plt.savefig('Ly-a.pdf', bbox_inches='tight', pad_inches=0.1)
-    plt.show()
-    
-    F_ave_w_1   = replace_with_median(F_ave_w_1)
-    F_ave_w_2   = replace_with_median(F_ave_w_2)
-    F_ave_w_3   = replace_with_median(F_ave_w_3)
-    
-    #np.savetxt(dat_directory+"A.dat",np.column_stack((W,f0_0,F_ave_w_1,F_ave_w_2,F_ave_w_3)))
     
 if __name__ == '__main__':
     main()
