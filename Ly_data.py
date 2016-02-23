@@ -1,21 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import sys
 
 def CF(flux,flux_err,ref,ref_err,n1,n2):
     ratio = np.average(flux[n1:n2], axis=0, weights=1./(flux_err[n1:n2]**2))/ \
             np.average(ref[n1:n2],  axis=0, weights=1./(ref_err[n1:n2]**2 ))                       
     return 1./ratio
-
-def weighted_avg_and_std(values, weights):
-    """
-    Return the weighted average and standard deviation.
-
-    values, weights -- Numpy ndarrays with the same shape.
-    """
-    average = np.average(values, axis=0, weights=weights)
-    variance = np.average((values-average)**2, axis=0, weights=weights)  # Fast and numerically precise
-    return average, np.sqrt(variance)
 
 def weighted_avg_and_errorbars(Flux, Err):
     """
@@ -94,30 +83,38 @@ def main():
     #############################################################################################
 
     # Combine all data regardless of shift
+    #############################################################################################
     Flux = np.array([F0_0,Fc[0],Fc[1],Fc[2],Fc[3],Fc[4],Fc[5],Fc[6],Fc[7],Fc[8],Fc[9],Fc[10]])
     Err  = np.array([E0_0,Ec[0],Ec[1],Ec[2],Ec[3],Ec[4],Ec[5],Ec[6],Ec[7],Ec[8],Ec[9],Ec[10]])
     F_tot, F_tot_err    =  weighted_avg_and_errorbars(Flux,Err)
+    #############################################################################################
     
     # Decide at which RV airglow affects the different measurements
     # Units in km/s
-    shift_0_l       = -450#-337.5
+    shift_0_l       = -337.5
     shift_0_r       =  271.7
     shift_08_l      = -183.3
     shift_08_r      =  142.5
     shift_11_r      =  120
 
+    plt.errorbar(RV,F_tot,yerr=F_tot_err,color='black')
     # Plot the spectra using the cuts above and write to .dat file.
     f = open('La.dat', 'w+')
     for j in range(len(RV)):
-        if RV[j] < shift_0_l or RV[j] > shift_0_r:
-            plt.errorbar(RV[j],F_tot[j],yerr=F_tot_err[j],color='black')
+        # Save 0.0" shift data
+        if RV[j] < shift_0_l:
+            print >> f, " ","{: 1.10e}".format(W[j])," "+"{: 1.10e}".format(F_tot[j])," "+"{: 1.10e}".format(F_tot_err[j])       
+        if RV[j] > shift_0_r:
             print >> f, " ","{: 1.10e}".format(W[j])," "+"{: 1.10e}".format(F_tot[j])," "+"{: 1.10e}".format(F_tot_err[j])
+        
+        # Save 0.8" shift data
         if  shift_0_l < RV[j] < shift_08_l:
             plt.errorbar(RV[j],F1[j],yerr=F1_err[j],color='blue')
             print >> f, " ","{: 1.10e}".format(W[j])," "+"{: 1.10e}".format(F1[j])," "+"{: 1.10e}".format(F1_err[j])
         if  shift_08_r < RV[j] < shift_0_r:
             plt.errorbar(RV[j],F2[j],yerr=F2_err[j],color='blue')
             print >> f, " ","{: 1.10e}".format(W[j])," "+"{: 1.10e}".format(F2[j])," "+"{: 1.10e}".format(F2_err[j])
+        # Save 1.1" shift data
         if  shift_11_r < RV[j] < shift_08_r:
             plt.errorbar(RV[j],F3[j],yerr=F3_err[j],color='red')
             print >> f, " ","{: 1.10e}".format(W[j])," "+"{: 1.10e}".format(F3[j])," "+"{: 1.10e}".format(F3_err[j])
