@@ -41,13 +41,13 @@ def main():
     # i.e. F1_2 => Flux measurement during second position during the third visit)
     #
     ############################################################################################# 
-    W, RV, F0_0, E0_0, AG0, AG0err = np.genfromtxt('C:\Users\Alain Lecavelier\Desktop\HST_BetaPic\Data\dat\B_2014.dat',unpack=True,skiprows=7000,skip_footer=6080)
+    W, RV, F0_0, E0_0, AG0, AG0err = np.genfromtxt('/home/paw/science/betapic/data/HST/dat/B_2014.dat',unpack=True,skiprows=7000,skip_footer=6080)
 
-    W, RV, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1 = np.genfromtxt('C:\Users\Alain Lecavelier\Desktop\HST_BetaPic\Data\dat\B_10Dec.dat',unpack=True,skiprows=7000,skip_footer=6080)
+    W, RV, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1 = np.genfromtxt('/home/paw/science/betapic/data/HST/dat/B_10Dec.dat',unpack=True,skiprows=7000,skip_footer=6080)
 
-    W, RV, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2 = np.genfromtxt('C:\Users\Alain Lecavelier\Desktop\HST_BetaPic\Data\dat\B_24Dec.dat',unpack=True,skiprows=7000,skip_footer=6080)
+    W, RV, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2 = np.genfromtxt('/home/paw/science/betapic/data/HST/dat/B_24Dec.dat',unpack=True,skiprows=7000,skip_footer=6080)
 
-    W, RV, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3 = np.genfromtxt('C:\Users\Alain Lecavelier\Desktop\HST_BetaPic\Data\dat\B_30Jan.dat',unpack=True,skiprows=7000,skip_footer=6080)
+    W, RV, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3 = np.genfromtxt('/home/paw/science/betapic/data/HST/dat/B_30Jan.dat',unpack=True,skiprows=7000,skip_footer=6080)
     ############################################################################################# 
 
     # Choose a region to normalise the spectra
