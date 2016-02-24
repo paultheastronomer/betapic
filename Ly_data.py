@@ -16,7 +16,8 @@ def weighted_avg_and_errorbars(Flux, Err):
     return average, np.sqrt(errorbars_2)
 
 def main():    
-
+    #############################################################################################
+    #
     # Load shifted spectra from files
     #
     # W = wavelength, RV = radial velocity, F = flux, E = error, AG = airglow, AGerr = airglow error
@@ -99,7 +100,7 @@ def main():
 
     plt.errorbar(RV,F_tot,yerr=F_tot_err,color='black')
     # Plot the spectra using the cuts above and write to .dat file.
-    f = open('La.dat', 'w+')
+    f = open('Ly-alpha.dat', 'w+')
     for j in range(len(RV)):
         # Save 0.0" shift data
         if RV[j] < shift_0_l:
