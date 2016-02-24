@@ -54,20 +54,23 @@ def absorption(l,v,nh,T,LyA):
            abs_ism[ind]=0. 
         endfor ; line
         '''
-    
+        
     return abs_ism
 
 def main():    
 
     W, F, E = np.genfromtxt('Ly-alpha.dat',unpack=True)
     
+    ### Parameters ##############################
     LyA     =   1215.6737
 
+    # ISM parameters
     v_ism   =   10.0          
     nh_ism  =   18.
     b_ism   =   7.
     T_ism   =   7000.
 
+    # Beta Pic parameters
     v_bp    =   20.5          
     nh_bp   =   18.85
     b_bp    =   2.
@@ -79,12 +82,13 @@ def main():
     av      =   7.      
 
     sigma_kernel    =   7.
-
-    #Par=[nh_ism, b_ism, T_ism,  nh_bp, b_bp, T_bp, max_f, dp, uf, av]
+    #############################################
 
     v           =   np.arange(-len(W)/2.,len(W)/2.,1)   # RV values
-    l           =   LyA*(1.0 + v/3e5)   # wavelength as emitted from the star
+    l           =   LyA*(1.0 + v/3e5)       # wavelength as emitted from the star
     
+    # Calculates the ISM absorption
+    # see IDL function 'calculate_abs_ism'
     abs_ism =   absorption(l,v_ism,nh_ism,T_ism,LyA)
     abs_bp  =   absorption(l,v_bp,nh_bp,T_bp,LyA)
     
@@ -92,7 +96,6 @@ def main():
     # Dispersion of the theoretical wavelength range
     # Dispersion de la plage de longueurs d'onde theorique
     # np.roll is equivalent to the IDL shift function
-
 
     dl          =   np.mean((l-np.roll(l,1))[1:])
     dwave       =   np.median((W-np.roll(W,1))[1:])     
@@ -110,6 +113,8 @@ def main():
     u1          =   uf*(l-lambda1)   #blue peak wavelengths
     u2          =   uf*(l-lambda2)   #red peak wavelengths
 
+    # I don't understand the above part. u1 == u2, no?
+
     f           =   max_f*(voigt(av,u1)+voigt(av,u2))
 
     # Stellar spectral profile, as seen from Earth after absorption by the ISM and BP CS disk   
@@ -121,8 +126,9 @@ def main():
     #print len(f_abs),len(kernel)
     f_abs_con   =   np.convolve(f_abs,kernel,mode='same')
     
-
     # Interpolation on COS wavelengths, relative to the star
+    print len(f_abs_con),len(l),len(W)
+
     f_abs_int   =   np.interp(f_abs_con,l,W)
 
     f_abs_bp_0  =   f*abs_bp
@@ -133,18 +139,13 @@ def main():
 
     f_star      =   np.convolve(f,kernel,mode='same')
 
-
-
-    #plt.plot(W,abs_ism)
-    #plt.plot(W,kernel)
+    # Plot the results
     plt.plot(l,f_star,color='red')
     plt.plot(W,F,color='black')
-    #plt.step(W,F,color='green')
 
     plt.xlabel(r'Wavelength \AA')
     plt.ylabel('Flux')
-    #plt.xlim(-800,800)  
-    #plt.xlim(-2000,800)
+
     plt.ylim(-0.3e-14,5.5e-14)
     plt.show()
 
