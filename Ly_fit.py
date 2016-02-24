@@ -13,11 +13,11 @@ def voigt(x, y):
 	return I
 
 
-def absorption(l,v,nh,T):
+def absorption(l,v,nh,T,LyA):
     
     # [Hydrogen, Deuterium]
     
-    w       = [1215.6737,1215.3394]
+    w       = [LyA,1215.3394]
     mass    = [1.,2.]
     fosc    = [0.416,0.416]
     delta   = np.array([0.627e9,0.627e9]) /(4.*np.pi)
@@ -36,28 +36,32 @@ def absorption(l,v,nh,T):
         hav     = tv*voigt(a,v)
               
         abs_ism = np.ones(len(hav))
-
+        
+        # I am uncertain about the translation from IDL to python here
+        # The original IDL code is below
         for j in range(len(hav)):
             if hav[j] < 20.:      
-                abs_ism[j]  =   abs_ism[j]*np.exp(-hav[j])
+                abs_ism[j]  =   abs_ism[j]*np.exp(-hav[j])       
             else:
                 abs_ism[j]  =   0.
-    
-    '''
-    ind=where(hav lt 20.,count)
-     if  count gt 0 then $
-       abs_ism[ind]=abs_ism[ind]*exp(-hav[ind])  
-    ind=where(hav ge 20.,count)
-     if  count gt 0 then $
-       abs_ism[ind]=0. 
-    endfor ; line
-    '''
+
+        '''
+        ind=where(hav lt 20.,count)
+         if  count gt 0 then $
+           abs_ism[ind]=abs_ism[ind]*exp(-hav[ind])  
+        ind=where(hav ge 20.,count)
+         if  count gt 0 then $
+           abs_ism[ind]=0. 
+        endfor ; line
+        '''
     
     return abs_ism
 
 def main():    
 
     W, F, E = np.genfromtxt('Ly-alpha.dat',unpack=True)
+    
+    LyA     =   1215.6737
 
     v_ism   =   10.0          
     nh_ism  =   18.
@@ -65,33 +69,31 @@ def main():
     T_ism   =   7000.
 
     v_bp    =   20.5          
-    nh_bp   =   18.9
+    nh_bp   =   18.85
     b_bp    =   2.
     T_bp    =   1000.
 
     max_f   =   6e-13                  
     dp      =   0.0 
     uf      =   3.
-    av      =   7      
+    av      =   7.      
 
     sigma_kernel    =   7.
 
-    Par=[nh_ism, b_ism, T_ism,  nh_bp, b_bp, T_bp, max_f, dp, uf, av]
+    #Par=[nh_ism, b_ism, T_ism,  nh_bp, b_bp, T_bp, max_f, dp, uf, av]
 
-
-    abs_ism =   absorption(W,v_ism,nh_ism,T_ism)
-    abs_bp  =   absorption(W,v_bp,nh_bp,T_bp)
-
-    print np.min(abs_ism)
-    sys.exit()
+    v           =   np.arange(-len(W)/2.,len(W)/2.,1)   # RV values
+    l           =   LyA*(1.0 + v/3e5)   # wavelength as emitted from the star
+    
+    abs_ism =   absorption(l,v_ism,nh_ism,T_ism,LyA)
+    abs_bp  =   absorption(l,v_bp,nh_bp,T_bp,LyA)
     
     # LSF
     # Dispersion of the theoretical wavelength range
     # Dispersion de la plage de longueurs d'onde theorique
     # np.roll is equivalent to the IDL shift function
 
-    v           =   np.arange(-len(W)/2.,len(W)/2.,1)
-    l           =   1215.6737*(1.0 + v/3e5)   # wavelength as emitted from the star
+
     dl          =   np.mean((l-np.roll(l,1))[1:])
     dwave       =   np.median((W-np.roll(W,1))[1:])     
     kernel      =   v
@@ -99,11 +101,11 @@ def main():
     kernel      =   kernel/np.sum(kernel)
     
     # Double Voigt profile
-    delta_lambda=   1215.6737*(v_bp/3e5)
+    delta_lambda=   LyA*(v_bp/3e5)
      
-    lambda0     =   1215.6737      #lyman alpha center
-    lambda1     =   1215.6737 -dp + delta_lambda  #blue peak center
-    lambda2     =   1215.6737 +dp + delta_lambda  #red peak center
+    lambda0     =   LyA      #lyman alpha center
+    lambda1     =   LyA -dp + delta_lambda  #blue peak center
+    lambda2     =   LyA +dp + delta_lambda  #red peak center
 
     u1          =   uf*(l-lambda1)   #blue peak wavelengths
     u2          =   uf*(l-lambda2)   #red peak wavelengths
@@ -123,7 +125,6 @@ def main():
     # Interpolation on COS wavelengths, relative to the star
     f_abs_int   =   np.interp(f_abs_con,l,W)
 
-
     f_abs_bp_0  =   f*abs_bp
     f_abs_bp    =   np.convolve(f_abs_bp_0,kernel,mode='same')
 
@@ -135,16 +136,16 @@ def main():
 
 
     #plt.plot(W,abs_ism)
-    plt.plot(W,kernel)
-    #plt.plot(W,f_star)
-    #plt.plot(W,F,color='black')
+    #plt.plot(W,kernel)
+    plt.plot(l,f_star,color='red')
+    plt.plot(W,F,color='black')
     #plt.step(W,F,color='green')
 
     plt.xlabel(r'Wavelength \AA')
     plt.ylabel('Flux')
     #plt.xlim(-800,800)  
     #plt.xlim(-2000,800)
-    #plt.ylim(-0.3e-14,5.5e-14)
+    plt.ylim(-0.3e-14,5.5e-14)
     plt.show()
 
 if __name__ == '__main__':
