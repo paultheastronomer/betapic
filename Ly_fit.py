@@ -1,17 +1,28 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy import special
 import sys
 
-def voigt(x, y):
-	# The Voigt function is also the real part of 
-	# w(z) = exp(-z^2) erfc(iz), the complex probability function,
-	# which is also known as the Faddeeva function. Scipy has 
-	# implemented this function under the name wofz()
-	z = x + 1j*y
-	I = special.wofz(z).real
-	return I
+def voigt_wofz(a, u):
+    """ Compute the Voigt function using Scipy's wofz().
 
+    Parameters
+    ----------
+    a: float
+      Ratio of Lorentzian to Gaussian linewidths.
+    u: array of floats
+      The frequency or velocity offsets from the line centre, in units
+      of the Gaussian broadening linewidth.
+
+    See the notes for `voigt` for more details.
+    """
+    try:
+         from scipy.special import wofz
+    except ImportError:
+         s = ("Can't find scipy.special.wofz(), can only calculate Voigt "
+              " function for 0 < a < 0.1 (a=%g)" % a)  
+         print(s)
+    else:
+         return wofz(u + 1j * a).real
 
 def absorption(l,v,nh,T,LyA):
     
@@ -33,28 +44,18 @@ def absorption(l,v,nh,T,LyA):
         v       = 1.e4*abs(((c/xc)-(c/w[i]))/dnud)
         tv      = 1.16117705e-14*N_col[i]*w[i]*fosc[i]/b_wid
         a       = delta[i]/dnud
-        hav     = tv*voigt(a,v)
+        hav     = tv*voigt_wofz(a,v)
               
         abs_ism = np.ones(len(hav))
         
         # I am uncertain about the translation from IDL to python here
-        # The original IDL code is below
+        # To avoid underflow which occurs when you have exp(small negative number)
         for j in range(len(hav)):
             if hav[j] < 20.:      
                 abs_ism[j]  =   abs_ism[j]*np.exp(-hav[j])       
             else:
                 abs_ism[j]  =   0.
-
-        '''
-        ind=where(hav lt 20.,count)
-         if  count gt 0 then $
-           abs_ism[ind]=abs_ism[ind]*exp(-hav[ind])  
-        ind=where(hav ge 20.,count)
-         if  count gt 0 then $
-           abs_ism[ind]=0. 
-        endfor ; line
-        '''
-        
+                
     return abs_ism
 
 def main():    
@@ -115,7 +116,7 @@ def main():
 
     # I don't understand the above part. u1 == u2, no?
 
-    f           =   max_f*(voigt(av,u1)+voigt(av,u2))
+    f           =   max_f*(voigt_wofz(av,u1)+voigt_wofz(av,u2))
 
     # Stellar spectral profile, as seen from Earth after absorption by the ISM and BP CS disk   
     #    -  in (erg cm-2 s-1 A-1)
@@ -127,7 +128,6 @@ def main():
     f_abs_con   =   np.convolve(f_abs,kernel,mode='same')
     
     # Interpolation on COS wavelengths, relative to the star
-    print len(f_abs_con),len(l),len(W)
 
     f_abs_int   =   np.interp(f_abs_con,l,W)
 
@@ -140,13 +140,14 @@ def main():
     f_star      =   np.convolve(f,kernel,mode='same')
 
     # Plot the results
+    #plt.plot(l,voigt_wofz(av,u1))
     plt.plot(l,f_star,color='red')
     plt.plot(W,F,color='black')
 
     plt.xlabel(r'Wavelength \AA')
     plt.ylabel('Flux')
 
-    plt.ylim(-0.3e-14,5.5e-14)
+    #plt.ylim(-0.3e-14,5.5e-14)
     plt.show()
 
 if __name__ == '__main__':
