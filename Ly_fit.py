@@ -144,20 +144,21 @@ def LyModel(params,W,l,sigma_kernel,dp,v_ism,v_bp,nh_ism,b_ism,b_bp,T_ism,T_bp,L
 
 def FindBestParams(params,F,E,W,l,sigma_kernel,dp,v_ism,v_bp,nh_ism,b_ism,b_bp,T_ism,T_bp,LyA):
 
-    best_P, success = leastsq(chi2, params, args=(F,E,W,l,sigma_kernel,dp,v_ism,v_bp,nh_ism,b_ism,b_bp,T_ism,T_bp,LyA), maxfev=10000)
+    best_P, success = leastsq(chi2, params, args=(F,E,W,l,sigma_kernel,dp,v_ism,v_bp,nh_ism,b_ism,b_bp,T_ism,T_bp,LyA), maxfev=1000)
 
     return best_P
     
 def main():    
 
     # skiprows=1051 remvoes left hand side data
+    W1, RV1, F0_01, E0_01, AG0, AG0err = np.genfromtxt('/home/paw/science/betapic/data/HST/dat/B_2014.dat',unpack=True,skiprows=7000,skip_footer=6000)
     Wo, Fo, Eo = np.genfromtxt('Ly-alpha.dat',unpack=True)
-    W, F, E = np.genfromtxt('Ly-alpha.dat',skiprows=930,skip_footer=150,unpack=True)
+    W, F, E = np.genfromtxt('Ly-alpha.dat',skiprows=910,skip_footer=150,unpack=True)
 
-    #E = np.ones(len(F))*1e-15  # Use this code should you have to force the errors to a fixed value
+    #E = np.ones(len(F))*1e-14  # Use this code should you have to force the errors to a fixed value
     
     ### Parameters ##############################      
-    LyA     =   1215.63#1215.6737#1215.75682855
+    LyA     =   1215.6737#1215.75682855
 
     # ISM parameters
     v_ism   =   10.0        # RV of the ISM (relative to Heliocentric)      
@@ -167,17 +168,17 @@ def main():
 
     # Beta Pic parameters
     v_bp    =   20.5        # RV of the beta Pic (relative to Heliocentric)
-    nh_bp   =   19.00       # Column density beta Pic, Fitting param
-    b_bp    =   4.          # Turbulent velocity
+    nh_bp   =   18.45       # Column density beta Pic, Fitting param
+    b_bp    =   2.          # Turbulent velocity
     T_bp    =   1000.       # Temperture of gas in beta Pic disk
 
-    max_f   =   5.3e-10     # Fitting param                 
+    max_f   =   4.4e-13     # Fitting param                 
     dp      =   0.0 
-    uf      =   22.46       # Fitting param
-    av      =   1.51        # Fitting param
+    uf      =   10.       # Fitting param
+    av      =   8.        # Fitting param
     
-    slope   =   -0.0014
-    offset  =   1.73
+    slope   =   0.0
+    offset  =   1.0
 
     sigma_kernel    =   7.
     #############################################
@@ -206,6 +207,7 @@ def main():
     plt.rcParams['text.usetex'] = True
     plt.rcParams['text.latex.unicode'] = True    
     
+    #plt.plot(W1,AG0)
     plt.plot(l,f_star,lw=2,color='gray',label=r'$\beta$ Pictoris')
     plt.plot(l,f_abs_ism,lw=1,color='#FF9303',label=r'ISM')
     plt.plot(l,f_abs_bp,lw=1,color='#0386ff',label=r'Gas disk')
@@ -221,7 +223,7 @@ def main():
     plt.ylim(-0.3e-14,1.2e-13)
     
     plt.legend(loc='upper left', numpoints=1)
-    #plt.savefig('Ly_original_err.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
+    plt.savefig('Ly_original_err.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
     plt.show()
 
 if __name__ == '__main__':
