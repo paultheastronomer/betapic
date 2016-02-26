@@ -99,12 +99,16 @@ def chi2(params,F,E,W,l,sigma_kernel,dp,v_ism,v_bp,nh_ism,b_ism,b_bp,T_ism,T_bp,
 def LyModel(params,W,l,sigma_kernel,dp,v_ism,v_bp,nh_ism,b_ism,b_bp,T_ism,T_bp,LyA):
 
     print "N = ",params[0],"\t","Fmax = ",params[1],"\t",\
-    "uf = ",params[2],"\t","av = ",params[3]
+    "uf = ",params[2],"\t","av = ",params[3],"\n",\
+    "slope = ",params[4],"\t","offset = ",params[5]
     print "\n"
     nh_bp       = params[0]
     max_f       = params[1]
     uf          = params[2]
     av          = params[3]
+    
+    slope       = params[4]
+    offset      = params[5]
     
     kernel      =   K(W,l,sigma_kernel)
 
@@ -126,19 +130,21 @@ def LyModel(params,W,l,sigma_kernel,dp,v_ism,v_bp,nh_ism,b_ism,b_bp,T_ism,T_bp,L
     # Individual components
 
     # Absorption by the ISM
-    f_abs_ism   =   np.convolve(f*abs_ism,kernel,mode='same')
+    f_abs_ism   =   np.convolve(f*abs_ism,kernel,mode='same')*(l*slope+offset)
 
     # Absorption by beta Pictoris  
-    f_abs_bp    =   np.convolve(f*abs_bp,kernel,mode='same')
+    f_abs_bp    =   np.convolve(f*abs_bp,kernel,mode='same')*(l*slope+offset)
 
     # Interpolation on COS wavelengths, relative to the star
-    f_abs_int   =   np.interp(W,l,f_abs_con)
+    f_abs_int   =   np.interp(W,l,f_abs_con)*(W*slope+offset)
+    
+    f_star      =   f_star*(l*slope+offset)
     
     return f_abs_int, f_star, f_abs_ism, f_abs_bp
 
 def FindBestParams(params,F,E,W,l,sigma_kernel,dp,v_ism,v_bp,nh_ism,b_ism,b_bp,T_ism,T_bp,LyA):
 
-    best_P, success = leastsq(chi2, params, args=(F,E,W,l,sigma_kernel,dp,v_ism,v_bp,nh_ism,b_ism,b_bp,T_ism,T_bp,LyA), maxfev=1000)
+    best_P, success = leastsq(chi2, params, args=(F,E,W,l,sigma_kernel,dp,v_ism,v_bp,nh_ism,b_ism,b_bp,T_ism,T_bp,LyA), maxfev=10000)
 
     return best_P
     
@@ -146,12 +152,12 @@ def main():
 
     # skiprows=1051 remvoes left hand side data
     Wo, Fo, Eo = np.genfromtxt('Ly-alpha.dat',unpack=True)
-    W, F, E = np.genfromtxt('Ly-alpha.dat',skiprows=900,skip_footer=170,unpack=True)
+    W, F, E = np.genfromtxt('Ly-alpha.dat',skiprows=930,skip_footer=150,unpack=True)
 
-    E = np.ones(len(F))*1e-15
+    #E = np.ones(len(F))*1e-15  # Use this code should you have to force the errors to a fixed value
     
     ### Parameters ##############################      
-    LyA     =   1215.6702
+    LyA     =   1215.63#1215.6737#1215.75682855
 
     # ISM parameters
     v_ism   =   10.0        # RV of the ISM (relative to Heliocentric)      
@@ -161,14 +167,17 @@ def main():
 
     # Beta Pic parameters
     v_bp    =   20.5        # RV of the beta Pic (relative to Heliocentric)
-    nh_bp   =   18.45       # Column density beta Pic, Fitting param
-    b_bp    =   2.          # Turbulent velocity
-    T_bp    =   1000.         # Temperture of gas in beta Pic disk
+    nh_bp   =   19.00       # Column density beta Pic, Fitting param
+    b_bp    =   4.          # Turbulent velocity
+    T_bp    =   1000.       # Temperture of gas in beta Pic disk
 
-    max_f   =   4.395e-13   # Fitting param                 
+    max_f   =   5.3e-10     # Fitting param                 
     dp      =   0.0 
-    uf      =   10.         # Fitting param
-    av      =   8.          # Fitting param
+    uf      =   22.46       # Fitting param
+    av      =   1.51        # Fitting param
+    
+    slope   =   -0.0014
+    offset  =   1.73
 
     sigma_kernel    =   7.
     #############################################
@@ -177,9 +186,8 @@ def main():
     l           =   LyA*(1.0 + v/3e5)       # Corresponding wavengths
 
     #Free parameters
-    Par         =   [nh_bp,max_f,uf,av]
+    Par         =   [nh_bp,max_f,uf,av,0,1]
     P           =  FindBestParams(Par,F,E,W,l,sigma_kernel,dp,v_ism,v_bp,nh_ism,b_ism,b_bp,T_ism,T_bp,LyA)
-
     
     print "\n======================================="
     print "Starting paramters:"
@@ -189,23 +197,31 @@ def main():
     f_after_fit, f_star, f_abs_ism, f_abs_bp         = LyModel(P,  l,l,sigma_kernel,dp,v_ism,v_bp,nh_ism,b_ism,b_bp,T_ism,T_bp,LyA)
 
     # Plot the results
-    plt.scatter(Wo,Fo,color='black',alpha=0.25)
-    plt.scatter(W,F,color='black')
-    plt.plot(l,f_star,lw=1,color='gray')
-    plt.plot(l,f_abs_ism,lw=1,color='green')
-    plt.plot(l,f_abs_bp,lw=1,color='blue')
-    #plt.plot(l,f_before_fit,lw=2,color='yellow')
-    plt.plot(l,f_after_fit,lw=2,color='red')
+    fig = plt.figure(figsize=(14,10))
+    fontlabel_size = 18
+    tick_size = 18
+    params = {'backend': 'wxAgg', 'lines.markersize' : 2, 'axes.labelsize': fontlabel_size, 'font.size': fontlabel_size, 'legend.fontsize': fontlabel_size, 'xtick.labelsize': tick_size, 'ytick.labelsize': tick_size, 'text.usetex': True}
+    plt.rcParams.update(params)
+    plt.rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
+    plt.rcParams['text.usetex'] = True
+    plt.rcParams['text.latex.unicode'] = True    
     
-
-    #W, F, E = np.genfromtxt('Ly-alpha.dat',skiprows=900,skip_footer=40,unpack=True)
-    #plt.scatter(W,F,color='red')    
-
-    plt.xlabel(r'Wavelength $\AA$')
+    plt.plot(l,f_star,lw=2,color='gray',label=r'$\beta$ Pictoris')
+    plt.plot(l,f_abs_ism,lw=1,color='#FF9303',label=r'ISM')
+    plt.plot(l,f_abs_bp,lw=1,color='#0386ff',label=r'Gas disk')
+    #plt.plot(l,f_before_fit,lw=2,color='yellow')
+    plt.plot(l,f_after_fit,lw=2,color='#FF281C',label=r'Best fit')
+    plt.scatter(W,F,color='black',label='Data used for fit') 
+    plt.scatter(Wo,Fo,color='black',alpha=0.25,label='Data not used for fit')
+   
+    plt.xlabel(r'Wavelength \AA')
     plt.ylabel('Flux')
 
-    plt.xlim(1213,1217.5)
-    plt.ylim(-0.3e-14,7e-14)
+    plt.xlim(1212.5,1218.5)
+    plt.ylim(-0.3e-14,1.2e-13)
+    
+    plt.legend(loc='upper left', numpoints=1)
+    #plt.savefig('Ly_original_err.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
     plt.show()
 
 if __name__ == '__main__':
