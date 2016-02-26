@@ -1,6 +1,6 @@
 # Betapic
 
-[![MIT](http://img.shields.io/badge/license-MIT-green.svg?style=flat)](http://opensource.org/licenses/MIT)
+[![GPL](https://img.shields.io/badge/license-GNU%20GPLv3-brightgreen.svg)](http://choosealicense.com/licenses/gpl-3.0/)
 
 This is a collection of python programs used to work with _HST_/COS data.
 
