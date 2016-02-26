@@ -13,3 +13,5 @@ This is a collection of python programs used to work with _HST_/COS data.
 **spec_line.py** - Plots all COS data centered on a particular line
 
 **Ly_data.py** - Creates the data file containing obsevations around the Ly-alpha line.
+
+**Ly_fit.py** - Fits the Ly-alpha line using voigt profiles and estimates column densities.
