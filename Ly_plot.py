@@ -26,7 +26,6 @@ def CreateRight(RV,F):
             RVnew.append(RV[i]*-1)
             Fnew.append(F[i])
     if len(RVnew) < 228:
-        print "jau"
         add = 228 - len(RVnew)
         Fnew = np.concatenate((Fnew,np.zeros(add)))
         RVnew = np.concatenate((RVnew,np.zeros(add)))      
@@ -40,7 +39,6 @@ def CreateLeft(RV,F):
             RVnew.append(RV[i])
             Fnew.append(F[i])
     if len(RVnew) < 228:
-        print "jau"
         add = 228 - len(RVnew)
         Fnew = np.concatenate((np.zeros(add),Fnew))
         RVnew = np.concatenate((np.zeros(add),RVnew))      
@@ -66,7 +64,7 @@ def main():
     RV3         = wave2RV(W3,rest_wavelength,RV_BP)
 
     # Not used:
-    '''
+    #'''
     RVcn, Fcn   = CreateRight(RVc,Fc)
     RV0n, F0n   = CreateRight(RV0,F0)
     RV1n, F1n   = CreateRight(RV1,F1)
@@ -78,7 +76,7 @@ def main():
     RV1m, F1m   = CreateLeft(RV1,F1)
     RV2m, F2m   = CreateLeft(RV2,F2)
     RV3m, F3m   = CreateLeft(RV3,F3)
-    '''
+    #'''
     #
 
     bin_pnts    = 3
@@ -92,6 +90,7 @@ def main():
 
     # Plot the results
     fig = plt.figure(figsize=(8,6))
+    #fig = plt.figure(figsize=(14,5))
     fontlabel_size  = 18
     tick_size       = 18
     params = {'backend': 'wxAgg', 'lines.markersize' : 2, 'axes.labelsize': fontlabel_size, 'font.size': fontlabel_size, 'legend.fontsize': fontlabel_size, 'xtick.labelsize': tick_size, 'ytick.labelsize': tick_size, 'text.usetex': True}
@@ -111,6 +110,7 @@ def main():
     #'''  
 
     # Binned
+    #'''
     plt.errorbar(RV0b,F0b,yerr=E0b,color='#FF281C')
     plt.scatter(RV0b,F0b,color='#FF281C',s=40,edgecolor='k',label='2014') 
 
@@ -121,24 +121,51 @@ def main():
     plt.scatter(RV2b,F2b,color='#0386FF',s=40,edgecolor='k',label='2015v2') 
 
     plt.errorbar(RV3b,F3b,yerr=E3b,color='#00B233')
-    plt.scatter(RV3b,F3b,color='#00B233',s=40,edgecolor='k',label='2016v3') 
+    plt.scatter(RV3b,F3b,color='#00B233',s=40,edgecolor='k',label='2016v3')
+    
+    plt.ylabel('Flux (erg/s/cm$^2$/\AA)')
+    plt.xlim(50,610)
+    plt.ylim(0,5.0e-14)
+    #'''
+    
+    
 
-    # OLD CODE IGNORE:        
-    #plt.scatter(RVcm,Fcm/np.mean(Fcm),color='red',alpha=0.5,label='Correct')
-    #plt.scatter(RVcn,Fcn/np.mean(Fcn),color='blue',alpha=0.5,label='Correct')
-
+    '''     
+    ax1 = plt.subplot('131')  
+    ax1.scatter(RV1b*-1,F1b,color='red',alpha=0.5,label='Red wing')
+    ax1.scatter(RV1b,F1b,color='blue',alpha=0.5,label='Blue wing')
+    plt.xlim(50,610)
+    plt.ylim(0,3.0e-14)
+    plt.title('2015v1')
     plt.xlabel(r'RV [km/s]')
-    plt.ylabel('Flux')
+    plt.ylabel('Flux (erg/s/cm$^2$/\AA)')
+
+    ax2 = plt.subplot('132')  
+    ax2.scatter(RV2b*-1,F2b,color='red',alpha=0.5,label='Red wing')
+    ax2.scatter(RV2b,F2b,color='blue',alpha=0.5,label='Blue wing')
+    plt.xlim(50,610)
+    plt.ylim(0,3.0e-14)
+    plt.title('2015v2')
+    plt.xlabel(r'RV [km/s]')
+
+    ax3 = plt.subplot('133')  
+    ax3.scatter(RV3b*-1,F3b,color='red',alpha=0.5,label='Red wing')
+    ax3.scatter(RV3b,F3b,color='blue',alpha=0.5,label='Blue wing')
+    plt.xlim(50,610)
+    plt.ylim(0,3.0e-14)
+    plt.title('2016v3')
+    plt.xlabel(r'RV [km/s]')
     plt.minorticks_on()
 
     locs,labels = plt.xticks()
     plt.xticks(locs, map(lambda x: "%g" % x, locs))
 
     plt.xlim(50,610)
-    plt.ylim(0,5.0e-14)
+    #plt.ylim(0,5.0e-14)
+    '''
 
-    plt.legend(loc='upper right', numpoints=1)
-    plt.savefig('Ly_red_wing.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
+    #plt.legend(loc='upper right', numpoints=1)
+    #plt.savefig('Ly_red_wing.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
     plt.show()
 
 if __name__ == '__main__':
