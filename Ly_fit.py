@@ -5,6 +5,8 @@ from scipy.optimize import leastsq
 from matplotlib.ticker import LinearLocator
 from scipy import stats
 
+from tempfile import TemporaryFile
+
 def voigt_wofz(a, u):
     ''' Compute the Voigt function using Scipy's wofz().
 
@@ -103,7 +105,10 @@ def LyModel(params,Const):
     #"Fmax\t= ",params[1],"\t","av = ",params[3],"\t","offset\t= ",params[5]
 
     # Free parameters
-    nh_bp, max_f, uf, av, slope, offset = params
+    #nh_bp, b_bp, max_f, uf, av, slope = params
+    nh_bp, max_f, uf, av, slope = params
+    
+    offset  = 1.0
     
     # Fixed parameters
     W,l,sigma_kernel,dp,v_ism,v_bp,nh_ism,b_ism,T_ism,T_bp,LyA,b_bp = Const
@@ -209,11 +214,11 @@ def MCMC(x,X,F,P,Const,S,C):
     jump        = np.random.normal(0.,1.,len(S)) * S
     P           = P + jump
     new_fit     = LyModel(P,Const)[0]
-    #X           = X[3]-new_fit,X[1],X[2],X[3]
     X           = X[0],X[1],new_fit
     L_new       = Merit(X)
     L_chain[i]  = L_new
     ratio       = L_new/L
+
     if (np.random.random() > ratio):
       P = P - jump
       moved = 0
@@ -225,51 +230,21 @@ def MCMC(x,X,F,P,Const,S,C):
   print "\nAccepted steps: ",round(100.*(moves/C),2),"%"
   return chain, moves
 
-def Plot_Chain(chain,P,S,Target):
-  fig = plt.figure()
-  plt.clf()
-  
-  # Top plot
-  top = plt.subplot2grid((3,3), (0, 0), colspan=2)
-  top.hist(chain[:,P[0]],bins=30)
-  plt.axvline(Distrib(chain[:,P[0]])[0],color="red",lw=2)
-  plt.axvline(Distrib(chain[:,P[0]])[1],color="red",lw=2,linestyle='--')
-  plt.axvline(Distrib(chain[:,P[0]])[2],color="red",lw=2,linestyle='--')
-  top.get_xaxis().set_ticklabels([])
-  plt.minorticks_on()
-  
-  # Right hand side plot
-  right = plt.subplot2grid((3,3), (1, 2), rowspan=2)
-  right.hist(chain[:,P[1]],orientation='horizontal',bins=30)
-  plt.axhline(Distrib(chain[:,P[1]])[0],color="red",lw=2)
-  plt.axhline(Distrib(chain[:,P[1]])[1],color="red",lw=2,linestyle='--')
-  plt.axhline(Distrib(chain[:,P[1]])[2],color="red",lw=2,linestyle='--')
-  right.get_yaxis().set_ticklabels([])
-  right.xaxis.set_major_locator(LinearLocator(5))
-  plt.minorticks_on()
-  
-  # Center plot
-  center = plt.subplot2grid((3,3), (1, 0), rowspan=2, colspan=2)
-  center.hist2d(chain[:,P[0]],chain[:,P[1]],bins=30)
-  plt.minorticks_on()
-  
-  # Corner plot
-  corner = plt.subplot2grid((3,3), (0, 2))
-  corner.get_xaxis().set_ticklabels([])
-  corner.get_yaxis().set_ticklabels([])
-  corner.plot(chain[:,P[0]],chain[:,P[1]],'-k')
-  plt.minorticks_on()
-  plt.savefig(Target+'_param_'+str(P[0])+'.pdf',paper='a4',orientation='landscape',dpi=300,transparent=True, bbox_inches='tight', pad_inches=0.1)
-  #plt.savefig(Target+'_param_'+str(P[0])+'.png', bbox_inches='tight', pad_inches=0.1)
-    
+def wave2RV(Wave,rest_wavelength,RV_BP):
+    c = 299792458
+    rest_wavelength = rest_wavelength*(RV_BP*1.e3)/c + rest_wavelength # Convert to beta pic reference frame
+    delta_wavelength = Wave-rest_wavelength
+    RV = ((delta_wavelength/rest_wavelength)*c)/1.e3	# km/s
+    return RV
+
 def main():    
 
     W1, RV1, F0_01, E0_01, AG0, AG0err  = np.genfromtxt('/home/paw/science/betapic/data/HST/dat/B_2014.dat',unpack=True,skiprows=7000,skip_footer=6000)
     Wo, Fo, Eo                          = np.genfromtxt('Ly-alpha.dat',unpack=True)
-    W, F, E                             = np.genfromtxt('Ly-alpha.dat',skiprows=910,skip_footer=150,unpack=True)
+    W, F, E                             = np.genfromtxt('Ly-alpha.dat',skiprows=900,skip_footer=145,unpack=True)
     
     ### Parameters ##############################      
-    mode            = 'mcmc'        # mcmc or lm    
+    mode            = 'lm'        # mcmc or lm    
     LyA             = 1215.6702   #1215.75682855
 
     # ISM parameters
@@ -280,39 +255,46 @@ def main():
 
     # Beta Pic parameters
     v_bp            = 20.5        # RV of the beta Pic (relative to Heliocentric)
-    nh_bp           = 19.0        # Column density beta Pic, Fitting param
-    b_bp            = 2.          # Turbulent velocity
+    nh_bp           = 19.2       # Column density beta Pic, Fitting param
+    b_bp            = 4.0        # Turbulent velocity
     T_bp            = 1000.       # Temperture of gas in beta Pic disk
 
     # Stellar emission line parameters
-    max_f           = 1.4e-11     # Fitting param                 
+    max_f           = 2.6e-10     # Fitting param                 
     dp              = 0.0 
-    uf              = 9.29        # Fitting param
-    av              = 3.18        # Fitting param
+    uf              = 2.78#3.60        # Fitting param
+    av              = 0.178#0.1        # Fitting param
     
-    slope           = -0.0007
-    offset          = 0.9
+    slope           = -8.1975e-4
+    offset          = 1.0
 
     sigma_kernel    = 7.
 
-    v               = np.arange(-600,330,1)         # RV values
+    v               = np.arange(-800,500,1)         # RV values
     l               = LyA*(1.0 + v/3e5)             # Corresponding wavengths
 
-    Par             = [nh_bp,max_f,uf,av,0,1] # Free parameters
-    Const           = [W,l,sigma_kernel,dp,v_ism,v_bp,nh_ism,b_ism,T_ism,T_bp,LyA,b_bp]    
-    step            = np.array([0.01,6.2e-13,0.5,1.0,0.0001,0.0001])  # MCMC step size
+    Par             = [nh_bp,max_f,uf,av,slope] # Free parameters
+    Const           = [W,l,sigma_kernel,dp,v_ism,v_bp,nh_ism,b_ism,T_ism,T_bp,LyA,b_bp] 
+    #step            = np.array([0.01,0.1,6.2e-13,0.1,0.1,0.0001])  # MCMC step size
+    #step            = np.array([0.03,2.e-12,5.0,.2,1e-7])  # MCMC step size 0.3
+    step            = np.array([0.02,5.e-12,0.03,.002,1e-7])  # MCMC step size 0.3
     #############################################
 
 
     if mode == 'lm':
-        print "Best fit paramters:"
-        #P =  FindBestParams(Par,F,E,W,l,sigma_kernel,dp,v_ism,v_bp,nh_ism,b_ism,T_ism,T_bp,LyA)
-        P =  FindBestParams(Par,F,E,Const)
-        Const[0] = l    # Since we want to plot the region where there is no data.
-        f_after_fit, f_star, f_abs_ism, f_abs_bp         = LyModel(P,Const)
+        print "Calculating the best parameters..."
+        #Par             = [nh_bp,max_f,uf,av,0]
+        #Const           = [W,l,sigma_kernel,dp,v_ism,v_bp,nh_ism,b_ism,T_ism,T_bp,LyA,b_bp]
 
-        # Plot the results
-        fig = plt.figure(figsize=(14,10))
+        Const[0]        = l    # Since we want to plot the region where there is no data.
+        f_before_fit, f_star, f_abs_ism, f_abs_bp         = LyModel(Par,Const)
+
+        RV = wave2RV(W,LyA,0.0)     # Heliocentric frame
+        RVo = wave2RV(Wo,LyA,0.0)
+
+
+        # Plot starting point
+        fig = plt.figure(figsize=(8,6))
         fontlabel_size  = 18
         tick_size       = 18
         params = {'backend': 'wxAgg', 'lines.markersize' : 2, 'axes.labelsize': fontlabel_size, 'font.size': fontlabel_size, 'legend.fontsize': fontlabel_size, 'xtick.labelsize': tick_size, 'ytick.labelsize': tick_size, 'text.usetex': True}
@@ -320,55 +302,104 @@ def main():
         plt.rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
         plt.rcParams['text.usetex'] = True
         plt.rcParams['text.latex.unicode'] = True    
-    
-        #plt.plot(W1,AG0)
-        plt.scatter(Wo,Fo,color='black',alpha=0.25,label='Data not used for fit')
-        for i in range(len(Wo)):
-            if l[0] < Wo[i] < l[-1]:
-                plt.scatter(Wo[i],Fo[i],color='black') 
-        
+
+        plt.scatter(W,F,color='black',label='Data used for fit')
+
         plt.plot(l,f_star,lw=2,color='gray',label=r'$\beta$ Pictoris')
         plt.plot(l,f_abs_ism,lw=1,color='#FF9303',label=r'ISM')
         plt.plot(l,f_abs_bp,lw=1,color='#0386ff',label=r'Gas disk')
         #plt.plot(l,f_before_fit,lw=2,color='yellow')
-        plt.plot(l,f_after_fit,lw=2,color='#FF281C',label=r'Best fit')
+        plt.plot(l,f_before_fit,lw=2,color='#FF281C',label=r'Best fit')
    
         plt.xlabel(r'Wavelength \AA')
         plt.ylabel('Flux')
 
-        plt.xlim(1212.5,1218.5)
-        plt.ylim(-0.3e-14,1.2e-13)
+        plt.xlim(1212.8,1218.0)
+        plt.ylim(-0.3e-14,0.4e-13)
+        
+
     
-        plt.legend(loc='upper left', numpoints=1)
+        #plt.legend(loc='upper left', numpoints=1)
         #plt.savefig('Ly_original_err.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
+        plt.show()
+        #sys.exit()
+        #sys.exit()
+        
+        
+        
+        Const           = [W,l,sigma_kernel,dp,v_ism,v_bp,nh_ism,b_ism,T_ism,T_bp,LyA,b_bp]
+        print "Best fit paramters:"
+        P =  FindBestParams(Par,F,E,Const)
+
+        print Par
+        print P
+
+        print "\nlog(N(H)) =\t" ,P[0]
+        #print "b_bp=\t\t"       ,P[1]
+        print "Fmax =\t\t"      ,P[1]
+        print "uf=\t\t"         ,P[2]
+        print "av=\t\t"         ,P[3]
+        print "slope\t\t"       ,P[4]
+        #print "offset\t\t"      ,P[5]
+
+        Const[0] = l    # Since we want to plot the region where there is no data.
+        f_after_fit, f_star, f_abs_ism, f_abs_bp         = LyModel(P,Const)
+
+
+    
+        #plt.plot(W1,AG0)
+        plt.scatter(RVo,Fo,color='black',alpha=0.25,label='Data not used for fit')
+        plt.scatter(RV,F,color='black',label='Data used for fit')
+        
+        '''
+        for i in range(len(Wo)):
+            if l[0] < Wo[i] < l[-1]:
+                plt.scatter(Wo[i],Fo[i],color='black') 
+        '''
+        plt.plot(v,f_star,lw=3,color='gray',label=r'$\beta$ Pictoris')
+        plt.plot(v,f_abs_ism,lw=1.2,color='#FF9303',label=r'ISM')
+        plt.plot(v,f_abs_bp,lw=1.2,color='#0386ff',label=r'Gas disk')
+        #plt.plot(l,f_before_fit,lw=2,color='yellow')
+        plt.plot(v,f_after_fit,lw=3,color='#FF281C',label=r'Best fit')
+   
+        plt.xlabel(r'Radial Velocity [km/s]')
+        plt.ylabel('Flux (erg/s/cm$^2$/\AA)')
+
+        #plt.xlim(1212.5,1217.5)
+        plt.xlim(-700,435)
+        plt.ylim(0.0,0.4e-13)
+        #locs = [1213.,  1214.,  1215.,  1216.,  1217.]
+        #plt.xticks(locs, map(lambda x: "%g" % x, locs))
+        #plt.legend(loc='upper left', numpoints=1)
+        fig.tight_layout()
+        plt.savefig('Ly_alpha.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
         plt.show()
 
     elif mode == 'mcmc':
         #X = (F - f_before_fit),E,np.zeros(len(F)),F                                                         # Check this in relation to the Chi2 function!
         X = F,E,LyModel(Par,Const)[0]
-        chain, moves = MCMC(W,X,LyModel,Par,Const,step,1e3)
+
+        
+        chain, moves = MCMC(W,X,LyModel,Par,Const,step,2e5)
+        
+        outfile = 'chain4'#TemporaryFile() #Par             = [nh_bp,b_bp,max_f,uf,av,0] # Free parameters
+        np.savez(outfile, nh_bp = chain[:,0], max_f = chain[:,1], uf = chain[:,2], av = chain[:,3], slope = chain[:,4])
+        
         Pout = chain[moves,:]
         #print Pout
         P_plot1 = [0,1]
         P_plot2 = [2,3]
-        P_plot3 = [5,6]
+        P_plot3 = [4,4]
         PU1 = Median_and_Uncertainties(P_plot1,step,chain)
         PU2 = Median_and_Uncertainties(P_plot2,step,chain)
         PU3 = Median_and_Uncertainties(P_plot3,step,chain)
         
         print "\nlog(N(H)) =\t" ,PU1[0][0],"\t+",PU1[1][0],"\t-",PU1[2][0]
         print "Fmax =\t\t"      ,PU1[0][1],"\t+",PU1[1][1],"\t-",PU1[2][1]
-        print "b_bp=\t\t"       ,PU2[0][0],"\t+",PU2[1][0],"\t-",PU2[2][0]
-        #print "uf=\t\t"         ,PU2[0][0],"\t+",PU2[1][0],"\t-",PU2[2][0]
+        print "uf=\t\t"       ,PU2[0][0],"\t+",PU2[1][0],"\t-",PU2[2][0]
         print "av=\t\t"         ,PU2[0][1],"\t+",PU2[1][1],"\t-",PU2[2][1]
-        print "slope\t\t"       ,PU3[0][0],"\t+",PU3[1][0],"\t-",PU3[2][0]
-        print "offset\t\t"      ,PU3[0][1],"\t+",PU3[1][1],"\t-",PU3[2][1]
-        
-        Plot_Chain(chain,P_plot1,step,"Img1")
-        Plot_Chain(chain,P_plot2,step,"Img2")
-        Plot_Chain(chain,P_plot3,step,"Img3")
-        
-        plt.show()
+        print "slope=\t\t"       ,PU3[0][0],"\t+",PU3[1][0],"\t-",PU3[2][0]
+        #print "slope\t\t"      ,PU3[0][1],"\t+",PU3[1][1],"\t-",PU3[2][1]
 
 if __name__ == '__main__':
     main()

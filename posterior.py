@@ -69,7 +69,16 @@ chain4 = np.load('chain4.npz')
 nh_bp   =   np.concatenate((chain1['nh_bp'],chain2['nh_bp'],chain3['nh_bp'],chain4['nh_bp']))
 max_f   =   np.concatenate((chain1['max_f'],chain2['max_f'],chain3['max_f'],chain4['max_f']))
 
-Plot_Chain(chaint['nh_bp'], chaint['max_f'])
-Plot_Chain(chaint['uf'], chaint['av'])
+uf   =   np.concatenate((chain1['uf'],chain2['uf'],chain3['uf'],chain4['uf']))
+av   =   np.concatenate((chain1['av'],chain2['av'],chain3['av'],chain4['av']))
+
+slope   =   np.concatenate((chain1['slope'],chain2['slope'],chain3['slope'],chain4['slope']))
+
+Plot_Chain(nh_bp, max_f)
+Plot_Chain(uf, av)
+Plot_Chain(nh_bp, slope)
+
+#Plot_Chain(chaint['nh_bp'], chaint['max_f'])
+#Plot_Chain(chaint['uf'], chaint['av'])
 
 plt.show()
