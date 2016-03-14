@@ -33,16 +33,17 @@ def main():
 
     # Parameters you can change
     #====================================================
-    species             = 'SiII'     # Name of species
-    line_of_interest    = 1304.3702 # Wavelength of line
+    species             = 'OV'     # Name of species
+    line_of_interest    = 1218.3440 # Wavelength of line
     RV_BP               = 20.5      # RV of Beta Pic
-    width               = 500       # [-2*width:2*width]
-    bin_pnts            = 3         # Number of points to bin
-    norm1               = 250        # Start norm region
-    norm2               = 290        # End norm region
+    width               = 1500       # [-2*width:2*width]
+    bin_pnts            = 5         # Number of points to bin
+    norm1               = 160        # Start norm region
+    norm2               = 170        # End norm region
     #====================================================
     
-    W, F0, F1, F2, F3 = np.loadtxt('/home/paw/science/betapic/data/HST/dat/A.dat',unpack=True)
+    #W, F0, F1, F2, F3 = np.loadtxt('/home/paw/science/betapic/data/HST/dat/B.dat',unpack=True)
+    W, F0, F1, F2, F3, E0, E1, E2, E3 = np.loadtxt('/home/paw/science/betapic/data/HST/dat/B.dat',unpack=True)
 
     mid_pnt = findCenter(W,line_of_interest)
 
@@ -51,6 +52,7 @@ def main():
     F1  = F1[mid_pnt-width:mid_pnt+width]
     F2  = F2[mid_pnt-width:mid_pnt+width]
     F3  = F3[mid_pnt-width:mid_pnt+width]
+    
     
     RV = wave2RV(W,line_of_interest,RV_BP)
   
@@ -83,9 +85,16 @@ def main():
     
     # Plot the spectra
     plt.step(RV_bin, F0_bin/np.median(F0_bin[norm1:norm2]),color='#FF281C',lw=1.5,label='2014')
+    #plt.step(RV_bin*-1, F0_bin/np.median(F0_bin[norm1:norm2]),color='blue',lw=1.5,label='flipped')
+    
     plt.step(RV_bin, F1_bin/np.median(F1_bin[norm1:norm2]),color='#FF9303',lw=1.5,label='2015v1')
+    #plt.step(RV_bin*-1, F1_bin/np.median(F1_bin[norm1:norm2]),color='blue',lw=1.5,label='flipped')
+    
     plt.step(RV_bin, F2_bin/np.median(F2_bin[norm1:norm2]),color='#0386FF',lw=1.5,label='2015v2')
+    #plt.step(RV_bin*-1, F2_bin/np.median(F2_bin[norm1:norm2]),color='blue',lw=1.5,label='flipped')
+    
     plt.step(RV_bin, F3_bin/np.median(F3_bin[norm1:norm2]),color='#00B233',lw=1.5,label='2016v3')
+    #plt.step(RV_bin*-1, F3_bin/np.median(F3_bin[norm1:norm2]),color='blue',lw=1.5,label='flipped')
     
     # Place a legend in the lower right
     plt.legend(loc='lower right', numpoints=1)
@@ -94,9 +103,13 @@ def main():
     plt.xlabel('RV [km/s]')
     plt.ylabel('Normalised Flux')
     
+    plt.xlim(-500,500)
+    plt.ylim(0,5)
+    
     # Produce a .pdf
     fig.tight_layout()
-    plt.savefig(species+'_'+str(line_of_interest)+'.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)      
+    plt.show()
+    #plt.savefig(species+'_'+str(line_of_interest)+'.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)      
 
 if __name__ == '__main__':
     main()
