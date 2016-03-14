@@ -10,6 +10,15 @@ def Distrib(x):
    
    return med,up,down   
 
+def Uncertainties(x):
+   '''Finds median and 68% interval of array x.'''
+   y    = sorted(x)
+   up   = y[int(0.8413*len(y))]
+   down = y[int(0.1587*len(y))]
+   med  = y[int(0.5*len(y))]
+   
+   return med,up-med,med-down   
+
 def Plot_Chain(P1, P2):
   fig = plt.figure()
   plt.clf()
@@ -55,9 +64,10 @@ def Plot_Chain(P1, P2):
   plt.minorticks_on()
   plt.ylim(y_min,y_max)
   
-  #plt.savefig(Target+'_param_'+str(P[0])+'.pdf',paper='a4',orientation='landscape',dpi=300,transparent=True, bbox_inches='tight', pad_inches=0.1)
+  plt.savefig(str(P1)+'_'+str(P2)+'_param.pdf',paper='a4',orientation='landscape',bbox_inches='tight', pad_inches=0.1)
 
 #chaint = np.load('chaint.npz')
+
 chain1 = np.load('chain1.npz')
 chain2 = np.load('chain2.npz')
 chain3 = np.load('chain3.npz')
@@ -74,11 +84,14 @@ av   =   np.concatenate((chain1['av'],chain2['av'],chain3['av'],chain4['av']))
 
 slope   =   np.concatenate((chain1['slope'],chain2['slope'],chain3['slope'],chain4['slope']))
 
+print Uncertainties(nh_bp)
+print Uncertainties(max_f)
+print Uncertainties(uf)
+print Uncertainties(av)
+print Uncertainties(slope)
+
 Plot_Chain(nh_bp, max_f)
 Plot_Chain(uf, av)
 Plot_Chain(nh_bp, slope)
 
-#Plot_Chain(chaint['nh_bp'], chaint['max_f'])
-#Plot_Chain(chaint['uf'], chaint['av'])
-
-plt.show()
+#plt.show()
