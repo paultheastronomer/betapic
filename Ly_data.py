@@ -181,20 +181,6 @@ def main():
     Err  = np.array([Ec[7],Ec[8],Ec[9],Ec[10]])
     F_v3, E_v3    =  weighted_avg_and_errorbars(Flux,Err)
 
-    pnts = 7
-    order=3
-    
-    c0 = savitzky_golay(F0_0, pnts, order)
-    c1 = savitzky_golay(F1, pnts, order)
-    c2 = savitzky_golay(F2, pnts, order)
-    c3 = savitzky_golay(F3, pnts, order)
-
-
-    plt.step(RV,c0,color='black')
-    plt.step(RV,c1)
-    plt.step(RV,c2)
-    plt.step(RV,c3)
-
     '''
     #'''
     #plt.plot(RV,AG0)
