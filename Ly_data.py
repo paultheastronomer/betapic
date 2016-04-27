@@ -5,7 +5,9 @@ from math import factorial
 def CF(flux,flux_err,ref,ref_err,n1,n2):
     ratio = np.average(flux[n1:n2], axis=0, weights=1./(flux_err[n1:n2]**2))/ \
             np.average(ref[n1:n2],  axis=0, weights=1./(ref_err[n1:n2]**2 ))                       
+    print 1./ratio
     return 1./ratio
+
 
 def weighted_avg_and_errorbars(Flux, Err):
     """
@@ -13,7 +15,7 @@ def weighted_avg_and_errorbars(Flux, Err):
     """
     weights=1./(Err**2)
     average = np.average(Flux, axis=0, weights=weights)
-    errorbars_2 = np.sum((weights*Err)**2, axis=0)/ ((np.sum(weights, axis=0))**2)
+    errorbars_2 = np.sum(weights*(Err**2), axis=0) / np.sum(weights, axis=0)
     return average, np.sqrt(errorbars_2)
 
 def main():    
@@ -47,15 +49,16 @@ def main():
     CF(F0_2,E0_2,F0_0,E0_0,n1,n2),CF(F1_2,E1_2,F0_0,E0_0,n1,n2),CF(F2_2,E2_2,F0_0,E0_0,n1,n2),CF(F3_2,E3_2,F0_0,E0_0,n1,n2),\
     CF(F0_3,E0_3,F0_0,E0_0,n1,n2),CF(F1_3,E1_3,F0_0,E0_0,n1,n2),CF(F2_3,E2_3,F0_0,E0_0,n1,n2),CF(F3_3,E3_3,F0_0,E0_0,n1,n2)]
     
-    F  = [F0_1,F1_1,F2_1,F0_2,F1_2,F2_2,F3_2,F0_3,F1_3,F2_3,F3_3]
-    E  = [E0_1,E1_1,E2_1,E0_2,E1_2,E2_2,E3_2,E0_3,E1_3,E2_3,E3_3]
+    Fc  = [F0_1,F1_1,F2_1,F0_2,F1_2,F2_2,F3_2,F0_3,F1_3,F2_3,F3_3]
+    Ec  = [E0_1,E1_1,E2_1,E0_2,E1_2,E2_2,E3_2,E0_3,E1_3,E2_3,E3_3]
+    '''
     Fc = [[] for _ in range(len(C))]
     Ec = [[] for _ in range(len(C))]
     
     for i in range(len(C)):
         Fc[i] = F[i]*C[i]   # Correct for lower efficiency
         Ec[i] = E[i]*C[i]   # accordingly correct the tabulated error bars
-
+    '''
     # -0.8" Ly-alpha wing
     #############################################################################################    
     # For all data uncomment the two lines below
@@ -154,8 +157,8 @@ def main():
     #Flux = np.array([Fc[7],Fc[8],Fc[9],Fc[10]])
     #Err  = np.array([Ec[7],Ec[8],Ec[9],Ec[10]])
     
-    #F_tot, F_tot_err    =  weighted_avg_and_errorbars(Flux,Err)
-    F_tot, F_tot_err    =  F0_0, E0_0
+    F_tot, F_tot_err    =  weighted_avg_and_errorbars(Flux,Err)
+    #F_tot, F_tot_err    =  F0_0, E0_0
     #############################################################################################
 
 
@@ -180,14 +183,14 @@ def main():
     Flux = np.array([Fc[7],Fc[8],Fc[9],Fc[10]])
     Err  = np.array([Ec[7],Ec[8],Ec[9],Ec[10]])
     F_v3, E_v3    =  weighted_avg_and_errorbars(Flux,Err)
-
     '''
     #'''
     #plt.plot(RV,AG0)
     plt.errorbar(RV,F_tot,yerr=F_tot_err,fmt='',ecolor='black')
     plt.plot(RV,F_tot, marker='o', color='k')
     # Plot the spectra using the cuts above and write to .dat file.
-    f = open('Ly-alpha.dat', 'w+')
+    #'''
+    f = open('Ly-alpha_no_CF.dat', 'w+')
     for j in range(len(RV)):
         # Save 0.0" shift data
         if RV[j] < shift_0_l:
@@ -209,9 +212,10 @@ def main():
             plt.plot(RV[j],F3[j], marker='o', color='r')
             print >> f, " ","{: 1.10e}".format(W[j])," "+"{: 1.10e}".format(F3[j])," "+"{: 1.10e}".format(F3_err[j])
     f.close()
+    #'''
     
     # Plot the region used for normalisation
-    plt.step(RV[n1:n2],F_tot[n1:n2],color='green')
+    #plt.step(RV[n1:n2],F_tot[n1:n2],color='green')
 
     #'''
     plt.xlabel(r'RV (km/s)')
