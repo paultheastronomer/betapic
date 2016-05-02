@@ -237,35 +237,49 @@ def wave2RV(Wave,rest_wavelength,RV_BP):
     RV = ((delta_wavelength/rest_wavelength)*c)/1.e3	# km/s
     return RV
 
+def Bin_data(x,y1,e1,bin_pnts):
+    bin_size    = int(len(x)/bin_pnts)
+    bins        = np.linspace(x[0], x[-1], bin_size)
+    digitized   = np.digitize(x, bins)
+    bin_y       = np.array([y1[digitized == i].mean() for i in range(0, len(bins))])
+    bin_e       = np.array([e1[digitized == i].mean() for i in range(0, len(bins))])
+    return bins, bin_y ,bin_e/np.sqrt(bin_pnts)
+
 def main():    
 
-    W1, RV1, F0_01, E0_01, AG0, AG0err  = np.genfromtxt('/home/paw/science/betapic/data/HST/dat/B_2014.dat',unpack=True,skiprows=7000,skip_footer=6000)
-    Wo, Fo, Eo                          = np.genfromtxt('Ly-alpha.dat',unpack=True)
-    W, F, E                             = np.genfromtxt('Ly-alpha.dat',skiprows=900,skip_footer=145,unpack=True)
+    dat_directory   = "/home/paw/science/betapic/data/HST/dat/"
+
+    Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted.txt',unpack=True)
+    W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted.txt',unpack=True,skip_footer= 150) #7070 6145
+    
+    # To fit the non-sky subtracted (only cut) data uncomment the two lines below.
+    #Wo, Fo, Eo         = np.genfromtxt(dat_directory+'Ly-alpha_no_CF.dat',unpack=True)
+    #W, F, E         = np.genfromtxt(dat_directory+'Ly-alpha_no_CF.dat',unpack=True,skiprows=900,skip_footer= 145)
+    
     
     ### Parameters ##############################      
     mode            = 'lm'        # mcmc or lm    
-    LyA             = 1215.6702   #1215.75682855
+    LyA             = 1215.6702# Heliocentric: 1215.6702
 
     # ISM parameters
     v_ism           = 10.0        # RV of the ISM (relative to Heliocentric)      
-    nh_ism          = 18.         # Column density ISM
+    nh_ism          = 18.4         # Column density ISM
     b_ism           = 7.          # Turbulent velocity
     T_ism           = 7000.       # Temperature of ISM
 
     # Beta Pic parameters
     v_bp            = 20.5        # RV of the beta Pic (relative to Heliocentric)
-    nh_bp           = 19.2       # Column density beta Pic, Fitting param
+    nh_bp           = 18.8       # Column density beta Pic, Fitting param
     b_bp            = 4.0        # Turbulent velocity
     T_bp            = 1000.       # Temperture of gas in beta Pic disk
 
     # Stellar emission line parameters
-    max_f           = 2.6e-10     # Fitting param                 
+    max_f           = 1.7877e-10     # Fitting param                 
     dp              = 0.0 
-    uf              = 2.78#3.60        # Fitting param
-    av              = 0.178#0.1        # Fitting param
+    uf              = 7.374#3.60        # Fitting param
+    av              = 1.5136#0.1        # Fitting param
     
-    slope           = -8.1975e-4
+    slope           = -8.18747e-4
     offset          = 1.0
 
     sigma_kernel    = 7.
@@ -285,12 +299,15 @@ def main():
         print "Calculating the best parameters..."
         #Par             = [nh_bp,max_f,uf,av,0]
         #Const           = [W,l,sigma_kernel,dp,v_ism,v_bp,nh_ism,b_ism,T_ism,T_bp,LyA,b_bp]
+        X = F,E,LyModel(Par,Const)[0]
+        print "Chi2 before fit:\t",chi2(X)
 
         Const[0]        = l    # Since we want to plot the region where there is no data.
         f_before_fit, f_star, f_abs_ism, f_abs_bp         = LyModel(Par,Const)
 
-        RV = wave2RV(W,LyA,0.0)     # Heliocentric frame
-        RVo = wave2RV(Wo,LyA,0.0)
+        RV = wave2RV(W,LyA,20.5)     # Heliocentric rest frame
+        RVo = wave2RV(Wo,LyA,20.5)
+
 
 
         # Plot starting point
@@ -303,26 +320,32 @@ def main():
         plt.rcParams['text.usetex'] = True
         plt.rcParams['text.latex.unicode'] = True    
 
-        plt.scatter(W,F,color='black',label='Data used for fit')
 
-        plt.plot(l,f_star,lw=2,color='gray',label=r'$\beta$ Pictoris')
-        plt.plot(l,f_abs_ism,lw=1,color='#FF9303',label=r'ISM')
-        plt.plot(l,f_abs_bp,lw=1,color='#0386ff',label=r'Gas disk')
-        #plt.plot(l,f_before_fit,lw=2,color='yellow')
-        plt.plot(l,f_before_fit,lw=2,color='#FF281C',label=r'Best fit')
+        plt.scatter(RVo,Fo,color='black',alpha=0.25,label='Data not used for fit')
+        plt.scatter(RV,F,color='black',label='Data used for fit')
+
+        plt.plot(v,f_star,lw=3,color='gray',label=r'$\beta$ Pictoris')
+        plt.plot(v,f_abs_ism,lw=1.2,color='#FF9303',label=r'ISM')
+        plt.plot(v,f_abs_bp,lw=1.2,color='#0386ff',label=r'Gas disk')
+        plt.plot(v,f_before_fit,lw=3,color='#FF281C',label=r'Best fit')
+
+
+        
+        #np.savetxt("nh_1825_fit.dat",np.column_stack((v,f_before_fit)))
+   
+        plt.xlabel(r'Radial Velocity [km/s]')
+        plt.ylabel('Flux (erg/s/cm$^2$/\AA)')
    
         plt.xlabel(r'Wavelength \AA')
         plt.ylabel('Flux')
 
-        plt.xlim(1212.8,1218.0)
-        plt.ylim(-0.3e-14,0.4e-13)
         
-
+        plt.xlim(-700,600)
+        plt.ylim(-2.0e-14,0.4e-13)
     
-        #plt.legend(loc='upper left', numpoints=1)
-        #plt.savefig('Ly_original_err.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
+        fig.tight_layout()
+        #plt.savefig('Ly_alpha_b5.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
         plt.show()
-        #sys.exit()
         #sys.exit()
         
         
@@ -342,14 +365,22 @@ def main():
         print "slope\t\t"       ,P[4]
         #print "offset\t\t"      ,P[5]
 
+        X = F,E,LyModel(P,Const)[0]
+        print "Chi2 after fit:\t",chi2(X)
+
         Const[0] = l    # Since we want to plot the region where there is no data.
         f_after_fit, f_star, f_abs_ism, f_abs_bp         = LyModel(P,Const)
 
+        bin_pnts = 3
+        RVb, Fb, Eb     = Bin_data(RV,F,E,bin_pnts)
+        RVob, Fob, Eob     = Bin_data(RVo,Fo,Eo,bin_pnts)
 
+        #remove this later
+        #Eb = Eb/5.
     
         #plt.plot(W1,AG0)
-        plt.scatter(RVo,Fo,color='black',alpha=0.25,label='Data not used for fit')
-        plt.scatter(RV,F,color='black',label='Data used for fit')
+        plt.scatter(RVob,Fob,color='black',alpha=0.25,label='Data not used for fit')
+        plt.errorbar(RVb,Fb,yerr=Eb,color='black',label='Data used for fit')
         
         '''
         for i in range(len(Wo)):
@@ -366,21 +397,25 @@ def main():
         plt.ylabel('Flux (erg/s/cm$^2$/\AA)')
 
         #plt.xlim(1212.5,1217.5)
-        plt.xlim(-700,435)
-        plt.ylim(0.0,0.4e-13)
+        plt.xlim(-700,600)
+        plt.ylim(-2.0e-14,0.4e-13)
         #locs = [1213.,  1214.,  1215.,  1216.,  1217.]
         #plt.xticks(locs, map(lambda x: "%g" % x, locs))
         #plt.legend(loc='upper left', numpoints=1)
         fig.tight_layout()
-        plt.savefig('Ly_alpha.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
+        #plt.savefig('Ly_alpha.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
         plt.show()
+
+        # Saving the data for plotting
+        np.savetxt(dat_directory+"Ly_Fit.dat",np.column_stack((v,f_star,f_abs_ism,f_abs_bp,f_after_fit)))
+
 
     elif mode == 'mcmc':
         #X = (F - f_before_fit),E,np.zeros(len(F)),F                                                         # Check this in relation to the Chi2 function!
         X = F,E,LyModel(Par,Const)[0]
 
         
-        chain, moves = MCMC(W,X,LyModel,Par,Const,step,2e5)
+        chain, moves = MCMC(W,X,LyModel,Par,Const,step,1e5)
         
         outfile = 'chain4'#TemporaryFile() #Par             = [nh_bp,b_bp,max_f,uf,av,0] # Free parameters
         np.savez(outfile, nh_bp = chain[:,0], max_f = chain[:,1], uf = chain[:,2], av = chain[:,3], slope = chain[:,4])

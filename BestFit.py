@@ -18,21 +18,18 @@ def Bin_data(x,y1,e1,bin_pnts):
 
 def main():  
 
-        v,f_star,f_abs_ism,f_abs_bp,f_after_fit = np.genfromtxt('Ly_Fit.dat',unpack=True)
-        W_cut, F_cut, E_cut = np.genfromtxt('Ly-alpha_no_CF.dat',skiprows=900,skip_footer=145,unpack=True)
-        
         dat_directory = "/home/paw/science/betapic/data/HST/dat/" 
+
+        v,f_star,f_abs_ism,f_abs_bp,f_after_fit = np.genfromtxt(dat_directory+'Ly_Fit.dat',unpack=True)
+        W_cut, F_cut, E_cut = np.genfromtxt(dat_directory+'Ly-alpha_no_CF.dat',skiprows=500,unpack=True)      
         
         Wo, Fo, Eo  = np.genfromtxt(dat_directory+'Ly_sky_subtracted.txt',unpack=True)
         W, F, E     = np.genfromtxt(dat_directory+'Ly_sky_subtracted.txt',unpack=True,skip_footer= 150)
         
         LyA     = 1215.6702
-        RV      = wave2RV(W,LyA,0.)
-        RVo     = wave2RV(Wo,LyA,0.)
-        RV_cut  = wave2RV(W_cut,LyA,0.0)
-        
-        
-     
+        RV      = wave2RV(W,LyA,20.5)
+        RVo     = wave2RV(Wo,LyA,20.5)
+        RV_cut  = wave2RV(W_cut,LyA,20.5)
         
         fig = plt.figure(figsize=(8,6))
         fontlabel_size  = 18
@@ -42,9 +39,6 @@ def main():
         plt.rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
         plt.rcParams['text.usetex'] = True
         plt.rcParams['text.latex.unicode'] = True    
-
-        # Adjust errors
-        E = E/4
 
         bin_pnts = 6
         RVb, Fb, Eb             =   Bin_data(RV,F,E,bin_pnts)
@@ -57,25 +51,18 @@ def main():
         plt.plot(v,f_after_fit,lw=3,color='#FF281C',label=r'Best fit')
 
         last = len(RVb)
-        #'''
         plt.errorbar(RVob[last:],Fob[last:],yerr=Eob[last:],fmt=None,ecolor='black',zorder=2)
         plt.scatter(RVob[last:],Fob[last:], marker='o', edgecolor="black", color='gray',zorder=3)
 
         plt.errorbar(RVb_cut,Fb_cut,yerr=Eb_cut,fmt=None,ecolor='orange',zorder=3)
         plt.scatter(RVb_cut,Fb_cut, marker='o', edgecolor="black",color='orange',zorder=3)
-        #'''
         plt.errorbar(RVb,Fb,yerr=Eb,fmt=None,ecolor='black',zorder=3)
         plt.scatter(RVb,Fb, marker='o', color='k',zorder=3)
-
-        #plt.errorbar(RV,F,yerr=E,fmt=None,ecolor='black',zorder=3)
-        #plt.scatter(RV,F, marker='o', color='k',zorder=3)
         
-
-   
         plt.xlabel(r'Radial Velocity [km/s]')
         plt.ylabel('Flux (erg/s/cm$^2$/\AA)')
 
-        plt.xlim(-720,420)
+        plt.xlim(-740,413)
         plt.ylim(-2.0e-14,3.4e-14)
         fig.tight_layout()
         plt.show()
