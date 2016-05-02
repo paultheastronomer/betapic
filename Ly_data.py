@@ -10,7 +10,6 @@ def Bin_data(x,y1,e1,bin_pnts):
     bin_e       = np.array([e1[digitized == i].mean() for i in range(0, len(bins))])
     return bins, bin_y, bin_e/np.sqrt(bin_pnts)
 
-
 def weighted_avg_and_errorbars(Flux, Err):
     """
     Return the weighted average and Error bars.
@@ -69,8 +68,8 @@ def main():
     #Err  = np.array([Ec[4]])
 
     # For 30 Jan data uncomment the two lines below
-    Flux = np.array([Fc[8]])
-    Err  = np.array([Ec[8]])
+    #Flux = np.array([Fc[8]])
+    #Err  = np.array([Ec[8]])
     
     F1, F1_err    =  weighted_avg_and_errorbars(Flux,Err)         
     #############################################################################################    
@@ -90,8 +89,8 @@ def main():
     #Err  = np.array([Ec[5]])
 
     # For 30 Jan data uncomment the two lines below
-    Flux = np.array([Fc[9]])
-    Err  = np.array([Ec[9]])
+    #Flux = np.array([Fc[9]])
+    #Err  = np.array([Ec[9]])
 
     F2, F2_err    =  weighted_avg_and_errorbars(Flux,Err)         
     #############################################################################################
@@ -107,89 +106,29 @@ def main():
     #Err  = np.array([Ec[6]])
 
     # For 30 Jan data uncomment the two lines below    
-    Flux = np.array([Fc[10]])
-    Err  = np.array([Ec[10]])
+    #Flux = np.array([Fc[10]])
+    #Err  = np.array([Ec[10]])
     
     F3, F3_err    =  weighted_avg_and_errorbars(Flux,Err)         
     #############################################################################################
 
-    # Combining 0.8" and 1.1" data of the Ly-alpha wing
-    #############################################################################################
     # For all data uncomment the two lines below
-    Flux = np.array([Fc[2],Fc[5],Fc[9],Fc[6],Fc[10]])
-    Err  = np.array([Ec[2],Ec[5],Ec[9],Ec[6],Ec[10]])
-    
-    # For 10 Dec data uncomment the two lines below
-    #Flux = np.array([Fc[2]])
-    #Err  = np.array([Ec[2]])
+    Flux = np.array([F0_0,Fc[0],Fc[1],Fc[2],Fc[3],Fc[4],Fc[5],Fc[6],Fc[7],Fc[8],Fc[9],Fc[10]])
+    Err  = np.array([E0_0,Ec[0],Ec[1],Ec[2],Ec[3],Ec[4],Ec[5],Ec[6],Ec[7],Ec[8],Ec[9],Ec[10]])
 
-    # For 24 Dec data uncomment the two lines below
-    #Flux = np.array([Fc[5],Fc[6]])
-    #Err  = np.array([Ec[5],Ec[6]])
-
-    # For 30 Jan data uncomment the two lines below
-    Flux = np.array([Fc[9],Fc[10]])
-    Err  = np.array([Ec[9],Ec[10]])
-    
-    F4, F4_err    =  weighted_avg_and_errorbars(Flux,Err)         
-    #############################################################################################
-
-    # Combine all data regardless of shift
-    #############################################################################################
-    # For all data uncomment the two lines below
-    #Flux = np.array([F0_0,Fc[0],Fc[1],Fc[2],Fc[3],Fc[4],Fc[5],Fc[6],Fc[7],Fc[8],Fc[9],Fc[10]])
-    #Err  = np.array([E0_0,Ec[0],Ec[1],Ec[2],Ec[3],Ec[4],Ec[5],Ec[6],Ec[7],Ec[8],Ec[9],Ec[10]])
-
-    '''
-    AirG                = np.array([AG0,AG1,AG3])
-    AirG_err            = np.array([AG0err,AG1err,AG3err])
-    AirG_W, AirG_W_err  = weighted_avg_and_errorbars(AirG,AirG_err)    
-    
-    AG1    = ShiftAG(AirG_W,-28)   #2015v1 +0.8" AG
-    AG2    = ShiftAG(AirG_W,-32)   #2015v2 +0.8" AG
-    AG3    = ShiftAG(AirG_W,-25)   #2016 +0.8" AG
-
-    AG4    = ShiftAG(AirG_W,-42)   #2015v2 +1.1" AG
-    AG5    = ShiftAG(AirG_W,-43)   #2016 +1.1" AG
-
-    AG6    = ShiftAG(AirG_W,32)   #2015v1 -0.8" AG
-    AG7    = ShiftAG(AirG_W,35)   #2015v2 -0.8" AG
-    AG8    = ShiftAG(AirG_W,33)   #2016 -0.8" AG
-    
-    #plt.plot(RV,AG1,color="blue")
-    #plt.plot(RV,AG2,color="red")
-    #plt.plot(RV,AG3,color="green")
-    
-    #plt.plot(RV,AG4,color="orange")
-    #plt.plot(RV,AG5,color="purple")
-
-    plt.plot(RV,AG6,color="blue")
-    plt.plot(RV,AG7,color="red")
-    plt.plot(RV,AG8,color="green")
-    
-    plt.plot(RV,AirG_W,color="purple")
-    
-    #plt.errorbar(W[start:stop],F0_0[start:stop],yerr=E0_0[start:stop],color="red")
-    #plt.xlim(50,500)
-    plt.xlim(-500,50)
-    plt.ylim(0,6e-14)
-    plt.show()
-    sys.exit()
-    '''
-     
     # For 2014 data see line straight after "F_tot, F_tot_err"
     
     # For 10 Dec data uncomment the two lines below
-    Flux = np.array([Fc[0],Fc[1],Fc[2]])
-    Err  = np.array([Ec[0],Ec[1],Ec[2]])
+    #Flux = np.array([Fc[0],Fc[1],Fc[2]])
+    #Err  = np.array([Ec[0],Ec[1],Ec[2]])
 
     # For 24 Dec data uncomment the two lines below
     #Flux = np.array([Fc[3],Fc[4],Fc[5],Fc[6]])
     #Err  = np.array([Ec[3],Ec[4],Ec[5],Ec[6]])
 
     # For 30 Jan data uncomment the two lines below
-    Flux = np.array([Fc[7],Fc[8],Fc[9],Fc[10]])
-    Err  = np.array([Ec[7],Ec[8],Ec[9],Ec[10]])
+    #Flux = np.array([Fc[7],Fc[8],Fc[9],Fc[10]])
+    #Err  = np.array([Ec[7],Ec[8],Ec[9],Ec[10]])
     
     F_tot, F_tot_err    =  weighted_avg_and_errorbars(Flux,Err)
     #F_tot, F_tot_err    =  F0_0, E0_0
@@ -204,7 +143,7 @@ def main():
     shift_08_r      = 135#143#shift_0_r-68#157#142.5 140!
     shift_11_r      = 115#115#113#shift_0_r-94# 108 ok
     
-    f = open(dat_directory+'Ly-alpha_B_30Jan.dat', 'w+')
+    f = open(dat_directory+'Ly-alpha_no_CF.dat', 'w+')
     for j in range(len(RV)):
         # Save 0.0" shift data
         if RV[j] < shift_0_l:
@@ -228,12 +167,7 @@ def main():
             print >> f, " ","{: 1.10e}".format(W[j])," "+"{: 1.10e}".format(F3[j])," "+"{: 1.10e}".format(F3_err[j])
         #'''
     f.close()
-    #'''
-    
-    # Plot the region used for normalisation
-    #plt.step(RV[n1:n2],F_tot[n1:n2],color='green')
 
-    #'''
     plt.xlabel(r'RV (km/s)')
     plt.ylabel('Flux')
     plt.xlim(-500,500)  
