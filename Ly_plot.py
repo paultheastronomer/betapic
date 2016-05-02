@@ -46,50 +46,34 @@ def CreateLeft(RV,F):
 
 def main():    
 
-    Wc, Fc, Ec  = np.genfromtxt('Ly-alpha.dat',skiprows=830,skip_footer=0,unpack=True)
-    W0, F0, E0  = np.genfromtxt('Ly-alpha_B_2014.dat',skiprows=830,skip_footer=0,unpack=True)
-    W1, F1, E1  = np.genfromtxt('Ly-alpha_B_10Dec.dat',skiprows=830,skip_footer=0,unpack=True)
-    W2, F2, E2  = np.genfromtxt('Ly-alpha_B_24Dec.dat',skiprows=830,skip_footer=0,unpack=True)
-    W3, F3, E3  = np.genfromtxt('Ly-alpha_B_30Jan.dat',skiprows=830,skip_footer=0,unpack=True)
-    
+    dat_directory = "/home/paw/science/betapic/data/HST/dat/" 
+
+    #Wc, Fc, Ec  = np.genfromtxt(dat_directory+'Ly-alpha.dat',skiprows=830,skip_footer=0,unpack=True)
+    W0, F0, E0  = np.genfromtxt(dat_directory+'Ly-alpha_B_2014.dat',skiprows=830,skip_footer=0,unpack=True)
+    W1, F1, E1  = np.genfromtxt(dat_directory+'Ly-alpha_B_10Dec.dat',skiprows=830,skip_footer=0,unpack=True)
+    W2, F2, E2  = np.genfromtxt(dat_directory+'Ly-alpha_B_24Dec.dat',skiprows=830,skip_footer=0,unpack=True)
+    W3, F3, E3  = np.genfromtxt(dat_directory+'Ly-alpha_B_30Jan.dat',skiprows=830,skip_footer=0,unpack=True)
+        
     rest_wavelength = 1215.6702 
     RV_BP           = 20.5
     
     # Convert to RV with beta Pic as reference frame
-    RVc         = wave2RV(Wc,rest_wavelength,RV_BP)
+    #RVc         = wave2RV(Wc,rest_wavelength,RV_BP)
     
     RV0         = wave2RV(W0,rest_wavelength,RV_BP)
     RV1         = wave2RV(W1,rest_wavelength,RV_BP)
     RV2         = wave2RV(W2,rest_wavelength,RV_BP)
     RV3         = wave2RV(W3,rest_wavelength,RV_BP)
 
-    # Not used:
-    #'''
-    RVcn, Fcn   = CreateRight(RVc,Fc)
-    RV0n, F0n   = CreateRight(RV0,F0)
-    RV1n, F1n   = CreateRight(RV1,F1)
-    RV2n, F2n   = CreateRight(RV2,F2)
-    RV3n, F3n   = CreateRight(RV3,F3)
-
-    RVcm, Fcm   = CreateLeft(RVc,Fc)
-    RV0m, F0m   = CreateLeft(RV0,F0)
-    RV1m, F1m   = CreateLeft(RV1,F1)
-    RV2m, F2m   = CreateLeft(RV2,F2)
-    RV3m, F3m   = CreateLeft(RV3,F3)
-    #'''
-    #
-
     bin_pnts    = 3
 
-
-    RVcb, Fcb, Ecb   =   Bin_data(RVc,Fc,Ec,bin_pnts)
     RV0b, F0b, E0b   =   Bin_data(RV0,F0,E0,bin_pnts)
     RV1b, F1b, E1b   =   Bin_data(RV1,F1,E1,bin_pnts)
     RV2b, F2b, E2b   =   Bin_data(RV2,F2,E2,bin_pnts)
     RV3b, F3b, E3b   =   Bin_data(RV3,F3,E3,bin_pnts)
 
     # Plot the results
-    fig = plt.figure(figsize=(8,6))
+    fig = plt.figure(figsize=(6,4.5))
     #fig = plt.figure(figsize=(14,5))
     fontlabel_size  = 18
     tick_size       = 18
@@ -121,50 +105,15 @@ def main():
     plt.scatter(RV2b,F2b,color='#0386FF',s=40,edgecolor='k',label='2015v2') 
 
     plt.errorbar(RV3b,F3b,yerr=E3b,color='#00B233')
-    plt.scatter(RV3b,F3b,color='#00B233',s=40,edgecolor='k',label='2016v3')
-    
+    plt.scatter(RV3b,F3b,color='#00B233',s=40,edgecolor='k',label='2016')
+
+    plt.xlabel(r'RV [km/s]')
     plt.ylabel('Flux (erg/s/cm$^2$/\AA)')
-    plt.xlim(50,610)
-    plt.ylim(0,5.0e-14)
+    plt.xlim(-500,615)
+    plt.ylim(0,3.5e-14)
     #'''
-    
-    
 
-    '''     
-    ax1 = plt.subplot('131')  
-    ax1.scatter(RV1b*-1,F1b,color='red',alpha=0.5,label='Red wing')
-    ax1.scatter(RV1b,F1b,color='blue',alpha=0.5,label='Blue wing')
-    plt.xlim(50,610)
-    plt.ylim(0,3.0e-14)
-    plt.title('2015v1')
-    plt.xlabel(r'RV [km/s]')
-    plt.ylabel('Flux (erg/s/cm$^2$/\AA)')
-
-    ax2 = plt.subplot('132')  
-    ax2.scatter(RV2b*-1,F2b,color='red',alpha=0.5,label='Red wing')
-    ax2.scatter(RV2b,F2b,color='blue',alpha=0.5,label='Blue wing')
-    plt.xlim(50,610)
-    plt.ylim(0,3.0e-14)
-    plt.title('2015v2')
-    plt.xlabel(r'RV [km/s]')
-
-    ax3 = plt.subplot('133')  
-    ax3.scatter(RV3b*-1,F3b,color='red',alpha=0.5,label='Red wing')
-    ax3.scatter(RV3b,F3b,color='blue',alpha=0.5,label='Blue wing')
-    plt.xlim(50,610)
-    plt.ylim(0,3.0e-14)
-    plt.title('2016v3')
-    plt.xlabel(r'RV [km/s]')
-    plt.minorticks_on()
-
-    locs,labels = plt.xticks()
-    plt.xticks(locs, map(lambda x: "%g" % x, locs))
-
-    plt.xlim(50,610)
-    #plt.ylim(0,5.0e-14)
-    '''
-
-    #plt.legend(loc='upper right', numpoints=1)
+    plt.legend(loc='upper right', numpoints=1)
     #plt.savefig('Ly_red_wing.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
     plt.show()
 
