@@ -10,9 +10,13 @@ This is a collection of python programs used to work with _HST_/COS data.
 
 **Ly_data.py** - Creates the data file containing obsevations centered on the Ly-alpha line.
 
+**Ly_plot.py** - Produces a plot of the cut data (not sky subtracted). Used as Fig 1. in Wilson et al. (2016).
+
 **Ly_AG_subtract.py** - Subtracts the airglow contamination of the Ly-alpha line.
 
 **Ly_fit.py** - Fits the Ly-alpha line using voigt profiles and estimates column densities. Can also run a basic Metropolis-Hastings MCMC which outputs the random walk chains.
+
+**BestFit.py** - Produces a plot showing the best fit to the Ly-alpha line. Both with and without sky subtraction.
 
 **posterior.py** - Plots the posterior distributions of the MCMC chains calculated using Ly_fit.py.
 
