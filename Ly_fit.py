@@ -269,15 +269,15 @@ def main():
 
     # Beta Pic parameters
     v_bp            = 20.5        # RV of the beta Pic (relative to Heliocentric)
-    nh_bp           = 18.8       # Column density beta Pic, Fitting param
+    nh_bp           = 19.25       # Column density beta Pic, Fitting param
     b_bp            = 4.0        # Turbulent velocity
     T_bp            = 1000.       # Temperture of gas in beta Pic disk
 
     # Stellar emission line parameters
-    max_f           = 1.7877e-10     # Fitting param                 
+    max_f           = 5.27877e-10     # Fitting param                 
     dp              = 0.0 
-    uf              = 7.374#3.60        # Fitting param
-    av              = 1.5136#0.1        # Fitting param
+    uf              = 2.374#3.60        # Fitting param
+    av              = 0.136#0.1        # Fitting param
     
     slope           = -8.18747e-4
     offset          = 1.0

@@ -21,7 +21,7 @@ def main():
         dat_directory = "/home/paw/science/betapic/data/HST/dat/" 
 
         v,f_star,f_abs_ism,f_abs_bp,f_after_fit = np.genfromtxt(dat_directory+'Ly_Fit.dat',unpack=True)
-        W_cut, F_cut, E_cut = np.genfromtxt(dat_directory+'Ly-alpha_no_CF.dat',skiprows=500,unpack=True)      
+        W_cut, F_cut, E_cut = np.genfromtxt(dat_directory+'Ly-alpha_no_AG.txt',skiprows=500,unpack=True)      
         
         Wo, Fo, Eo  = np.genfromtxt(dat_directory+'Ly_sky_subtracted.txt',unpack=True)
         W, F, E     = np.genfromtxt(dat_directory+'Ly_sky_subtracted.txt',unpack=True,skip_footer= 150)
@@ -63,8 +63,9 @@ def main():
         plt.ylabel('Flux (erg/s/cm$^2$/\AA)')
 
         plt.xlim(-740,413)
-        plt.ylim(-2.0e-14,3.4e-14)
+        plt.ylim(-2.0e-14,6.0e-14)
         fig.tight_layout()
+        plt.savefig('Ly_line.jpg', bbox_inches='tight', pad_inches=0.1,dpi=300)
         plt.show()
 
 
