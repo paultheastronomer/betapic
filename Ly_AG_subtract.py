@@ -52,17 +52,15 @@ def main():
     W, RV, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3  = np.genfromtxt(dat_directory+'B_30Jan.dat',skiprows=830,skip_footer=0,unpack=True)
     
     rescale    = np.genfromtxt(dat_directory+'rescaling_factors2.txt',unpack=True)
-    rescale    = np.array([rescale])
+    rescale    = np.array(np.append(1.,rescale))# added 1. since we scaled to 2014 data.  
+    rescale    = np.array([rescale])            # 
 
     # Rescaling errors
     F = np.array([F0_0,F0_1,F1_1,F2_1,F0_2,F1_2,F2_2,F3_2,F0_3,F1_3,F2_3,F3_3])
     E = np.array([E0_0,E0_1,E1_1,E2_1,E0_2,E1_2,E2_2,E3_2,E0_3,E1_3,E2_3,E3_3])
-    
-    #print type(F)
+
     F = F*rescale.T
-    #sys.exit()
-    #E = E/rescaled_err.T
-    
+    #E = E*rescale.T        # Ask Alain about this
     
     LyA             = 1215.6702
     RV_BP           = 0.0#20.5
