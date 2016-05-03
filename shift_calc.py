@@ -7,15 +7,22 @@ import numpy as np
 def Extract(fits_file, part,start,stop):
     f           = pyfits.open(fits_file)
     tbdata      = f[1].data
+    net         = tbdata['NET']
+    gcounts     = tbdata['GCOUNTS']
+    exptime     = np.array([tbdata['EXPTIME']])
     wavelength  = tbdata['WAVELENGTH']
-    flux        = tbdata['FLUX']
-    err         = tbdata['ERROR']
+    flux        = tbdata['FLUX'] 
+    a           = net*exptime.T
+    for i in range(len(a)):
+        a[i]        = [1e-15 if x==0 else x for x in a[i]]
+    err         = np.sqrt(gcounts+1)*(flux / (a))
+
     if part == 'A':
         return wavelength[0][start:-stop], flux[0][start:-stop], err[0][start:-stop]
     else:
         return wavelength[1][start:-stop], flux[1][start:-stop], err[1][start:-stop]
 
-def shift_spec(ref,spec,error,wave,start,stop):
+def shift_spec(ref,spec,error,wave,start,stop,rest_wavelength):
     # This routine correlates the spectrum: spec
     # with the reference spectrum: ref
 	ref_c	= ref[start:stop]   # Reference spectrum
@@ -31,14 +38,18 @@ def shift_spec(ref,spec,error,wave,start,stop):
 
 	x           = np.arange(c.size)
 	c_max       = np.argmax(c)      # Maximum correlation
+	
+	c_light = 299792458
 
 	print "=================================="
 	if ref_c.size-1 > c_max:        # If spectrum is redshifted
 	  #ref_c.size-1 because python starts index at 0
 	  shift = wave_c[ref_c.size-1]-wave_c[np.argmax(c)]
 	  units = (ref_c.size-1)-np.argmax(c)
+	  RV_shift = ((shift/rest_wavelength)*c_light)/1.e3
 	  print "Pixel Shift:\t",units
 	  print "Angstrom Shift:\t",shift
+	  print "RV Shift:\t",RV_shift
 	  zeros = np.zeros(units)
 	  spec	= np.concatenate((zeros, spec), axis=1)[:-units]
 	  error	= np.concatenate((zeros, error), axis=1)[:-units]
@@ -46,8 +57,10 @@ def shift_spec(ref,spec,error,wave,start,stop):
 	  c = np.correlate(ref_c,spec_c,mode='full')
 	  shift = wave_c[np.argmax(c)]-wave_c[ref_c.size-1]
 	  units	= abs(np.argmax(c)-(ref_c.size-1))
+	  RV_shift = ((shift/rest_wavelength)*c_light)/1.e3
 	  print "Pixel Shift:\t",-units
 	  print "Angstrom Shift:\t",shift
+	  print "RV Shift:\t",RV_shift
 	  zeros     = np.zeros(units)
 	  spec	= np.concatenate((spec, zeros), axis=1)[units:]
 	  error	= np.concatenate((error, zeros), axis=1)[units:]
@@ -105,7 +118,7 @@ def wave2RV(Wave,rest_wavelength,RV_BP):
     RV = ((delta_wavelength/rest_wavelength)*c)/1.e3	# km/s
     return RV
 
-def ExportShitedSpectra(w0,f0,f1,f2,f3,f4,AG,e0,e1,e2,e3,e4,eAG,NumFits,start,stop):
+def ExportShitedSpectra(w0,f0,f1,f2,f3,f4,AG,e0,e1,e2,e3,e4,eAG,NumFits,start,stop,rest_wavelength):
    
     # Creating empty arrays to be filled with
     # shifted spectra
@@ -113,12 +126,14 @@ def ExportShitedSpectra(w0,f0,f1,f2,f3,f4,AG,e0,e1,e2,e3,e4,eAG,NumFits,start,st
     W = [[] for _ in range(NumFits-1)]
     E = [[] for _ in range(NumFits-1)]    
 
-    W[0],F[0],E[0]	=	shift_spec(f0,f1,e1,w0,start,stop)
-    W[1],F[1],E[1]	=	shift_spec(f0,f2,e2,w0,start,stop)
-    W[2],F[2],E[2]	=	shift_spec(f0,f3,e3,w0,start,stop)
+    W[0],F[0],E[0]	=	shift_spec(f0,f1,e1,w0,start,stop,rest_wavelength)
+    W[1],F[1],E[1]	=	shift_spec(f0,f2,e2,w0,start,stop,rest_wavelength)
+    W[2],F[2],E[2]	=	shift_spec(f0,f3,e3,w0,start,stop,rest_wavelength)
+    
+    #W[3],F[3],E[3]	=	shift_spec(f0,f3,e3,w0,start,stop)
 
     if NumFits > 4:
-        W[3],F[3],E[3]	=	shift_spec(f0,f4,e4,w0,start,stop)
+        W[3],F[3],E[3]	=	shift_spec(f0,f4,e4,w0,start,stop,rest_wavelength)
 
     F = np.array(F)
     E = np.array(E)
@@ -145,8 +160,8 @@ def main():
     x_lim1      = 1132#1288
     x_lim2      = 1281#1433
     dat_directory = "/home/paw/science/betapic/data/HST/dat/"   
-    LyA = 1215.6737 # Ly-alpha wavelength
-    RV_BP = 0       # RV reference frame.
+    LyA         = 1215.6702 # Ly-alpha wavelength
+    RV_BP       = 0       # RV reference frame.
     ##########################################
 
     fits_location = '/home/paw/science/betapic/data/HST/2015/'
@@ -167,12 +182,9 @@ def main():
     fits_location = '/home/paw/science/betapic/data/HST/2016/visit_3/'
     w0_3,w1_3,w2_3,w3_3,f0_3,F0_3,F1_3,F2_3,e0_3,e1_3,e2_3,e3_3,w_AG_3,f_AG_3,e_AG_3,NumFits_3 = getData(fits_location,part,start,stop)    
     
-   
-    
     # The next part of the code is aimed at finding quiet regions in the spectra
     # not affected by FEB activity. The binning of the data is done so that
     # the quiet regions can be better seen.
-    
     
     # Bin the data by bin_pnts (defined above)
     w_bin, y0_bin, y1_bin, y2_bin, y3_bin = Bin_data(w0_0,f0_0,f0_1,f0_2,f0_3,bin_pnts)
@@ -259,23 +271,25 @@ def main():
     e_empty = []
     
     print "\n\nShifting 10 Dec 2015 observations:"
-    W, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1 = ExportShitedSpectra(w0_0,f0_0,f0_1,f1_1,f2_1,f_empty,f_AG_1,e0_0,e0_1,e1_1,e2_1,e_empty,e_AG_1,NumFits_1,start,stop)
+    W, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1 = ExportShitedSpectra(w0_0,f0_0,f0_1,f1_1,f2_1,f_empty,f_AG_1,e0_0,e0_1,e1_1,e2_1,e_empty,e_AG_1,NumFits_1,start,stop,LyA)
     
     print "\n\nShifting 24 Dec 2015 observations:"
-    W, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2 = ExportShitedSpectra(w0_0,f0_0,f0_2,f1_2,f2_2,f3_2,f_AG_2,e0_0,e0_2,e1_2,e2_2,e3_2,e_AG_2,NumFits_2,start,stop)
+    W, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2 = ExportShitedSpectra(w0_0,f0_0,f0_2,f1_2,f2_2,f3_2,f_AG_2,e0_0,e0_2,e1_2,e2_2,e3_2,e_AG_2,NumFits_2,start,stop,LyA)
     
     print "\n\nShifting 30 Jan 2016 observations:"
-    W, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3 = ExportShitedSpectra(w0_0,f0_0,f0_3,F0_3,F1_3,F2_3,f_AG_3,e0_0,e0_3,e1_3,e2_3,e3_3,e_AG_3,NumFits_3,start,stop)
+    W, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3 = ExportShitedSpectra(w0_0,f0_0,f0_3,F0_3,F1_3,F2_3,f_AG_3,e0_0,e0_3,e1_3,e2_3,e3_3,e_AG_3,NumFits_3,start,stop,LyA)
 
 
     # Convert from wavlength to radial velocity
     RV = wave2RV(W,LyA,RV_BP)
-    
+
     # Save data into .dat file
+    #'''
     np.savetxt(dat_directory+part+"_2014.dat",np.column_stack((W, RV, f0_0, e0_0, f_AG_0, e_AG_0)))
     np.savetxt(dat_directory+part+"_10Dec.dat",np.column_stack((W, RV, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1)))
     np.savetxt(dat_directory+part+"_24Dec.dat",np.column_stack((W, RV, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2)))
     np.savetxt(dat_directory+part+"_30Jan.dat",np.column_stack((W, RV, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3)))
+    #'''
 
     
 if __name__ == '__main__':
