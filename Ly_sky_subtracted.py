@@ -86,7 +86,7 @@ def main():
     F_red, F_err_red = weighted_avg_and_errorbars(red,red_err)
 
     tot     = np.array([n000,n001,n002,n003,m081,m082,m083,p081,p083,p112,p113])
-    tot_err = np.array([en000,en001,en002,en003,em081,em082,em083,ep081,ep083,ep112,ep113])
+    tot_err = np.array([en000,en001,en002,en003,em081,em082,em083,ep081p,ep083,ep112,ep113])
 
     #tot     = np.array([n000,n001,n002,n003,m081,m082,m083,p081,p082,p083,p112,p113])
     #tot_err = np.array([en000,en001,en002,en003,em081,em082,em083,ep081,ep082,ep083,ep112,ep113])
