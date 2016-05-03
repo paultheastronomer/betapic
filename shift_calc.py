@@ -168,11 +168,11 @@ def main():
 
     # Load data visit 1 2014
     fits_location = '/home/paw/science/betapic/data/HST/2014/visit_1/'
-    w0_0,f0_0,e0_0,w_AG_0,f_AG_0,e_AG_0,NumFits_0               = getData(fits_location,part,start,stop)
+    w0_0,f0_0,e0_0,w_AG_0,f_AG_0,e_AG_0,NumFits_0   = getData(fits_location,part,start,stop)
 
     # Load data visit 1 2015
     fits_location = '/home/paw/science/betapic/data/HST/2015/visit_1/'
-    w0_1,w1_1,w2_1,f0_1,f1_1,f2_1,e0_1,e1_1,e2_1,w_AG_1,f_AG_1,e_AG_1,NumFits_1                = getData(fits_location,part,start,stop)
+    w0_1,w1_1,w2_1,f0_1,f1_1,f2_1,e0_1,e1_1,e2_1,w_AG_1,f_AG_1,e_AG_1,NumFits_1 = getData(fits_location,part,start,stop)
     
     # Load data visit 2 2015
     fits_location = '/home/paw/science/betapic/data/HST/2015/visit_2/'
