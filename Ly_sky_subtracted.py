@@ -39,7 +39,7 @@ def main():
     W,m083,em083 = np.genfromtxt(dat_directory+'minus_08_visit4.dat',unpack=True,skiprows=7000,skip_footer=6000)
 
     W,p081,ep081 = np.genfromtxt(dat_directory+'plus_08_visit2.dat',unpack=True,skiprows=7000,skip_footer=6000)
-    W,p082,ep082 = np.genfromtxt(dat_directory+'plus_08_visit3.dat',unpack=True,skiprows=7000,skip_footer=6000)
+    #W,p082,ep082 = np.genfromtxt(dat_directory+'plus_08_visit3.dat',unpack=True,skiprows=7000,skip_footer=6000)
     W,p083,ep083 = np.genfromtxt(dat_directory+'plus_08_visit4.dat',unpack=True,skiprows=7000,skip_footer=6000)
 
     W,p112,ep112 = np.genfromtxt(dat_directory+'plus_11_visit3.dat',unpack=True,skiprows=7000,skip_footer=6000)
@@ -73,19 +73,23 @@ def main():
     blue     = np.array([m081,m082,m083])
     blue_err  = np.array([em081,em082,em083])
     
-    red     = np.array([p081,p082,p083,p112,p113])
-    red_err     = np.array([ep081,ep082,ep083,ep112,ep113])
+    red     = np.array([p081,p083,p112,p113])
+    red_err     = np.array([ep081,ep083,ep112,ep113])
+    #red     = np.array([p081,p082,p083,p112,p113])
+    #red_err     = np.array([ep081,ep082,ep083,ep112,ep113])
 
-    #red     = np.array([p082,p112])
-    #red_err     = np.array([ep082,ep112])
+
     
     F_blue, F_err_blue = weighted_avg_and_errorbars(blue,blue_err)
     
     
     F_red, F_err_red = weighted_avg_and_errorbars(red,red_err)
 
-    tot     = np.array([n000,n001,n002,n003,m081,m082,m083,p081,p082,p083,p112,p113])
-    tot_err = np.array([en000,en001,en002,en003,em081,em082,em083,ep081,ep082,ep083,ep112,ep113])#/np.sqrt(8)
+    tot     = np.array([n000,n001,n002,n003,m081,m082,m083,p081,p083,p112,p113])
+    tot_err = np.array([en000,en001,en002,en003,em081,em082,em083,ep081,ep083,ep112,ep113])
+
+    #tot     = np.array([n000,n001,n002,n003,m081,m082,m083,p081,p082,p083,p112,p113])
+    #tot_err = np.array([en000,en001,en002,en003,em081,em082,em083,ep081,ep082,ep083,ep112,ep113])
 
     F, F_err    = weighted_avg_and_errorbars(tot,tot_err)       
 
