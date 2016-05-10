@@ -1,8 +1,7 @@
-#comment line by Alain
-
 import pyfits, os
 import matplotlib.pyplot as plt
 import numpy as np
+import sys
 
 def Extract(fits_file, part,start,stop):
     f           = pyfits.open(fits_file)
@@ -153,14 +152,14 @@ def main():
     
     # Configure these paramters before running
     ##########################################
-    start       = 1000#1000  # Wavelength element
-    stop	    = 1000#800   # start/stop point.
-    part        = 'B'   # A = red, B = blue
+    start       = 1100#1000  # Wavelength element
+    stop	    = 5000#800   # start/stop point.
+    part        = 'A'   # A = red, B = blue
     bin_pnts    = 10.
-    x_lim1      = 1132#1288
-    x_lim2      = 1281#1433
+    x_lim1      = 1280#1288
+    x_lim2      = 1330#1433
     dat_directory = "/home/paw/science/betapic/data/HST/dat/"   
-    LyA         = 1215.6702 # Ly-alpha wavelength
+    LyA         = 1304 # Ly-alpha wavelength
     RV_BP       = 0       # RV reference frame.
     ##########################################
 
@@ -216,6 +215,16 @@ def main():
     plt.rcParams['text.usetex'] = True
     plt.rcParams['text.latex.unicode'] = True   
 
+    # Define new start and stop values
+    # which determine the region to be
+    # cross correlated. This region will be marked in blue in the lower panel.
+    if part == 'A':
+        s1 = 230
+        s2  = 1150        
+    else:
+        s1 = 9000
+        s2  = 12400
+
     # Top plot shows the ratio between the spectra. Flat regions are
     # indicative of low FEB activity.
     ax1 = plt.subplot(211)
@@ -223,6 +232,8 @@ def main():
     plt.step(w_bin,ratio1+0.5,label='2014/2015v1',color="#FF32B1") 
     plt.step(w_bin,ratio2,label='2014/2015v2',color="#13C1CC")
     plt.step(w_bin,ratio3-0.5,label='2014/2016v3',color="#BDAC42")
+    plt.plot([w0_0[s1],w0_0[s1]],[0,3],'-k')
+    plt.plot([w0_0[s2],w0_0[s2]],[0,3],'-k')
     plt.xlim(x_lim1,x_lim2)
     if part == 'A':
       plt.ylim(0.25,2.3)
@@ -230,15 +241,7 @@ def main():
       plt.ylim(0.,3.0)
     plt.legend(loc='upper left', numpoints=1)
 
-    # Define new start and stop values
-    # which determine the region to be
-    # cross correlated. This region will be marked in blue in the lower panel.
-    if part == 'A':
-        start = 5300
-        stop  = 10300
-    else:
-        start = 9000
-        stop  = 12400
+
     #'''            
     ax2 = plt.subplot(212, sharex=ax1)
     # Plot of the individual spectra
@@ -246,6 +249,8 @@ def main():
     plt.step(w_bin,y1_bin+4e-13,lw=1.2,color="#FF9303",label='2015v1')
     plt.step(w_bin,y2_bin+2e-13,lw=1.2,color="#0386FF",label='2015v2')
     plt.step(w_bin,y3_bin,lw=1.2,color="#00B233",label='2016v3') 
+    plt.plot([w0_0[s1],w0_0[s1]],[0,3],'-k')
+    plt.plot([w0_0[s2],w0_0[s2]],[0,3],'-k')
     plt.xlim(x_lim1,x_lim2)
       
     if part == 'A':
@@ -253,7 +258,6 @@ def main():
     else:
       plt.ylim(0.,0.7e-12) 
 
-    plt.step(w0_0[start:stop],f0_0[start:stop])
     plt.legend(loc='upper left', numpoints=1)
     
     fig.tight_layout()
@@ -271,13 +275,13 @@ def main():
     e_empty = []
     
     print "\n\nShifting 10 Dec 2015 observations:"
-    W, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1 = ExportShitedSpectra(w0_0,f0_0,f0_1,f1_1,f2_1,f_empty,f_AG_1,e0_0,e0_1,e1_1,e2_1,e_empty,e_AG_1,NumFits_1,start,stop,LyA)
+    W, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1 = ExportShitedSpectra(w0_0,f0_0,f0_1,f1_1,f2_1,f_empty,f_AG_1,e0_0,e0_1,e1_1,e2_1,e_empty,e_AG_1,NumFits_1,s1,s2,LyA)
     
     print "\n\nShifting 24 Dec 2015 observations:"
-    W, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2 = ExportShitedSpectra(w0_0,f0_0,f0_2,f1_2,f2_2,f3_2,f_AG_2,e0_0,e0_2,e1_2,e2_2,e3_2,e_AG_2,NumFits_2,start,stop,LyA)
+    W, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2 = ExportShitedSpectra(w0_0,f0_0,f0_2,f1_2,f2_2,f3_2,f_AG_2,e0_0,e0_2,e1_2,e2_2,e3_2,e_AG_2,NumFits_2,s1,s2,LyA)
     
     print "\n\nShifting 30 Jan 2016 observations:"
-    W, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3 = ExportShitedSpectra(w0_0,f0_0,f0_3,F0_3,F1_3,F2_3,f_AG_3,e0_0,e0_3,e1_3,e2_3,e3_3,e_AG_3,NumFits_3,start,stop,LyA)
+    W, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3 = ExportShitedSpectra(w0_0,f0_0,f0_3,F0_3,F1_3,F2_3,f_AG_3,e0_0,e0_3,e1_3,e2_3,e3_3,e_AG_3,NumFits_3,s1,s2,LyA)
 
 
     # Convert from wavlength to radial velocity
