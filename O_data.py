@@ -56,13 +56,13 @@ def main():
     # i.e. F1_2 => Flux measurement during second position during the third visit)
     #
     ############################################################################################# 
-    W, RV, F0_0, E0_0, AG0, AG0err = np.genfromtxt('/home/paw/science/betapic/data/HST/dat/A_2014.dat',unpack=True,skiprows=500,skip_footer=6000)
+    W, RV, F0_0, E0_0, AG0, AG0err = np.genfromtxt('/home/paw/science/betapic/data/HST/dat/A_2014.dat',unpack=True,skip_header=500,skip_footer=6000)
 
-    W, RV, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1 = np.genfromtxt('/home/paw/science/betapic/data/HST/dat/A_10Dec.dat',unpack=True,skiprows=500,skip_footer=6000)
+    W, RV, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1 = np.genfromtxt('/home/paw/science/betapic/data/HST/dat/A_10Dec.dat',unpack=True,skip_header=500,skip_footer=6000)
 
-    W, RV, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2 = np.genfromtxt('/home/paw/science/betapic/data/HST/dat/A_24Dec.dat',unpack=True,skiprows=500,skip_footer=6000)
+    W, RV, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2 = np.genfromtxt('/home/paw/science/betapic/data/HST/dat/A_24Dec.dat',unpack=True,skip_header=500,skip_footer=6000)
 
-    W, RV, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3 = np.genfromtxt('/home/paw/science/betapic/data/HST/dat/A_30Jan.dat',unpack=True,skiprows=500,skip_footer=6000)
+    W, RV, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3 = np.genfromtxt('/home/paw/science/betapic/data/HST/dat/A_30Jan.dat',unpack=True,skip_header=500,skip_footer=6000)
     ############################################################################################# 
 
     dat_directory = "/home/paw/science/betapic/data/HST/dat/"
@@ -131,7 +131,7 @@ def main():
     
 
     bin_pnts = 3
-    Wb, AirG_W_b, AirG_W_err_b          = Bin_data(W,AirG_W, AirG_W_err,bin_pnts)
+    RVb, AirG_W_b, AirG_W_err_b          = Bin_data(RV,AirG_W, AirG_W_err,bin_pnts)
     Wb, Flux_b_2014, Err_b_2014         = Bin_data(W,F0_0,E0_0,bin_pnts)
     Wb, Flux_w_b_10Dec, Err_w_b_10Dec   = Bin_data(W,Flux_w_10Dec,Err_w_10Dec,bin_pnts)
     Wb, Flux_w_b_26Dec, Err_w_b_26Dec   = Bin_data(W,Flux_w_26Dec,Err_w_26Dec,bin_pnts)
@@ -149,26 +149,27 @@ def main():
     plt.rcParams['text.usetex'] = True
     plt.rcParams['text.latex.unicode'] = True   
     
-    plt.plot(Wb,AirG_W_b,color="blue",alpha=0.5)
+    plt.plot(RVb,AirG_W_b,color="blue",alpha=0.5)
     #plt.plot(Wb,Flux_b_2014,color="blue")
-    plt.plot(Wb,Flux_b_2014-8*AirG_W_b,color="#FF281C",label='2014')
+    plt.plot(RVb,Flux_b_2014-8*AirG_W_b,color="#FF281C",label='2014')
 
-    plt.plot(Wb,Flux_w_b_10Dec,color="#FF9303",label='2015v1')
+    plt.plot(RVb,Flux_w_b_10Dec,color="#FF9303",label='2015v1')
 
     #plt.plot(Wb,Flux_w_b_26Dec,color="blue")
-    plt.plot(Wb,Flux_w_b_26Dec-AirG_W_b,color="#0386FF",label='2015v2')
+    plt.plot(RVb,Flux_w_b_26Dec-AirG_W_b,color="#0386FF",label='2015v2')
     
     #plt.plot(Wb,Flux_w_b_30Jan,color="blue")
-    plt.plot(Wb,Flux_w_b_30Jan-2*AirG_W_b,color="#00B233",label='2016')
+    plt.plot(RVb,Flux_w_b_30Jan-2*AirG_W_b,color="#00B233",label='2016')
     
 
-    plt.xlabel(r'Wavelength (\AA)')
+    #plt.xlabel(r'Wavelength (\AA)')
+    plt.xlabel(r'RV (km/s)')
     plt.ylabel('Flux (erg/s/cm$^2$/\AA)')
-    plt.xlim(1300,1308)
+    plt.xlim(-400,400)
     plt.ylim(0.0,1.6e-13)
     plt.legend(loc='lower left', numpoints=1)
     fig.tight_layout()
-    plt.savefig('OI.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
+    #plt.savefig('OI.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
     plt.show()
 
 if __name__ == '__main__':

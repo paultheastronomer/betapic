@@ -50,8 +50,9 @@ def shift_spec(ref,spec,error,wave,start,stop,rest_wavelength):
 	  print "Angstrom Shift:\t",shift
 	  print "RV Shift:\t",RV_shift
 	  zeros = np.zeros(units)
-	  spec	= np.concatenate((zeros, spec), axis=1)[:-units]
-	  error	= np.concatenate((zeros, error), axis=1)[:-units]
+	  if units != 0:
+	    spec	= np.concatenate((zeros, spec), axis=0)[:-units]
+	    error	= np.concatenate((zeros, error), axis=0)[:-units]
 	else:                           # If spectrum is blueshifted
 	  c = np.correlate(ref_c,spec_c,mode='full')
 	  shift = wave_c[np.argmax(c)]-wave_c[ref_c.size-1]
@@ -61,8 +62,9 @@ def shift_spec(ref,spec,error,wave,start,stop,rest_wavelength):
 	  print "Angstrom Shift:\t",shift
 	  print "RV Shift:\t",RV_shift
 	  zeros     = np.zeros(units)
-	  spec	= np.concatenate((spec, zeros), axis=1)[units:]
-	  error	= np.concatenate((error, zeros), axis=1)[units:]
+	  if units != 0:
+	    spec	= np.concatenate((spec, zeros), axis=0)[units:]
+	    error	= np.concatenate((error, zeros), axis=0)[units:]
 	print "=================================="
 
 	return wave,spec,error
@@ -159,8 +161,8 @@ def main():
     x_lim1      = 1280#1288
     x_lim2      = 1395#1433
     dat_directory = "/home/paw/science/betapic/data/HST/dat/"   
-    LyA         = 1304 # Ly-alpha wavelength
-    RV_BP       = 0       # RV reference frame.
+    LyA         = 1302.1685 # Ly-alpha wavelength
+    RV_BP       = 20.5       # RV reference frame.
     ##########################################
 
     fits_location = '/home/paw/science/betapic/data/HST/2015/'
