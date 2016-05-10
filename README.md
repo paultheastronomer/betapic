@@ -10,6 +10,8 @@ This is a collection of python programs used to work with _HST_/COS data.
 
 **Ly_data.py** - Creates the data file containing obsevations centered on the Ly-alpha line.
 
+**O_data.py** - Plots the weighted average of each visit centered on the 1304 lines
+
 **Ly_plot.py** - Produces a plot of the cut data (not sky subtracted). Used as Fig 1. in Wilson et al. (2016).
 
 **Ly_AG_subtract.py** - Subtracts the airglow contamination of the Ly-alpha line.
