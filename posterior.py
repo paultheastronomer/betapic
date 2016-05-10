@@ -19,7 +19,7 @@ def Uncertainties(x):
    
    return med,up-med,med-down   
 
-def Plot_Chain(P1, P2):
+def Plot_Chain(P1, P2,name):
   fig = plt.figure()
   plt.clf()
   
@@ -64,7 +64,7 @@ def Plot_Chain(P1, P2):
   plt.minorticks_on()
   plt.ylim(y_min,y_max)
   
-  plt.savefig(str(P1)+'_'+str(P2)+'_param.pdf',paper='a4',orientation='landscape',bbox_inches='tight', pad_inches=0.1)
+  plt.savefig(name+'_param.png',paper='a4',orientation='landscape',bbox_inches='tight', pad_inches=0.1)
 
 #chaint = np.load('chaint.npz')
 
@@ -90,8 +90,8 @@ print Uncertainties(uf)
 print Uncertainties(av)
 print Uncertainties(slope)
 
-Plot_Chain(nh_bp, max_f)
-Plot_Chain(uf, av)
-Plot_Chain(nh_bp, slope)
+Plot_Chain(nh_bp, max_f,'1')
+Plot_Chain(uf, av,'2')
+Plot_Chain(nh_bp, slope,'3')
 
 #plt.show()
