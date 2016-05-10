@@ -157,7 +157,7 @@ def main():
     part        = 'A'   # A = red, B = blue
     bin_pnts    = 10.
     x_lim1      = 1280#1288
-    x_lim2      = 1330#1433
+    x_lim2      = 1395#1433
     dat_directory = "/home/paw/science/betapic/data/HST/dat/"   
     LyA         = 1304 # Ly-alpha wavelength
     RV_BP       = 0       # RV reference frame.
@@ -217,10 +217,13 @@ def main():
 
     # Define new start and stop values
     # which determine the region to be
-    # cross correlated. This region will be marked in blue in the lower panel.
+    # cross correlated.
     if part == 'A':
-        s1 = 230
-        s2  = 1150        
+        #s1 = 230
+        #s2  = 1150        
+        s1 = 5000
+        s2  = 10200  
+
     else:
         s1 = 9000
         s2  = 12400
