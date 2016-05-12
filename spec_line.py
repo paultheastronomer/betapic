@@ -1,15 +1,30 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-def Bin_data(x,y1,y2,y3,y4,bin_pnts):
-    bin_size = int(len(x)/bin_pnts)
-    bins = np.linspace(x[0], x[-1], bin_size)
-    digitized = np.digitize(x, bins)
-    bin_y1 = np.array([y1[digitized == i].mean() for i in range(0, len(bins))])
-    bin_y2 = np.array([y2[digitized == i].mean() for i in range(0, len(bins))])
-    bin_y3 = np.array([y3[digitized == i].mean() for i in range(0, len(bins))])
-    bin_y4 = np.array([y4[digitized == i].mean() for i in range(0, len(bins))])
-    return bins, bin_y1, bin_y2, bin_y3, bin_y4
+def Bin_data(x,y1,e1,bin_pnts):
+    bin_size    = int(len(x)/bin_pnts)
+    bins        = np.linspace(x[0], x[-1], bin_size)
+    digitized   = np.digitize(x, bins)
+    bin_y       = np.array([y1[digitized == i].mean() for i in range(0, len(bins))])
+    bin_e       = np.array([e1[digitized == i].mean() for i in range(0, len(bins))])
+    return bins, bin_y, bin_e/np.sqrt(bin_pnts)
+
+def weighted_avg_and_errorbars(Flux, Err):
+    """
+    Return the weighted average and Error bars.
+    """
+    weights=1./(Err**2)
+    average = np.average(Flux, axis=0, weights=weights)
+    errorbars_2 = np.sum(weights*(Err**2), axis=0) / np.sum(weights, axis=0)
+    return average, np.sqrt(errorbars_2)
+
+def CF(flux,flux_err,ref,ref_err,n1,n2):
+    flux        = replace_with_median(flux)
+    flux_err    = replace_with_median(flux_err)
+    ref_err     = replace_with_median(ref_err)
+    ratio = np.average(flux[n1:n2], axis=0, weights=1./(flux_err[n1:n2]**2))/ \
+            np.average(ref[n1:n2],  axis=0, weights=1./(ref_err[n1:n2]**2 ))                       
+    return 1./ratio
 
 def wave2RV(Wave,rest_wavelength,RV_BP):
     c = 299792458
@@ -17,6 +32,12 @@ def wave2RV(Wave,rest_wavelength,RV_BP):
     delta_wavelength = Wave-rest_wavelength
     RV = ((delta_wavelength/rest_wavelength)*c)/1.e3	# km/s
     return RV
+
+def replace_with_median(X):
+    X[np.isnan(X)] = 0
+    m = np.median(X[X > 0])
+    X[X == 0] = m
+    return X
 
 def findCenter(w,l):
     for i in range(len(w)):
@@ -33,30 +54,89 @@ def main():
 
     # Parameters you can change
     #====================================================
-    species             = 'OV'     # Name of species
-    line_of_interest    = 1218.3440 # Wavelength of line
+    species             = 'CaII'     # Name of species
+    line_of_interest    = 1341.8900 # Wavelength of line
     RV_BP               = 20.5      # RV of Beta Pic
-    width               = 1500       # [-2*width:2*width]
-    bin_pnts            = 5         # Number of points to bin
-    norm1               = 160        # Start norm region
-    norm2               = 170        # End norm region
+    width               = 500       # [-2*width:2*width]
+    bin_pnts            = 3         # Number of points to bin
+    n1                  = 50        # Start norm region
+    n2                  = width/1.2        # End norm region
     #====================================================
     
-    #W, F0, F1, F2, F3 = np.loadtxt('/home/paw/science/betapic/data/HST/dat/B.dat',unpack=True)
-    W, F0, F1, F2, F3, E0, E1, E2, E3 = np.loadtxt('/home/paw/science/betapic/data/HST/dat/B.dat',unpack=True)
+    dat_directory = "/home/paw/science/betapic/data/HST/dat/"
+    part        = 'A'
+    W, RV, F0_0, E0_0, AG0, AG0err                                                  = np.genfromtxt(dat_directory+part+"_2014.dat",unpack=True)
+    W, RV, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1               = np.genfromtxt(dat_directory+part+"_10Dec.dat",unpack=True)
+    W, RV, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2   = np.genfromtxt(dat_directory+part+"_24Dec.dat",unpack=True)
+    W, RV, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3   = np.genfromtxt(dat_directory+part+"_30Jan.dat",unpack=True)
 
     mid_pnt = findCenter(W,line_of_interest)
 
+    # Only work with region of interest
     W   = W[mid_pnt-width:mid_pnt+width]
-    F0  = F0[mid_pnt-width:mid_pnt+width]
-    F1  = F1[mid_pnt-width:mid_pnt+width]
-    F2  = F2[mid_pnt-width:mid_pnt+width]
-    F3  = F3[mid_pnt-width:mid_pnt+width]
+    RV  = wave2RV(W,line_of_interest,RV_BP)
+    
+    F0_0  = F0_0[mid_pnt-width:mid_pnt+width]
+    F0_1  = F0_1[mid_pnt-width:mid_pnt+width]
+    F1_1  = F1_1[mid_pnt-width:mid_pnt+width]
+    F2_1  = F2_1[mid_pnt-width:mid_pnt+width]
+    F0_2  = F0_2[mid_pnt-width:mid_pnt+width]
+    F1_2  = F1_2[mid_pnt-width:mid_pnt+width]
+    F2_2  = F2_2[mid_pnt-width:mid_pnt+width]
+    F3_2  = F3_2[mid_pnt-width:mid_pnt+width]
+    F0_3  = F0_3[mid_pnt-width:mid_pnt+width]
+    F1_3  = F1_3[mid_pnt-width:mid_pnt+width]
+    F2_3  = F2_3[mid_pnt-width:mid_pnt+width]
+    F3_3  = F3_3[mid_pnt-width:mid_pnt+width]
+
+    E0_0  = E0_0[mid_pnt-width:mid_pnt+width]
+    E0_1  = E0_1[mid_pnt-width:mid_pnt+width]
+    E1_1  = E1_1[mid_pnt-width:mid_pnt+width]
+    E2_1  = E2_1[mid_pnt-width:mid_pnt+width]
+    E0_2  = E0_2[mid_pnt-width:mid_pnt+width]
+    E1_2  = E1_2[mid_pnt-width:mid_pnt+width]
+    E2_2  = E2_2[mid_pnt-width:mid_pnt+width]
+    E3_2  = E3_2[mid_pnt-width:mid_pnt+width]
+    E0_3  = E0_3[mid_pnt-width:mid_pnt+width]
+    E1_3  = E1_3[mid_pnt-width:mid_pnt+width]
+    E2_3  = E2_3[mid_pnt-width:mid_pnt+width]
+    E3_3  = E3_3[mid_pnt-width:mid_pnt+width]
+
+    # Calculate the Correction Factor 
+    C   = [CF(F0_1,E0_1,F0_0,E0_0,n1,n2),CF(F1_1,E1_1,F0_0,E0_0,n1,n2),CF(F2_1,E2_1,F0_0,E0_0,n1,n2),\
+    CF(F0_2,E0_2,F0_0,E0_0,n1,n2),CF(F1_2,E1_2,F0_0,E0_0,n1,n2),CF(F2_2,E2_2,F0_0,E0_0,n1,n2),CF(F3_2,E3_2,F0_0,E0_0,n1,n2),\
+    CF(F0_3,E0_3,F0_0,E0_0,n1,n2),CF(F1_3,E1_3,F0_0,E0_0,n1,n2),CF(F2_3,E2_3,F0_0,E0_0,n1,n2),CF(F3_3,E3_3,F0_0,E0_0,n1,n2)]
+    
+
+    F  = [F0_1,F1_1,F2_1,F0_2,F1_2,F2_2,F3_2,F0_3,F1_3,F2_3,F3_3]
+    E  = [E0_1,E1_1,E2_1,E0_2,E1_2,E2_2,E3_2,E0_3,E1_3,E2_3,E3_3]
+    
+
+    Fc = [[] for _ in range(len(C))]
+    Ec = [[] for _ in range(len(C))]
+
+    for i in range(len(C)):
+        Fc[i] = F[i]*C[i]   # Correct for lower efficiency
+        Ec[i] = E[i]*C[i]   # accordingly correct the tabulated error bars
+
+
+    Flux_10Dec  = np.array([Fc[0],Fc[1],Fc[2]])
+    Err_10Dec   = np.array([Ec[0],Ec[1],Ec[2]])
+
+    Flux_26Dec  = np.array([Fc[3],Fc[4],Fc[5],Fc[6]])
+    Err_26Dec   = np.array([Ec[3],Ec[4],Ec[5],Ec[6]])
+
+    Flux_30Jan  = np.array([Fc[7],Fc[8],Fc[9],Fc[10]])
+    Err_30Jan   = np.array([Ec[7],Ec[8],Ec[9],Ec[10]])
+    
+    Flux_tot    = np.array([Fc[0],Fc[1],Fc[2],Fc[3],Fc[4],Fc[5],Fc[6],Fc[7],Fc[8],Fc[9],Fc[10]])
+    Err_tot     = np.array([Ec[0],Ec[1],Ec[2],Ec[3],Ec[4],Ec[5],Ec[6],Ec[7],Ec[8],Ec[9],Ec[10]])    
     
     
-    RV = wave2RV(W,line_of_interest,RV_BP)
-  
-    RV_bin, F0_bin, F1_bin, F2_bin, F3_bin	=	Bin_data(RV,F0,F1,F2,F3,bin_pnts)
+    Flux_w_10Dec, Err_w_10Dec   =  weighted_avg_and_errorbars(Flux_10Dec,Err_10Dec)
+    Flux_w_26Dec, Err_w_26Dec   =  weighted_avg_and_errorbars(Flux_26Dec,Err_26Dec)
+    Flux_w_30Jan, Err_w_30Jan   =  weighted_avg_and_errorbars(Flux_30Jan,Err_30Jan)
+    Flux_w_tot, Err_w_tot       =  weighted_avg_and_errorbars(Flux_tot,Err_tot)
 
     fig = plt.figure(figsize=(14,10))
     
@@ -71,31 +151,31 @@ def main():
     plt.rcParams['text.latex.unicode'] = True 
     #================================================
 
-    #plt.text(-1100,0.5,'Lots of OI contamination',ha="center")
+    # Plot region used to normalise
+    #plt.plot([RV[n1],RV[n1]],[F0_0.min(),F0_0.max()],'--k')
+    #plt.plot([RV[n2],RV[n2]],[F0_0.min(),F0_0.max()],'--k')
     
-    # Show normalised region
-    plt.text((RV_bin[norm1]+RV_bin[norm2])/2.,0.78,'Normalised region',ha='center')
-    plt.plot([RV_bin[norm1],RV_bin[norm2]], [0.83,0.83],lw=1.2,color="black")
-    plt.plot([RV_bin[norm1],RV_bin[norm1]], [0.83,0.85],lw=1.2,color="black")
-    plt.plot([RV_bin[norm2],RV_bin[norm2]], [0.83,0.85],lw=1.2,color="black")
+    
+    if bin_pnts > 1:
+        RVb, F0_0b, E0_0b	                =	Bin_data(RV,F0_0,E0_0,bin_pnts)
+        RVb,Flux_w_b_10Dec,Err_w_b_10Dec	=	Bin_data(RV,Flux_w_10Dec,Err_w_10Dec,bin_pnts)
+        RVb,Flux_w_b_26Dec,Err_w_b_26Dec	=	Bin_data(RV,Flux_w_26Dec,Err_w_26Dec,bin_pnts)
+        RVb,Flux_w_b_30Jan,Err_w_b_30Jan	=	Bin_data(RV,Flux_w_30Jan,Err_w_30Jan,bin_pnts)
+        RVb,Flux_w_b_tot,Err_w_b_tot	    =	Bin_data(RV,Flux_w_tot,Err_w_tot,bin_pnts)
+        
+        plt.step(RVb,F0_0b,color="#FF281C",label='2014')
+        plt.step(RVb,Flux_w_b_10Dec,color="#FF9303",label='2015v1')
+        plt.step(RVb,Flux_w_b_26Dec,color="#0386FF",label='2015v2')
+        plt.step(RVb,Flux_w_b_30Jan,color="#00B233",label='2016')
+        plt.step(RVb,Flux_w_b_tot,color="black",lw=1.2,label='All data combined')
+    else:
+        plt.step(RV,F0_0,color="#FF281C",label='2014')
+        plt.step(RV,Flux_w_10Dec,color="#FF9303",label='2015v1')
+        plt.step(RV,Flux_w_26Dec,color="#0386FF",label='2015v2')
+        plt.step(RV,Flux_w_30Jan,color="#00B233",label='2016')
+        plt.step(RV,Flux_w_tot,color="black",lw=1.2,label='All data combined')
 
-    # Show the name of line
-    plt.text(0,1.1,species+' at '+str(line_of_interest)+' \AA')
-    plt.plot([0,0],[1.0,1.09],color='black',lw=1.2)
-    
-    # Plot the spectra
-    plt.step(RV_bin, F0_bin/np.median(F0_bin[norm1:norm2]),color='#FF281C',lw=1.5,label='2014')
-    #plt.step(RV_bin*-1, F0_bin/np.median(F0_bin[norm1:norm2]),color='blue',lw=1.5,label='flipped')
-    
-    plt.step(RV_bin, F1_bin/np.median(F1_bin[norm1:norm2]),color='#FF9303',lw=1.5,label='2015v1')
-    #plt.step(RV_bin*-1, F1_bin/np.median(F1_bin[norm1:norm2]),color='blue',lw=1.5,label='flipped')
-    
-    plt.step(RV_bin, F2_bin/np.median(F2_bin[norm1:norm2]),color='#0386FF',lw=1.5,label='2015v2')
-    #plt.step(RV_bin*-1, F2_bin/np.median(F2_bin[norm1:norm2]),color='blue',lw=1.5,label='flipped')
-    
-    plt.step(RV_bin, F3_bin/np.median(F3_bin[norm1:norm2]),color='#00B233',lw=1.5,label='2016v3')
-    #plt.step(RV_bin*-1, F3_bin/np.median(F3_bin[norm1:norm2]),color='blue',lw=1.5,label='flipped')
-    
+
     # Place a legend in the lower right
     plt.legend(loc='lower right', numpoints=1)
     
@@ -103,8 +183,8 @@ def main():
     plt.xlabel('RV [km/s]')
     plt.ylabel('Normalised Flux')
     
-    plt.xlim(-500,500)
-    plt.ylim(0,5)
+    #plt.xlim(-500,500)
+    #plt.ylim(0,5)
     
     # Produce a .pdf
     fig.tight_layout()
