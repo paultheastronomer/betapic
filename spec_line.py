@@ -54,17 +54,17 @@ def main():
 
     # Parameters you can change
     #====================================================
-    species             = 'CaII'     # Name of species
-    line_of_interest    = 1341.8900 # Wavelength of line
+    species             = 'NI'     # Name of species
+    part                = 'B'       # Part of the spectrum
+    line_of_interest    = 1134.1653 # Wavelength of line
     RV_BP               = 20.5      # RV of Beta Pic
     width               = 500       # [-2*width:2*width]
-    bin_pnts            = 3         # Number of points to bin
-    n1                  = 50        # Start norm region
-    n2                  = width/1.2        # End norm region
+    bin_pnts            = 10         # Number of points to bin
+    n1                  = 650        # Start norm region
+    n2                  = 900        # End norm region
     #====================================================
     
     dat_directory = "/home/paw/science/betapic/data/HST/dat/"
-    part        = 'A'
     W, RV, F0_0, E0_0, AG0, AG0err                                                  = np.genfromtxt(dat_directory+part+"_2014.dat",unpack=True)
     W, RV, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1               = np.genfromtxt(dat_directory+part+"_10Dec.dat",unpack=True)
     W, RV, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2   = np.genfromtxt(dat_directory+part+"_24Dec.dat",unpack=True)
@@ -73,34 +73,49 @@ def main():
     mid_pnt = findCenter(W,line_of_interest)
 
     # Only work with region of interest
-    W   = W[mid_pnt-width:mid_pnt+width]
-    RV  = wave2RV(W,line_of_interest,RV_BP)
+    W       = W[mid_pnt-width:mid_pnt+width]
+    RV      = wave2RV(W,line_of_interest,RV_BP)
     
-    F0_0  = F0_0[mid_pnt-width:mid_pnt+width]
-    F0_1  = F0_1[mid_pnt-width:mid_pnt+width]
-    F1_1  = F1_1[mid_pnt-width:mid_pnt+width]
-    F2_1  = F2_1[mid_pnt-width:mid_pnt+width]
-    F0_2  = F0_2[mid_pnt-width:mid_pnt+width]
-    F1_2  = F1_2[mid_pnt-width:mid_pnt+width]
-    F2_2  = F2_2[mid_pnt-width:mid_pnt+width]
-    F3_2  = F3_2[mid_pnt-width:mid_pnt+width]
-    F0_3  = F0_3[mid_pnt-width:mid_pnt+width]
-    F1_3  = F1_3[mid_pnt-width:mid_pnt+width]
-    F2_3  = F2_3[mid_pnt-width:mid_pnt+width]
-    F3_3  = F3_3[mid_pnt-width:mid_pnt+width]
+    F0_0    = F0_0[mid_pnt-width:mid_pnt+width]
+    F0_1    = F0_1[mid_pnt-width:mid_pnt+width]
+    F1_1    = F1_1[mid_pnt-width:mid_pnt+width]
+    F2_1    = F2_1[mid_pnt-width:mid_pnt+width]
+    F0_2    = F0_2[mid_pnt-width:mid_pnt+width]
+    F1_2    = F1_2[mid_pnt-width:mid_pnt+width]
+    F2_2    = F2_2[mid_pnt-width:mid_pnt+width]
+    F3_2    = F3_2[mid_pnt-width:mid_pnt+width]
+    F0_3    = F0_3[mid_pnt-width:mid_pnt+width]
+    F1_3    = F1_3[mid_pnt-width:mid_pnt+width]
+    F2_3    = F2_3[mid_pnt-width:mid_pnt+width]
+    F3_3    = F3_3[mid_pnt-width:mid_pnt+width]
 
-    E0_0  = E0_0[mid_pnt-width:mid_pnt+width]
-    E0_1  = E0_1[mid_pnt-width:mid_pnt+width]
-    E1_1  = E1_1[mid_pnt-width:mid_pnt+width]
-    E2_1  = E2_1[mid_pnt-width:mid_pnt+width]
-    E0_2  = E0_2[mid_pnt-width:mid_pnt+width]
-    E1_2  = E1_2[mid_pnt-width:mid_pnt+width]
-    E2_2  = E2_2[mid_pnt-width:mid_pnt+width]
-    E3_2  = E3_2[mid_pnt-width:mid_pnt+width]
-    E0_3  = E0_3[mid_pnt-width:mid_pnt+width]
-    E1_3  = E1_3[mid_pnt-width:mid_pnt+width]
-    E2_3  = E2_3[mid_pnt-width:mid_pnt+width]
-    E3_3  = E3_3[mid_pnt-width:mid_pnt+width]
+    AG0     = AG0[mid_pnt-width:mid_pnt+width]
+    AG1     = AG1[mid_pnt-width:mid_pnt+width]
+    AG2     = AG2[mid_pnt-width:mid_pnt+width]
+    AG3     = AG3[mid_pnt-width:mid_pnt+width]    
+
+    E0_0    = E0_0[mid_pnt-width:mid_pnt+width]
+    E0_1    = E0_1[mid_pnt-width:mid_pnt+width]
+    E1_1    = E1_1[mid_pnt-width:mid_pnt+width]
+    E2_1    = E2_1[mid_pnt-width:mid_pnt+width]
+    E0_2    = E0_2[mid_pnt-width:mid_pnt+width]
+    E1_2    = E1_2[mid_pnt-width:mid_pnt+width]
+    E2_2    = E2_2[mid_pnt-width:mid_pnt+width]
+    E3_2    = E3_2[mid_pnt-width:mid_pnt+width]
+    E0_3    = E0_3[mid_pnt-width:mid_pnt+width]
+    E1_3    = E1_3[mid_pnt-width:mid_pnt+width]
+    E2_3    = E2_3[mid_pnt-width:mid_pnt+width]
+    E3_3    = E3_3[mid_pnt-width:mid_pnt+width]
+
+    AG0err  = AG0err[mid_pnt-width:mid_pnt+width]
+    AG1err  = AG1err[mid_pnt-width:mid_pnt+width]
+    AG2err  = AG2err[mid_pnt-width:mid_pnt+width]
+    AG3err  = AG3err[mid_pnt-width:mid_pnt+width]
+
+    # Combining AG measurements. Not including AG2 due to problem with data.
+    AirG                = np.array([AG0,AG1,AG2,AG3])
+    AirG_err            = np.array([AG0err,AG1err,AG2err,AG3err])
+    AirG_W, AirG_W_err  = weighted_avg_and_errorbars(AirG,AirG_err) 
 
     # Calculate the Correction Factor 
     C   = [CF(F0_1,E0_1,F0_0,E0_0,n1,n2),CF(F1_1,E1_1,F0_0,E0_0,n1,n2),CF(F2_1,E2_1,F0_0,E0_0,n1,n2),\
@@ -131,12 +146,17 @@ def main():
     
     Flux_tot    = np.array([Fc[0],Fc[1],Fc[2],Fc[3],Fc[4],Fc[5],Fc[6],Fc[7],Fc[8],Fc[9],Fc[10]])
     Err_tot     = np.array([Ec[0],Ec[1],Ec[2],Ec[3],Ec[4],Ec[5],Ec[6],Ec[7],Ec[8],Ec[9],Ec[10]])    
-    
+
+    Flux_tot    = np.array([Fc[1],Fc[2],Fc[3],Fc[4],Fc[5],Fc[6],Fc[7],Fc[8],Fc[9],Fc[10]])
+    Err_tot     = np.array([Ec[1],Ec[2],Ec[3],Ec[4],Ec[5],Ec[6],Ec[7],Ec[8],Ec[9],Ec[10]])        
     
     Flux_w_10Dec, Err_w_10Dec   =  weighted_avg_and_errorbars(Flux_10Dec,Err_10Dec)
     Flux_w_26Dec, Err_w_26Dec   =  weighted_avg_and_errorbars(Flux_26Dec,Err_26Dec)
     Flux_w_30Jan, Err_w_30Jan   =  weighted_avg_and_errorbars(Flux_30Jan,Err_30Jan)
     Flux_w_tot, Err_w_tot       =  weighted_avg_and_errorbars(Flux_tot,Err_tot)
+
+
+
 
     fig = plt.figure(figsize=(14,10))
     
@@ -152,8 +172,8 @@ def main():
     #================================================
 
     # Plot region used to normalise
-    #plt.plot([RV[n1],RV[n1]],[F0_0.min(),F0_0.max()],'--k')
-    #plt.plot([RV[n2],RV[n2]],[F0_0.min(),F0_0.max()],'--k')
+    plt.plot([RV[n1],RV[n1]],[F0_0.min(),F0_0.max()],'--k')
+    plt.plot([RV[n2],RV[n2]],[F0_0.min(),F0_0.max()],'--k')
     
     
     if bin_pnts > 1:
@@ -163,19 +183,37 @@ def main():
         RVb,Flux_w_b_30Jan,Err_w_b_30Jan	=	Bin_data(RV,Flux_w_30Jan,Err_w_30Jan,bin_pnts)
         RVb,Flux_w_b_tot,Err_w_b_tot	    =	Bin_data(RV,Flux_w_tot,Err_w_tot,bin_pnts)
         
-        plt.step(RVb,F0_0b,color="#FF281C",label='2014')
+        RVb,AG0b,AG0errb                    =	Bin_data(RV,AG0,AG0err,bin_pnts)
+        RVb,AG1b,AG1errb                    =	Bin_data(RV,AG1,AG1err,bin_pnts)
+        RVb,AG2b,AG2errb                    =	Bin_data(RV,AG2,AG2err,bin_pnts)
+        RVb,AG3b,AG3errb                    =	Bin_data(RV,AG3,AG3err,bin_pnts)
+        RVb,AirG_W_b, AirG_W_b_err                    =	Bin_data(RV,AirG_W, AirG_W_err,bin_pnts)
+        
+        # Used to find the AG factors
+        #plt.step(RVb,F0_0b-Flux_w_b_10Dec,color="#FF281C",label='2014')
+        #plt.step(RVb,13*AirG_W_b,color="purple")
+        #'''
+        #plt.step(RVb,F0_0b-12*AirG_W_b,color="#FF281C",label='2014')
         plt.step(RVb,Flux_w_b_10Dec,color="#FF9303",label='2015v1')
         plt.step(RVb,Flux_w_b_26Dec,color="#0386FF",label='2015v2')
         plt.step(RVb,Flux_w_b_30Jan,color="#00B233",label='2016')
         plt.step(RVb,Flux_w_b_tot,color="black",lw=1.2,label='All data combined')
+        
+        '''
+        plt.step(RVb,AG0b,color="#FF281C")
+        plt.step(RVb,AG1b,color="#FF9303")
+        plt.step(RVb,AG2b,color="#0386FF")
+        plt.step(RVb,AG3b,color="#00B233")
+        '''
+        
     else:
-        plt.step(RV,F0_0,color="#FF281C",label='2014')
+        #plt.step(RV,F0_0-10*AirG_W,color="#FF281C",label='2014')
         plt.step(RV,Flux_w_10Dec,color="#FF9303",label='2015v1')
         plt.step(RV,Flux_w_26Dec,color="#0386FF",label='2015v2')
         plt.step(RV,Flux_w_30Jan,color="#00B233",label='2016')
         plt.step(RV,Flux_w_tot,color="black",lw=1.2,label='All data combined')
 
-
+    #plt.step(RV,AirG_W,color="red")
     # Place a legend in the lower right
     plt.legend(loc='lower right', numpoints=1)
     
@@ -183,12 +221,22 @@ def main():
     plt.xlabel('RV [km/s]')
     plt.ylabel('Normalised Flux')
     
-    #plt.xlim(-500,500)
+    plt.xlim(-290,570)
     #plt.ylim(0,5)
     
     # Produce a .pdf
     fig.tight_layout()
     plt.show()
+    #'''
+    #np.savetxt(dat_directory+"NI_20160512_v1.txt",np.column_stack((W,Flux_w_tot, Err_w_tot)))
+
+    f = open(dat_directory+'NI_weak_v1.dat', 'w+')
+    for i in range(len(W)):
+        print >> f, " ","{: 1.10e}".format(W[i])," "+"{: 1.10e}".format(Flux_w_tot[i])," "+"{: 1.10e}".format(Err_w_tot[i])
+    f.close()
+    #'''
+    
+    
     #plt.savefig(species+'_'+str(line_of_interest)+'.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)      
 
 if __name__ == '__main__':
