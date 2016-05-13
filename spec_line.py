@@ -54,14 +54,14 @@ def main():
 
     # Parameters you can change
     #====================================================
-    species             = 'NI'     # Name of species
+    species             = 'NI'      # Name of species
     part                = 'B'       # Part of the spectrum
-    line_of_interest    = 1134.1653 # Wavelength of line
+    line_of_interest    = 1199.5496 # Wavelength of line
     RV_BP               = 20.5      # RV of Beta Pic
-    width               = 500       # [-2*width:2*width]
-    bin_pnts            = 10         # Number of points to bin
-    n1                  = 650        # Start norm region
-    n2                  = 900        # End norm region
+    width               = 450       # [-2*width:2*width]
+    bin_pnts            = 3         # Number of points to bin
+    n1                  = 320       # Start norm region #CII 150
+    n2                  = 420       # End norm region   #CII 320
     #====================================================
     
     dat_directory = "/home/paw/science/betapic/data/HST/dat/"
@@ -112,7 +112,7 @@ def main():
     AG2err  = AG2err[mid_pnt-width:mid_pnt+width]
     AG3err  = AG3err[mid_pnt-width:mid_pnt+width]
 
-    # Combining AG measurements. Not including AG2 due to problem with data.
+    # Combining AG measurements.
     AirG                = np.array([AG0,AG1,AG2,AG3])
     AirG_err            = np.array([AG0err,AG1err,AG2err,AG3err])
     AirG_W, AirG_W_err  = weighted_avg_and_errorbars(AirG,AirG_err) 
@@ -122,10 +122,9 @@ def main():
     CF(F0_2,E0_2,F0_0,E0_0,n1,n2),CF(F1_2,E1_2,F0_0,E0_0,n1,n2),CF(F2_2,E2_2,F0_0,E0_0,n1,n2),CF(F3_2,E3_2,F0_0,E0_0,n1,n2),\
     CF(F0_3,E0_3,F0_0,E0_0,n1,n2),CF(F1_3,E1_3,F0_0,E0_0,n1,n2),CF(F2_3,E2_3,F0_0,E0_0,n1,n2),CF(F3_3,E3_3,F0_0,E0_0,n1,n2)]
     
-
+    # Creating a list with observations which need correcting (flux offset)
     F  = [F0_1,F1_1,F2_1,F0_2,F1_2,F2_2,F3_2,F0_3,F1_3,F2_3,F3_3]
-    E  = [E0_1,E1_1,E2_1,E0_2,E1_2,E2_2,E3_2,E0_3,E1_3,E2_3,E3_3]
-    
+    E  = [E0_1,E1_1,E2_1,E0_2,E1_2,E2_2,E3_2,E0_3,E1_3,E2_3,E3_3]   
 
     Fc = [[] for _ in range(len(C))]
     Ec = [[] for _ in range(len(C))]
@@ -133,7 +132,6 @@ def main():
     for i in range(len(C)):
         Fc[i] = F[i]*C[i]   # Correct for lower efficiency
         Ec[i] = E[i]*C[i]   # accordingly correct the tabulated error bars
-
 
     Flux_10Dec  = np.array([Fc[0],Fc[1],Fc[2]])
     Err_10Dec   = np.array([Ec[0],Ec[1],Ec[2]])
@@ -154,8 +152,6 @@ def main():
     Flux_w_26Dec, Err_w_26Dec   =  weighted_avg_and_errorbars(Flux_26Dec,Err_26Dec)
     Flux_w_30Jan, Err_w_30Jan   =  weighted_avg_and_errorbars(Flux_30Jan,Err_30Jan)
     Flux_w_tot, Err_w_tot       =  weighted_avg_and_errorbars(Flux_tot,Err_tot)
-
-
 
 
     fig = plt.figure(figsize=(14,10))
@@ -193,27 +189,22 @@ def main():
         #plt.step(RVb,F0_0b-Flux_w_b_10Dec,color="#FF281C",label='2014')
         #plt.step(RVb,13*AirG_W_b,color="purple")
         #'''
-        #plt.step(RVb,F0_0b-12*AirG_W_b,color="#FF281C",label='2014')
+        #plt.step(RVb,F0_0b,color="#FF281C",label='2014')
         plt.step(RVb,Flux_w_b_10Dec,color="#FF9303",label='2015v1')
         plt.step(RVb,Flux_w_b_26Dec,color="#0386FF",label='2015v2')
         plt.step(RVb,Flux_w_b_30Jan,color="#00B233",label='2016')
         plt.step(RVb,Flux_w_b_tot,color="black",lw=1.2,label='All data combined')
         
-        '''
-        plt.step(RVb,AG0b,color="#FF281C")
-        plt.step(RVb,AG1b,color="#FF9303")
-        plt.step(RVb,AG2b,color="#0386FF")
-        plt.step(RVb,AG3b,color="#00B233")
-        '''
-        
     else:
-        #plt.step(RV,F0_0-10*AirG_W,color="#FF281C",label='2014')
+        #plt.step(RV,F0_0,color="#FF281C",label='2014')
         plt.step(RV,Flux_w_10Dec,color="#FF9303",label='2015v1')
         plt.step(RV,Flux_w_26Dec,color="#0386FF",label='2015v2')
         plt.step(RV,Flux_w_30Jan,color="#00B233",label='2016')
         plt.step(RV,Flux_w_tot,color="black",lw=1.2,label='All data combined')
 
-    #plt.step(RV,AirG_W,color="red")
+    # Plot the airglow
+    plt.step(RV,AirG_W,color="red")
+    
     # Place a legend in the lower right
     plt.legend(loc='lower right', numpoints=1)
     
@@ -221,23 +212,24 @@ def main():
     plt.xlabel('RV [km/s]')
     plt.ylabel('Normalised Flux')
     
-    plt.xlim(-290,570)
-    #plt.ylim(0,5)
-    
-    # Produce a .pdf
-    fig.tight_layout()
-    plt.show()
-    #'''
-    #np.savetxt(dat_directory+"NI_20160512_v1.txt",np.column_stack((W,Flux_w_tot, Err_w_tot)))
+    plt.xlim(-300,700)
+    plt.minorticks_on()
 
-    f = open(dat_directory+'NI_weak_v1.dat', 'w+')
+    fig.tight_layout()
+    # Produce a .pdf
+    plt.savefig(species+'_'+str(line_of_interest)+'.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300) 
+    plt.show()
+
+    # Uncomment below to save to text file
+    #np.savetxt(dat_directory+"NI_20160512_v1.txt",np.column_stack((W,Flux_w_tot, Err_w_tot)))
+        
+    # Uncomment below to make a datafile compatible with owens.f
+    '''
+    f = open(dat_directory+'CII_26d.dat', 'w+')
     for i in range(len(W)):
         print >> f, " ","{: 1.10e}".format(W[i])," "+"{: 1.10e}".format(Flux_w_tot[i])," "+"{: 1.10e}".format(Err_w_tot[i])
     f.close()
-    #'''
-    
-    
-    #plt.savefig(species+'_'+str(line_of_interest)+'.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)      
+    '''     
 
 if __name__ == '__main__':
     main()
