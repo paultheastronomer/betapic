@@ -1,11 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
-from scipy.optimize import leastsq
-from matplotlib.ticker import LinearLocator
-from scipy import stats
 
-from tempfile import TemporaryFile
+from scipy.optimize import leastsq
+
 
 def voigt_wofz(a, u):
     ''' Compute the Voigt function using Scipy's wofz().
@@ -47,7 +45,7 @@ def K(W,l,sigma_kernel):
 def flux_star(LyA,v_bp,l,kernel,max_f,dp,uf,av):
     
     # Double Voigt profile
-    delta_lambda=   LyA*(v_bp/3e5)
+    delta_lambda =   LyA*(v_bp/3e5)
      
     lambda0 =   LyA                     # Lyman alpha center
     lambda1 =   LyA -dp + delta_lambda  # blue peak center
@@ -69,11 +67,13 @@ def absorption(l,v_RV,nh,vturb,T,LyA):
     delta   = np.array([0.627e9,0.627e9]) /(4.*np.pi)
     N_col   = np.array([1.,1.5e-5])*10**nh
     c       = 2.99793e14
+    k       = 1.38064852e-23    # Boltzmann constant in J/K = m^2*kg/(s^2*K) in SI base units
+    u       = 1.660539040e-27   # Atomic mass unit (Dalton) in kg
 
     abs_ism = np.ones(len(l))
 
     for i in range(len(w)):
-        b_wid   = np.sqrt((T/mass[i]) + ((vturb/0.129)**2))
+        b_wid   = np.sqrt((T/mass[i]) + ((vturb/np.sqrt(2*k/u)/1e3)**2)) # non-thermal + thermal broadening
         b       = 4.30136955e-3*b_wid
         dnud    = b*c/w[i]
         xc      = l/(1.+v_RV*1.e9/c)
@@ -82,7 +82,6 @@ def absorption(l,v_RV,nh,vturb,T,LyA):
         a       = delta[i]/dnud
         hav     = tv*voigt_wofz(a,v)
         
-        # I am uncertain about the translation from IDL to python here
         # To avoid underflow which occurs when you have exp(small negative number)
         for j in range(len(hav)):
             if hav[j] < 20.:      
@@ -94,24 +93,17 @@ def absorption(l,v_RV,nh,vturb,T,LyA):
 
 def chi2_lm(params,F,E,Const):
     c = LyModel(params,Const)[0]
-    # Uncomment to show the Chi^2 value
-    #print "Chi^2:\t",np.sum((c - F)**2 / E**2)
     return (c - F)**2 / E**2
 
 def LyModel(params,Const):
     
-    # Uncomment to show the changing parameters
-    #print "\nN\t= ",params[0],"\t","uf = ",params[2],"\t","slope\t= ",params[4],"\n",\
-    #"Fmax\t= ",params[1],"\t","av = ",params[3],"\t","offset\t= ",params[5]
-
     # Free parameters
-    #nh_bp, b_bp, max_f, uf, av, slope = params
-    nh_bp, max_f, uf, av, slope = params
+    nh_bp, max_f, uf, av, v_bp = params
     
-    offset  = 1.0
+    
     
     # Fixed parameters
-    W,l,sigma_kernel,dp,v_ism,v_bp,nh_ism,b_ism,T_ism,T_bp,LyA,b_bp = Const
+    W,l,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,T_bp,LyA,b_bp,slope = Const
 
     kernel      =   K(W,l,sigma_kernel)
 
@@ -120,7 +112,14 @@ def LyModel(params,Const):
     abs_bp      =   absorption(l,v_bp,nh_bp,b_bp,T_bp,LyA)
 
     # Stellar Ly-alpha line
-    f, f_star   =   flux_star(LyA,v_bp,l,kernel,max_f,dp,uf,av)
+    #f, f_star   =   flux_star(LyA,v_bp,l,kernel,max_f,dp,uf,av)
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    
+    f, f_star   =   flux_star(LyA,20.5,l,kernel,max_f,dp,uf,av)
+    
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     # Stellar spectral profile, as seen from Earth
     # after absorption by the ISM and BP CS disk.
@@ -128,18 +127,16 @@ def LyModel(params,Const):
     #    -  in (erg cm-2 s-1 A-1)
     f_abs_con   =   np.convolve(f*abs_ism*abs_bp,kernel,mode='same')
     
-    # Individual components
-
     # Absorption by the ISM
-    f_abs_ism   =   np.convolve(f*abs_ism,kernel,mode='same')*(l*slope+offset)
+    f_abs_ism   =   np.convolve(f*abs_ism,kernel,mode='same')*(l*slope+1.0)
 
     # Absorption by beta Pictoris  
-    f_abs_bp    =   np.convolve(f*abs_bp,kernel,mode='same')*(l*slope+offset)
+    f_abs_bp    =   np.convolve(f*abs_bp,kernel,mode='same')*(l*slope+1.0)
 
     # Interpolation on COS wavelengths, relative to the star
-    f_abs_int   =   np.interp(W,l,f_abs_con)*(W*slope+offset)
+    f_abs_int   =   np.interp(W,l,f_abs_con)*(W*slope+1.0)
     
-    f_star      =   f_star*(l*slope+offset)
+    f_star      =   f_star*(l*slope+1.0)
     
     return f_abs_int, f_star, f_abs_ism, f_abs_bp
 
@@ -250,16 +247,18 @@ def main():
     dat_directory   = "/home/paw/science/betapic/data/HST/dat/"
 
     Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted.txt',unpack=True)
-    W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted.txt',unpack=True,skip_footer= 150) #7070 6145
+    W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted.txt',unpack=True,skip_footer= 150)
+    
+    #np.savetxt(dat_directory+"Ly_a_20160511_v2.txt",np.column_stack((Wo, Fo, Eo)))
     
     # To fit the non-sky subtracted (only cut) data uncomment the two lines below.
-    #Wo, Fo, Eo         = np.genfromtxt(dat_directory+'Ly-alpha_no_CF.dat',unpack=True)
-    #W, F, E         = np.genfromtxt(dat_directory+'Ly-alpha_no_CF.dat',unpack=True,skiprows=900,skip_footer= 145)
+    #Wo, Fo, Eo         = np.genfromtxt(dat_directory+'Ly-alpha_no_AG.txt',unpack=True)
+    #W, F, E         = np.genfromtxt(dat_directory+'Ly-alpha_no_AG.txt',unpack=True,skiprows=900,skip_footer= 145)
     
     
     ### Parameters ##############################      
-    mode            = 'lm'        # mcmc or lm    
-    LyA             = 1215.6702# Heliocentric: 1215.6702
+    mode            = 'mcmc'      # mcmc or lm    
+    LyA             = 1215.6702 # Heliocentric: 1215.6702
 
     # ISM parameters
     v_ism           = 10.0        # RV of the ISM (relative to Heliocentric)      
@@ -268,37 +267,32 @@ def main():
     T_ism           = 7000.       # Temperature of ISM
 
     # Beta Pic parameters
-    v_bp            = 20.5        # RV of the beta Pic (relative to Heliocentric)
-    nh_bp           = 19.25       # Column density beta Pic, Fitting param
+    v_bp            = 33.0        # RV of the beta Pic (relative to Heliocentric)
+    nh_bp           = 19.4       # Column density beta Pic, Fitting param
     b_bp            = 4.0        # Turbulent velocity
     T_bp            = 1000.       # Temperture of gas in beta Pic disk
 
     # Stellar emission line parameters
-    max_f           = 5.27877e-10     # Fitting param                 
+    max_f           = 9.2e-12     # Fitting param                 
     dp              = 0.0 
-    uf              = 2.374#3.60        # Fitting param
-    av              = 0.136#0.1        # Fitting param
+    uf              = 2.91#3.60        # Fitting param
+    av              = 0.039#0.1        # Fitting param
     
-    slope           = -8.18747e-4
-    offset          = 1.0
+    slope           = 0.0#-0.0008205
 
-    sigma_kernel    = 7.
+    sigma_kernel    = 3.5
 
-    v               = np.arange(-800,500,1)         # RV values
+    v               = np.arange(-800,610,1)         # RV values
     l               = LyA*(1.0 + v/3e5)             # Corresponding wavengths
 
-    Par             = [nh_bp,max_f,uf,av,slope] # Free parameters
-    Const           = [W,l,sigma_kernel,dp,v_ism,v_bp,nh_ism,b_ism,T_ism,T_bp,LyA,b_bp] 
-    #step            = np.array([0.01,0.1,6.2e-13,0.1,0.1,0.0001])  # MCMC step size
-    #step            = np.array([0.03,2.e-12,5.0,.2,1e-7])  # MCMC step size 0.3
-    step            = np.array([0.02,5.e-12,0.03,.002,1e-7])  # MCMC step size 0.3
+    Par             = [nh_bp,max_f,uf,av,v_bp] # Free parameters
+    Const           = [W,l,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,T_bp,LyA,b_bp,slope] 
+    step            = np.array([0.02,1e-12,0.03,.01,1])/3.  # MCMC step size 0.3
     #############################################
 
 
     if mode == 'lm':
         print "Calculating the best parameters..."
-        #Par             = [nh_bp,max_f,uf,av,0]
-        #Const           = [W,l,sigma_kernel,dp,v_ism,v_bp,nh_ism,b_ism,T_ism,T_bp,LyA,b_bp]
         X = F,E,LyModel(Par,Const)[0]
         print "Chi2 before fit:\t",chi2(X)
 
@@ -320,7 +314,6 @@ def main():
         plt.rcParams['text.usetex'] = True
         plt.rcParams['text.latex.unicode'] = True    
 
-
         plt.scatter(RVo,Fo,color='black',alpha=0.25,label='Data not used for fit')
         plt.scatter(RV,F,color='black',label='Data used for fit')
 
@@ -329,28 +322,21 @@ def main():
         plt.plot(v,f_abs_bp,lw=1.2,color='#0386ff',label=r'Gas disk')
         plt.plot(v,f_before_fit,lw=3,color='#FF281C',label=r'Best fit')
 
-
-        
         #np.savetxt("nh_1825_fit.dat",np.column_stack((v,f_before_fit)))
    
         plt.xlabel(r'Radial Velocity [km/s]')
         plt.ylabel('Flux (erg/s/cm$^2$/\AA)')
-   
-        plt.xlabel(r'Wavelength \AA')
-        plt.ylabel('Flux')
 
         
         plt.xlim(-700,600)
-        plt.ylim(-2.0e-14,0.4e-13)
+        plt.ylim(-2.0e-14,0.8e-13)
     
         fig.tight_layout()
-        #plt.savefig('Ly_alpha_b5.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
         plt.show()
-        #sys.exit()
+        #sys.exit()            
         
+        Const           = [W,l,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,T_bp,LyA,b_bp,slope]
         
-        
-        Const           = [W,l,sigma_kernel,dp,v_ism,v_bp,nh_ism,b_ism,T_ism,T_bp,LyA,b_bp]
         print "Best fit paramters:"
         P =  FindBestParams(Par,F,E,Const)
 
@@ -358,12 +344,10 @@ def main():
         print P
 
         print "\nlog(N(H)) =\t" ,P[0]
-        #print "b_bp=\t\t"       ,P[1]
         print "Fmax =\t\t"      ,P[1]
         print "uf=\t\t"         ,P[2]
         print "av=\t\t"         ,P[3]
-        print "slope\t\t"       ,P[4]
-        #print "offset\t\t"      ,P[5]
+        print "v_bp\t\t"        ,P[4]
 
         X = F,E,LyModel(P,Const)[0]
         print "Chi2 after fit:\t",chi2(X)
@@ -375,10 +359,6 @@ def main():
         RVb, Fb, Eb     = Bin_data(RV,F,E,bin_pnts)
         RVob, Fob, Eob     = Bin_data(RVo,Fo,Eo,bin_pnts)
 
-        #remove this later
-        #Eb = Eb/5.
-    
-        #plt.plot(W1,AG0)
         plt.scatter(RVob,Fob,color='black',alpha=0.25,label='Data not used for fit')
         plt.errorbar(RVb,Fb,yerr=Eb,color='black',label='Data used for fit')
         
@@ -390,20 +370,14 @@ def main():
         plt.plot(v,f_star,lw=3,color='gray',label=r'$\beta$ Pictoris')
         plt.plot(v,f_abs_ism,lw=1.2,color='#FF9303',label=r'ISM')
         plt.plot(v,f_abs_bp,lw=1.2,color='#0386ff',label=r'Gas disk')
-        #plt.plot(l,f_before_fit,lw=2,color='yellow')
         plt.plot(v,f_after_fit,lw=3,color='#FF281C',label=r'Best fit')
    
         plt.xlabel(r'Radial Velocity [km/s]')
         plt.ylabel('Flux (erg/s/cm$^2$/\AA)')
 
-        #plt.xlim(1212.5,1217.5)
         plt.xlim(-700,600)
         plt.ylim(-2.0e-14,0.4e-13)
-        #locs = [1213.,  1214.,  1215.,  1216.,  1217.]
-        #plt.xticks(locs, map(lambda x: "%g" % x, locs))
-        #plt.legend(loc='upper left', numpoints=1)
         fig.tight_layout()
-        #plt.savefig('Ly_alpha.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
         plt.show()
 
         # Saving the data for plotting
@@ -413,15 +387,13 @@ def main():
     elif mode == 'mcmc':
         #X = (F - f_before_fit),E,np.zeros(len(F)),F                                                         # Check this in relation to the Chi2 function!
         X = F,E,LyModel(Par,Const)[0]
-
+   
+        chain, moves = MCMC(W,X,LyModel,Par,Const,step,1e4)
         
-        chain, moves = MCMC(W,X,LyModel,Par,Const,step,1e5)
-        
-        outfile = 'chain4'#TemporaryFile() #Par             = [nh_bp,b_bp,max_f,uf,av,0] # Free parameters
+        outfile = 'chain4'
         np.savez(outfile, nh_bp = chain[:,0], max_f = chain[:,1], uf = chain[:,2], av = chain[:,3], slope = chain[:,4])
         
         Pout = chain[moves,:]
-        #print Pout
         P_plot1 = [0,1]
         P_plot2 = [2,3]
         P_plot3 = [4,4]
@@ -431,10 +403,9 @@ def main():
         
         print "\nlog(N(H)) =\t" ,PU1[0][0],"\t+",PU1[1][0],"\t-",PU1[2][0]
         print "Fmax =\t\t"      ,PU1[0][1],"\t+",PU1[1][1],"\t-",PU1[2][1]
-        print "uf=\t\t"       ,PU2[0][0],"\t+",PU2[1][0],"\t-",PU2[2][0]
+        print "uf=\t\t"         ,PU2[0][0],"\t+",PU2[1][0],"\t-",PU2[2][0]
         print "av=\t\t"         ,PU2[0][1],"\t+",PU2[1][1],"\t-",PU2[2][1]
-        print "slope=\t\t"       ,PU3[0][0],"\t+",PU3[1][0],"\t-",PU3[2][0]
-        #print "slope\t\t"      ,PU3[0][1],"\t+",PU3[1][1],"\t-",PU3[2][1]
+        print "slope=\t\t"      ,PU3[0][0],"\t+",PU3[1][0],"\t-",PU3[2][0]
 
 if __name__ == '__main__':
     main()
