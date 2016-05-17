@@ -1,5 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import rcParams
+import corner
+import pandas as pd
+import sys
 
 def Distrib(x):
    '''Finds median and 68% interval of array x.'''
@@ -19,79 +23,70 @@ def Uncertainties(x):
    
    return med,up-med,med-down   
 
-def Plot_Chain(P1, P2,name):
-  fig = plt.figure()
-  plt.clf()
-  
-  x_max = P1.max()
-  x_min = P1.min()
+def PlotChain(X,Y,l1,l2,x1,x2,y1,y2,name):
+    sns.set_context("paper")
+    sns.set(style="white",font_scale=2.5)
+    sns.set_style("ticks", {"xtick.major.size": 4, "ytick.major.size": 4})
+    
+    g = sns.JointGrid(X, Y, space=0,xlim=(x1, x2), ylim=(y1, y2))
+    #g = sns.JointGrid(X, Y, space=0)
+    g = g.plot_joint(sns.kdeplot, cmap="Blues_d")
+    sns.axlabel(l1, l2)
+    g = g.plot_marginals(sns.kdeplot, shade=True)
+    
+    plt.savefig(name+'.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
 
-  y_max = P2.max()
-  y_min = P2.min()
-  
-  # Top plot
-  top = plt.subplot2grid((3,3), (0, 0), colspan=2)
-  top.hist(P1,bins=30)
-  plt.axvline(Distrib(P1)[0],color="red",lw=2)
-  plt.axvline(Distrib(P1)[1],color="red",lw=2,linestyle='--')
-  plt.axvline(Distrib(P1)[2],color="red",lw=2,linestyle='--')
-  top.get_xaxis().set_ticklabels([])
-  plt.xlim(x_min,x_max)
-  plt.minorticks_on()
- 
-  # Right hand side plot
-  right = plt.subplot2grid((3,3), (1, 2), rowspan=2)
-  right.hist(P2,orientation='horizontal',bins=30)
-  plt.axhline(Distrib(P2)[0],color="red",lw=2)
-  plt.axhline(Distrib(P2)[1],color="red",lw=2,linestyle='--')
-  plt.axhline(Distrib(P2)[2],color="red",lw=2,linestyle='--')
-  right.get_yaxis().set_ticklabels([])
-  #right.xaxis.set_major_locator(LinearLocator(5))
-  plt.ylim(y_min,y_max)
-  plt.minorticks_on()
-  
-  # Center plot
-  center = plt.subplot2grid((3,3), (1, 0), rowspan=2, colspan=2)
-  center.hist2d(P1,P2,bins=30)
-  plt.xlim(x_min,x_max)
-  plt.minorticks_on()
-  
-  # Corner plot
-  corner = plt.subplot2grid((3,3), (0, 2))
-  corner.get_xaxis().set_ticklabels([])
-  corner.get_yaxis().set_ticklabels([])
-  corner.plot(P1,P2,'-k')
-  plt.minorticks_on()
-  plt.ylim(y_min,y_max)
-  
-  plt.savefig(name+'_param.png',paper='a4',orientation='landscape',bbox_inches='tight', pad_inches=0.1)
-
-#chaint = np.load('chaint.npz')
-
+# Load the MCMC data
 chain1 = np.load('chain1.npz')
 chain2 = np.load('chain2.npz')
 chain3 = np.load('chain3.npz')
 chain4 = np.load('chain4.npz')
 
-#nh_bp   =   np.concatenate((chain1['nh_bp'],chain2['nh_bp'],chain3['nh_bp']))
-#max_f   =   np.concatenate((chain1['max_f'],chain2['max_f'],chain3['max_f']))
-
 nh_bp   =   np.concatenate((chain1['nh_bp'],chain2['nh_bp'],chain3['nh_bp'],chain4['nh_bp']))
 max_f   =   np.concatenate((chain1['max_f'],chain2['max_f'],chain3['max_f'],chain4['max_f']))
+uf      =   np.concatenate((chain1['uf'],chain2['uf'],chain3['uf'],chain4['uf']))
+av      =   np.concatenate((chain1['av'],chain2['av'],chain3['av'],chain4['av']))
+v_X     =   np.concatenate((chain1['v_X'],chain2['v_X'],chain3['v_X'],chain4['v_X']))
+nh_X    =   np.concatenate((chain1['nh_X'],chain2['nh_X'],chain3['nh_X'],chain4['nh_X']))
 
-uf   =   np.concatenate((chain1['uf'],chain2['uf'],chain3['uf'],chain4['uf']))
-av   =   np.concatenate((chain1['av'],chain2['av'],chain3['av'],chain4['av']))
+# Arange the data into pandas format to be compatible with corner.py
+data = np.array([nh_bp,max_f/1e-9,uf,av,v_X,nh_X]).T
+columns = ['N','M','uf','av','v_X','nh_X']
+df = pd.DataFrame(data,columns=columns)
 
-slope   =   np.concatenate((chain1['slope'],chain2['slope'],chain3['slope'],chain4['slope']))
+# Plot the posterior distributions.
 
+fontlabel_size  = 13
+plt.rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
+params = {'backend': 'wxAgg', 'lines.markersize' : 2, 'axes.labelsize': fontlabel_size, 'font.size': fontlabel_size, 'legend.fontsize': fontlabel_size, 'font.family': 'Computer Modern'}
+plt.rcParams.update(params)
+
+# I'd like to have TeX font on the axis. Sadly the above line does not work.
+#plt.rc('text', usetex=True)
+
+figure = corner.corner(data,labels=[r"$\logN_{\mathrm{H}}$", r"$\mathrm{Max}_\mathrm{F}/1\times10^{-12}$", r"$\mathrm{uf}$",
+                                     r"$\mathrm{av}$",r"$\mathrm{v_X}$",r"$\mathrm{nh_X}$"],#$\mathrm{v_X}/1\times10^{-4}$
+                                     quantiles=[0.16, 0.8413],
+                                     levels=(1-np.exp(-0.5),),
+                                     truths=[19.42,9.2,2.915,0.03937,33.06,12.],
+                                     #range=[(18.9,19.4),(0.0,0.95),(2.2,2.8),(0.05,0.3),(-8.21,-8.197)],
+                                     #fill_contours=True,
+                                     #ret=True,
+                                     bins=30,
+                                     smooth=0.8,
+                                     show_titles=True, title_kwargs={"fontsize": 13},
+                                     label_kwargs = {"fontsize": 18},
+                                     plot_contours=True,
+                                     verbose=False,
+                                     use_math_text=True)
+
+figure.savefig("mcmc.pdf")
+
+# Uncomment to print uncertainties
+'''
 print Uncertainties(nh_bp)
 print Uncertainties(max_f)
 print Uncertainties(uf)
 print Uncertainties(av)
-print Uncertainties(slope)
-
-Plot_Chain(nh_bp, max_f,'1')
-Plot_Chain(uf, av,'2')
-Plot_Chain(nh_bp, slope,'3')
-
-#plt.show()
+print Uncertainties(v_X)
+'''
