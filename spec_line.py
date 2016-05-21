@@ -153,7 +153,6 @@ def main():
     Flux_w_30Jan, Err_w_30Jan   =  weighted_avg_and_errorbars(Flux_30Jan,Err_30Jan)
     Flux_w_tot, Err_w_tot       =  weighted_avg_and_errorbars(Flux_tot,Err_tot)
 
-
     fig = plt.figure(figsize=(14,10))
     
     # Fancy customisation to make the plot look nice
