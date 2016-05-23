@@ -15,11 +15,16 @@ def Extract(fits_file, part,start,stop):
     for i in range(len(a)):
         a[i]        = [1e-15 if x==0 else x for x in a[i]]
     err         = np.sqrt(gcounts+1)*(flux / (a))
-
-    if part == 'A':
-        return wavelength[0][start:-stop], flux[0][start:-stop], err[0][start:-stop]
+    if start == False:
+        if part == 'A':
+            return wavelength[0], flux[0], err[0]
+        else:
+            return wavelength[1], flux[1], err[1]   
     else:
-        return wavelength[1][start:-stop], flux[1][start:-stop], err[1][start:-stop]
+        if part == 'A':
+            return wavelength[0][start:-stop], flux[0][start:-stop], err[0][start:-stop]
+        else:
+            return wavelength[1][start:-stop], flux[1][start:-stop], err[1][start:-stop]
 
 def shift_spec(ref,spec,error,wave,start,stop,rest_wavelength):
     # This routine correlates the spectrum: spec
@@ -154,12 +159,12 @@ def main():
     
     # Configure these paramters before running
     ##########################################
-    start       = 1100#1000  # Wavelength element
-    stop	    = 5000#800   # start/stop point.
-    part        = 'A'   # A = red, B = blue
+    start       = False#1100#1000  # Wavelength element
+    stop	    = False#5000#800   # start/stop point.
+    part        = 'B'   # A = red, B = blue
     bin_pnts    = 10.
-    x_lim1      = 1280#1288
-    x_lim2      = 1395#1433
+    x_lim1      = 1100#1280#1288
+    x_lim2      = 1280#1395#1433
     dat_directory = "/home/paw/science/betapic/data/HST/dat/"   
     LyA         = 1302.1685 # Ly-alpha wavelength
     RV_BP       = 20.5       # RV reference frame.
@@ -223,12 +228,12 @@ def main():
     if part == 'A':
         #s1 = 230
         #s2  = 1150        
-        s1 = 5000
-        s2  = 10200  
+        s1 = 6100
+        s2  = 11400  
 
     else:
-        s1 = 9000
-        s2  = 12400
+        s1 = 10000
+        s2  = 13473
 
     # Top plot shows the ratio between the spectra. Flat regions are
     # indicative of low FEB activity.
@@ -299,7 +304,6 @@ def main():
     np.savetxt(dat_directory+part+"_24Dec.dat",np.column_stack((W, RV, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2)))
     np.savetxt(dat_directory+part+"_30Jan.dat",np.column_stack((W, RV, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3)))
     #'''
-
     
 if __name__ == '__main__':
     main()
