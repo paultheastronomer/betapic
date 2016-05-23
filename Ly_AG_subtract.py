@@ -85,7 +85,6 @@ def main():
     l1      = 20.5-ff
     l2      = 20.5+ff
 
-
     # Combining AG measurements. Not including AG2 due to problem with data.
     AirG                = np.array([AG0,AG1,AG3])
     AirG_err            = np.array([AG0err,AG1err,AG3err])    
