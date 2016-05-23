@@ -166,7 +166,7 @@ def main():
     x_lim1      = 1100#1280#1288
     x_lim2      = 1280#1395#1433
     dat_directory = "/home/paw/science/betapic/data/HST/dat/"   
-    LyA         = 1302.1685 # Ly-alpha wavelength
+    LyA         = 1215.6702 # Ly-alpha wavelength
     RV_BP       = 20.5       # RV reference frame.
     ##########################################
 
