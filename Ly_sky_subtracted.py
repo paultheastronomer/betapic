@@ -28,27 +28,27 @@ def weighted_avg_and_errorbars(Flux, Err):
 
 def main():    
     dat_directory = "/home/paw/science/betapic/data/HST/dat/" 
-    #Wc, Fc, Ec  = np.genfromtxt('Ly-alpha.dat',skiprows=830,skip_footer=0,unpack=True)
-    W,n000,en000 = np.genfromtxt(dat_directory+'neutral_00_visit1.dat',unpack=True,skiprows=7000,skip_footer=6000)
-    W,n001,en001 = np.genfromtxt(dat_directory+'neutral_00_visit2.dat',unpack=True,skiprows=7000,skip_footer=6000)
-    W,n002,en002 = np.genfromtxt(dat_directory+'neutral_00_visit3.dat',unpack=True,skiprows=7000,skip_footer=6000)
-    W,n003,en003 = np.genfromtxt(dat_directory+'neutral_00_visit4.dat',unpack=True,skiprows=7000,skip_footer=6000)
+    #Wc, Fc, Ec  = np.genfromtxt('Ly-alpha.dat',skip_header=830,skip_footer=0,unpack=True)
+    W,n000,en000 = np.genfromtxt(dat_directory+'neutral_00_visit1.dat',unpack=True,skip_header=7000,skip_footer=6000)
+    W,n001,en001 = np.genfromtxt(dat_directory+'neutral_00_visit2.dat',unpack=True,skip_header=7000,skip_footer=6000)
+    W,n002,en002 = np.genfromtxt(dat_directory+'neutral_00_visit3.dat',unpack=True,skip_header=7000,skip_footer=6000)
+    W,n003,en003 = np.genfromtxt(dat_directory+'neutral_00_visit4.dat',unpack=True,skip_header=7000,skip_footer=6000)
 
-    W,m081,em081 = np.genfromtxt(dat_directory+'minus_08_visit2.dat',unpack=True,skiprows=7000,skip_footer=6000)
-    W,m082,em082 = np.genfromtxt(dat_directory+'minus_08_visit3.dat',unpack=True,skiprows=7000,skip_footer=6000)
-    W,m083,em083 = np.genfromtxt(dat_directory+'minus_08_visit4.dat',unpack=True,skiprows=7000,skip_footer=6000)
+    W,m081,em081 = np.genfromtxt(dat_directory+'minus_08_visit2.dat',unpack=True,skip_header=7000,skip_footer=6000)
+    W,m082,em082 = np.genfromtxt(dat_directory+'minus_08_visit3.dat',unpack=True,skip_header=7000,skip_footer=6000)
+    W,m083,em083 = np.genfromtxt(dat_directory+'minus_08_visit4.dat',unpack=True,skip_header=7000,skip_footer=6000)
 
-    W,p081,ep081 = np.genfromtxt(dat_directory+'plus_08_visit2.dat',unpack=True,skiprows=7000,skip_footer=6000)
-    #W,p082,ep082 = np.genfromtxt(dat_directory+'plus_08_visit3.dat',unpack=True,skiprows=7000,skip_footer=6000)
-    W,p083,ep083 = np.genfromtxt(dat_directory+'plus_08_visit4.dat',unpack=True,skiprows=7000,skip_footer=6000)
+    W,p081,ep081 = np.genfromtxt(dat_directory+'plus_08_visit2.dat',unpack=True,skip_header=7000,skip_footer=6000)
+    #W,p082,ep082 = np.genfromtxt(dat_directory+'plus_08_visit3.dat',unpack=True,skip_header=7000,skip_footer=6000)
+    W,p083,ep083 = np.genfromtxt(dat_directory+'plus_08_visit4.dat',unpack=True,skip_header=7000,skip_footer=6000)
 
-    W,p112,ep112 = np.genfromtxt(dat_directory+'plus_11_visit3.dat',unpack=True,skiprows=7000,skip_footer=6000)
-    W,p113,ep113 = np.genfromtxt(dat_directory+'plus_11_visit4.dat',unpack=True,skiprows=7000,skip_footer=6000)
+    W,p112,ep112 = np.genfromtxt(dat_directory+'plus_11_visit3.dat',unpack=True,skip_header=7000,skip_footer=6000)
+    W,p113,ep113 = np.genfromtxt(dat_directory+'plus_11_visit4.dat',unpack=True,skip_header=7000,skip_footer=6000)
         
-    LyA             = 1215.6702
-    RV_BP           = 0.0
-    Wo, Fo, Eo                          = np.genfromtxt(dat_directory+'Ly-alpha_no_AG.txt',unpack=True)
-    Wold, Fold, Eold                    = np.genfromtxt(dat_directory+'Ly-alpha.dat',unpack=True)
+    LyA                 = 1215.6702
+    RV_BP               = 0.0
+    Wo, Fo, Eo          = np.genfromtxt(dat_directory+'Ly-alpha_no_AG.txt',unpack=True)
+    Wold, Fold, Eold    = np.genfromtxt(dat_directory+'Ly-alpha.dat',unpack=True)
 
     RVo = wave2RV(Wo,LyA,0.)
     RV = wave2RV(W,LyA,0.)
@@ -86,7 +86,7 @@ def main():
     F_red, F_err_red = weighted_avg_and_errorbars(red,red_err)
 
     tot     = np.array([n000,n001,n002,n003,m081,m082,m083,p081,p083,p112,p113])
-    tot_err = np.array([en000,en001,en002,en003,em081,em082,em083,ep081p,ep083,ep112,ep113])
+    tot_err = np.array([en000,en001,en002,en003,em081,em082,em083,ep081,ep083,ep112,ep113])
 
     #tot     = np.array([n000,n001,n002,n003,m081,m082,m083,p081,p082,p083,p112,p113])
     #tot_err = np.array([en000,en001,en002,en003,em081,em082,em083,ep081,ep082,ep083,ep112,ep113])

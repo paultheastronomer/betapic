@@ -12,24 +12,32 @@ def wave2RV(Wave,rest_wavelength,RV_BP):
 def ShiftAG(AG,units):
     zeros   = np.zeros(abs(units))
     if units > 0.:
-        AG      = np.concatenate((zeros,AG), axis=1)[:-units]
+        AG      = np.concatenate((zeros,AG))[:-units]
     else:
-        AG      = np.concatenate((AG,zeros), axis=1)[abs(units):]
+        AG      = np.concatenate((AG,zeros))[abs(units):]
     return AG
 
+def replace_with_median(X):
+    X[np.isnan(X)] = 0
+    m = np.median(X[X > 0])
+    X[X == 0] = m
+    return X
 
 def weighted_avg_and_errorbars(Flux, Err):
     """
     Return the weighted average and Error bars.
     """
-    weights=1./(Err**2)
-    average = np.average(Flux, axis=0, weights=weights)
+    Flux        = replace_with_median(Flux)
+    Err         = replace_with_median(Err)
+    weights     =1./(Err**2)
+    average     = np.average(Flux, axis=0, weights=weights)
     errorbars_2 = np.sum(weights*(Err**2), axis=0) / np.sum(weights, axis=0)
     return average, np.sqrt(errorbars_2)
 
 def FindFactor(RV,D,E,A,l1,l2):
     region  = []
     err     = []
+    E         = replace_with_median(E)
     for i in range(len(RV)):
         if l1 < RV[i] < l2:
             region.append(D[i])
@@ -45,13 +53,13 @@ def main():
 
     dat_directory = "/home/paw/science/betapic/data/HST/dat/"
 
-    #Wc, Fc, Ec  = np.genfromtxt('Ly-alpha.dat',skiprows=830,skip_footer=0,unpack=True)
-    W, RV, F0_0, E0_0, AG0, AG0err = np.genfromtxt(dat_directory+'B_2014.dat',skiprows=830,skip_footer=0,unpack=True)
-    W, RV, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1 = np.genfromtxt(dat_directory+'B_10Dec.dat',skiprows=830,skip_footer=0,unpack=True)
-    W, RV, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2 = np.genfromtxt(dat_directory+'B_24Dec.dat',skiprows=830,skip_footer=0,unpack=True)
-    W, RV, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3  = np.genfromtxt(dat_directory+'B_30Jan.dat',skiprows=830,skip_footer=0,unpack=True)
+    #Wc, Fc, Ec  = np.genfromtxt('Ly-alpha.dat',skip_header=830,skip_footer=0,unpack=True)
+    W, RV, F0_0, E0_0, AG0, AG0err                                                  = np.genfromtxt(dat_directory+'B_2014.dat',unpack=True)
+    W, RV, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1               = np.genfromtxt(dat_directory+'B_10Dec.dat',unpack=True)
+    W, RV, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2   = np.genfromtxt(dat_directory+'B_24Dec.dat',unpack=True)
+    W, RV, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3   = np.genfromtxt(dat_directory+'B_30Jan.dat',unpack=True)
     
-    rescale    = np.genfromtxt(dat_directory+'rescaling_factors2.txt',unpack=True)
+    rescale    = np.genfromtxt(dat_directory+'rescaling_factors.txt',unpack=True)
     rescale    = np.array(np.append(1.,rescale))# added 1. since we scaled to 2014 data.  
     rescale    = np.array([rescale])            # 
 
@@ -59,13 +67,12 @@ def main():
     F = np.array([F0_0,F0_1,F1_1,F2_1,F0_2,F1_2,F2_2,F3_2,F0_3,F1_3,F2_3,F3_3])
     E = np.array([E0_0,E0_1,E1_1,E2_1,E0_2,E1_2,E2_2,E3_2,E0_3,E1_3,E2_3,E3_3])
 
+
     F = F*rescale.T
     #E = E*rescale.T        # Ask Alain about this
     
     LyA             = 1215.6702
     RV_BP           = 0.0#20.5
-
-     
 
     # Code for plotting should it be required:
     # =========================================
@@ -82,10 +89,10 @@ def main():
     # Combining AG measurements. Not including AG2 due to problem with data.
     AirG                = np.array([AG0,AG1,AG3])
     AirG_err            = np.array([AG0err,AG1err,AG3err])
+    
     AirG_W, AirG_W_err  = weighted_avg_and_errorbars(AirG,AirG_err)
 
     #AirG_W_err = AirG_W_err/10.  
-
 
     # 1 visit 0.0" offset
     AGs    = ShiftAG(AirG_W,-1)
@@ -93,65 +100,44 @@ def main():
     n000 = F[0]-AGs*factor
     e000 = np.sqrt(E[0]**2+(factor*AirG_W_err)**2)
 
-
     # 2 visit 0.0" offset
     AGs    = ShiftAG(AirG_W,-1)
-    #plt.plot(RV,F0_1/AirG_W)
-    #plt.plot(RV,F0_1/AGs)
     
     factor, ferr    = FindFactor(RV,F[1]/AGs,E[1],AirG_W_err,-59.5,80)
     n001 = F[1]-AGs*factor
     e001 = np.sqrt(E[1]**2+(factor*AirG_W_err)**2)
 
-
     # 3 visit 0.0" offset
-    AGs    = ShiftAG(AirG_W,1)    
+    AGs    = ShiftAG(AirG_W,2)    
     factor, ferr    = FindFactor(RV,F[4]/AGs,E[4],AirG_W_err,-59.5,80)
     n002 = F[4]-AGs*factor
     e002 = np.sqrt(E[4]**2+(factor*AirG_W_err)**2)
+
     
     # 4 visit 0.0" offset
-    AGs    = ShiftAG(AirG_W,1)
+    AGs    = ShiftAG(AirG_W,-2)
     factor, ferr    = FindFactor(RV,F[8]/AGs,E[8],AirG_W_err,-59.5,80)
     n003 = F[8]-AGs*factor
     e003 = np.sqrt(E[8]**2+(factor*AirG_W_err)**2)
-    #plt.plot(RV,F0_1/AirG_W)
-    #plt.plot(RV,F0_1/AGs)
-    #plt.plot(RV,F0_1)
-    #plt.plot(RV,AGs*factor)
-    #plt.plot([-59.5,-59.5],[0,10],"--k")
-    #plt.plot([80,80],[0,10],"--k")
-    #plt.ylim(0.4,1.0)
-    #plt.xlim(-300,300)
-    #plt.show()
 
     np.savetxt(dat_directory+"neutral_00_visit1.dat",np.column_stack((W,n000,e000)))
     np.savetxt(dat_directory+"neutral_00_visit2.dat",np.column_stack((W,n001,e001)))
     np.savetxt(dat_directory+"neutral_00_visit3.dat",np.column_stack((W,n002,e002)))
     np.savetxt(dat_directory+"neutral_00_visit4.dat",np.column_stack((W,n003,e003)))
-    
-    #sys.exit()
-
-
-
-
-
-
-
 
     # 2 visit -0.8" offset
     #===============================
-    AGs    = ShiftAG(AirG_W,32)
+    AGs    = ShiftAG(AirG_W,33)
     factor, ferr    = FindFactor(RV,F[2]/AGs,E[2],AirG_W_err,-59.5,80)
     m081 = F[2]-AGs*factor
     e081 = np.sqrt(E[2]**2+(factor*AirG_W_err)**2)
 
     # 3 visit -0.8" offset
     #===============================
-    AGs    = ShiftAG(AirG_W,35)
+    AGs    = ShiftAG(AirG_W,37)
     factor, ferr    = FindFactor(RV,F[5]/AGs,E[5],AirG_W_err,-59.5,80)
     m082 = F[5]-AGs*factor
-    e082 = np.sqrt(E[5]**2+(factor*AirG_W_err)**2)
+    e082 = np.sqrt(E[5]**2+(factor*AirG_W_err)**2)  
     
     # 4 visit -0.8" offset
     #===============================
@@ -159,12 +145,10 @@ def main():
     factor, ferr    = FindFactor(RV,F[9]/AGs,E[9],AirG_W_err,-59.5,80)
     m083 = F[9]-AGs*factor
     e083 = np.sqrt(E[9]**2+(factor*AirG_W_err)**2)
-
+    
     np.savetxt(dat_directory+"minus_08_visit2.dat",np.column_stack((W,m081,e081)))
     np.savetxt(dat_directory+"minus_08_visit3.dat",np.column_stack((W,m082,e082)))
     np.savetxt(dat_directory+"minus_08_visit4.dat",np.column_stack((W,m083,e083)))
-
-
 
     # 2 visit +0.8" offset
     #===============================
@@ -173,18 +157,17 @@ def main():
     p082 = F[3]-AGs*factor
     e082 = np.sqrt(E[3]**2+(factor*AirG_W_err)**2)
 
-
     # 3 visit +0.8" offset
     #===============================
     AGs    = ShiftAG(AirG_W,-32)        # or -33
     factor, ferr    = FindFactor(RV,F[6]/AGs,E2_2,AirG_W_err,-59.5,80)
     p083 = F[6]-AGs*factor
     e083 = np.sqrt(E[6]**2+(factor*AirG_W_err)**2)
-
+ 
 
     # 4 visit +0.8" offset
     #===============================
-    AGs    = ShiftAG(AirG_W,-25)
+    AGs    = ShiftAG(AirG_W,-28)
     factor, ferr    = FindFactor(RV,F[10]/AGs,E[10],AirG_W_err,-59.5,80)
     p084 = F[10]-AGs*factor
     e084 = np.sqrt(E[10]**2+(factor*AirG_W_err)**2)
@@ -194,18 +177,19 @@ def main():
     np.savetxt(dat_directory+"plus_08_visit4.dat",np.column_stack((W,p084,e084)))
 
 
-
     # 3 visit +1.1" offset
     #===============================
-    AGs    = ShiftAG(AirG_W,-42)
+    AGs    = ShiftAG(AirG_W,-41)
     factor, ferr    = FindFactor(RV,F[7]/AGs,E[7],AirG_W_err,-59.5,80)
     p113 = F[7]-AGs*factor
     e113 = np.sqrt(E[7]**2+(factor*AirG_W_err)**2)
     #===============================
 
+
+
     # 4 visit +1.1" offset
     #===============================
-    AGs    = ShiftAG(AirG_W,-43)
+    AGs    = ShiftAG(AirG_W,-42)
     factor, ferr    = FindFactor(RV,F[11]/AGs,E[11],AirG_W_err,-59.5,80)
     p114 = F[11]-AGs*factor
     e114 = np.sqrt(E[11]**2+(factor*AirG_W_err)**2)
@@ -213,6 +197,19 @@ def main():
 
     np.savetxt(dat_directory+"plus_11_visit3.dat",np.column_stack((W,p113,e113)))
     np.savetxt(dat_directory+"plus_11_visit4.dat",np.column_stack((W,p114,e114)))
+
+    '''
+    yy1=8
+    yy2=13
+    plt.plot([-59.5,-59.5],[yy1,yy2],'k')
+    plt.plot([80,80],[yy1,yy2],'k')
+    plt.plot(RV,F[11]/AGs)
+    #plt.plot(RV,n001)
+    plt.xlim(-400,400)
+    plt.ylim(yy1,yy2)
+    plt.show()
+    sys.exit() 
+    '''
 
     # Uncomment lines below for plotting
     #plt.xlim(-520,520)

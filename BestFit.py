@@ -40,16 +40,17 @@ def main():
         plt.rcParams['text.usetex'] = True
         plt.rcParams['text.latex.unicode'] = True    
 
-        bin_pnts = 7
+        bin_pnts = 3
         RVb, Fb, Eb             =   Bin_data(RV,F,E,bin_pnts)
         RVob, Fob, Eob             =   Bin_data(RVo,Fo,Eo,bin_pnts)
         RVb_cut, Fb_cut, Eb_cut =   Bin_data(RV_cut,F_cut,E_cut,bin_pnts)
 
+        '''
         plt.plot(v,f_star,lw=3,color='gray',label=r'$\beta$ Pictoris')
         plt.plot(v,f_abs_ism,lw=1.2,color='#FF9303',label=r'ISM')
         plt.plot(v,f_abs_bp,lw=1.2,color='#0386ff',label=r'Gas disk')
         plt.plot(v,f_after_fit,lw=3,color='#FF281C',label=r'Best fit')
-
+        '''
         last = len(RVb)
         plt.errorbar(RVob[last:],Fob[last:],yerr=Eob[last:],fmt=None,ecolor='black',zorder=2)
         plt.scatter(RVob[last:],Fob[last:], marker='o', edgecolor="black", color='gray',zorder=3)

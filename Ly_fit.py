@@ -242,8 +242,9 @@ def main():
 
     dat_directory   = "/home/paw/science/betapic/data/HST/dat/"
 
-    Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted.txt',unpack=True)
-    W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted.txt',unpack=True,skip_footer= 150)
+    Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted_2016_05_23.txt',unpack=True)
+    W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_2016_05_23.txt',unpack=True,skip_header=1850,skip_footer= 1100)
+    
     
     #np.savetxt(dat_directory+"Ly_a_20160511_v2.txt",np.column_stack((Wo, Fo, Eo)))
     
@@ -253,7 +254,7 @@ def main():
     
     
     ### Parameters ##############################      
-    mode            = 'lm'      # mcmc or lm    
+    mode            = 'mcmc'      # mcmc or lm    
     LyA             = 1215.6702 # Heliocentric: 1215.6702
     BetaPicRV       = 20.5
 
@@ -265,32 +266,32 @@ def main():
 
     # Beta Pic parameters
     v_bp            = 20.5        # RV of the beta Pic (relative to Heliocentric)
-    nh_bp           = 19.1       # Column density beta Pic, Fitting param
+    nh_bp           = 19.20       # Column density beta Pic, Fitting param
     b_bp            = 4.0        # Turbulent velocity
     T_bp            = 1000.       # Temperture of gas in beta Pic disk
 
     # Extra component parameters
-    v_X            = 43.0        # RV of the beta Pic (relative to Heliocentric)
-    nh_X           = 19.0       # Column density beta Pic, Fitting param
+    v_X            = 90.0        # RV of the beta Pic (relative to Heliocentric)
+    nh_X           = 18.34       # Column density beta Pic, Fitting param
     b_X            = 6.0        # Turbulent velocity
     T_X            = 1000.       # Temperture of gas in beta Pic disk
 
     # Stellar emission line parameters
-    max_f           = 8.64e-12     # Fitting param                 
+    max_f           = 10.2e-12     # Fitting param                 
     dp              = 0.0 
-    uf              = 3.09#3.60        # Fitting param
-    av              = 0.05#0.1        # Fitting param
+    uf              = 3.12#3.60        # Fitting param
+    av              = 0.04#0.1        # Fitting param
     
     slope           = 0.0#-0.0008205
 
     sigma_kernel    = 3.5
 
-    v               = np.arange(-800,610,1)         # RV values
+    v               = np.arange(-len(Wo)/2,len(Wo)/2,1)         # RV values
     l               = LyA*(1.0 + v/3e5)             # Corresponding wavengths
 
     Par             = [nh_bp,max_f,uf,av,v_X,nh_X] # Free parameters
     Const           = [W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,v_bp,b_bp,T_bp,b_X,T_X,slope] 
-    step            = np.array([0.1,3e-12,0.03,.01,3,0.1])/3.  # MCMC step size 0.3
+    step            = np.array([0.1,3e-12,0.03,.01,10,0.1])/3.  # MCMC step size 0.3
     #############################################
 
 
@@ -356,7 +357,7 @@ def main():
         Const[0] = l    # Since we want to plot the region where there is no data.
         f_after_fit, f_star, f_abs_ism, f_abs_bp, f_abs_X         = LyModel(P,Const)
 
-        bin_pnts = 3
+        bin_pnts = 7
         RVb, Fb, Eb     = Bin_data(RV,F,E,bin_pnts)
         RVob, Fob, Eob     = Bin_data(RVo,Fo,Eo,bin_pnts)
 
@@ -385,14 +386,13 @@ def main():
         # Saving the data for plotting
         #np.savetxt(dat_directory+"Ly_Fit.dat",np.column_stack((v,f_star,f_abs_ism,f_abs_bp,f_after_fit)))
 
-
     elif mode == 'mcmc':
         #X = (F - f_before_fit),E,np.zeros(len(F)),F                                                         # Check this in relation to the Chi2 function!
         X = F,E,LyModel(Par,Const)[0]
    
         chain, moves = MCMC(W,X,LyModel,Par,Const,step,1e5)
         
-        outfile = 'chain4'
+        outfile = 'chain_c_4'
         np.savez(outfile, nh_bp = chain[:,0], max_f = chain[:,1], uf = chain[:,2], av = chain[:,3], v_X = chain[:,4], nh_X = chain[:,5])
         
         Pout = chain[moves,:]
