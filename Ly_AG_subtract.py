@@ -79,11 +79,11 @@ def main():
     F = F*rescale.T
     #E = E*rescale.T        # Ask Alain about this
     
-    LyA             = 1215.6702
+    LyA     = 1215.6702
     
-    ff  = 20
-    l1  = 20.5-ff
-    l2  = 20.5+ff
+    ff      = 20
+    l1      = 20.5-ff
+    l2      = 20.5+ff
 
     # Combining AG measurements. Not including AG2 due to problem with data.
     AirG                = np.array([AG0,AG1,AG3])
