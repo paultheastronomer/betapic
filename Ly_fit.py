@@ -4,8 +4,8 @@ import sys
 
 from scipy.optimize import leastsq
 
-
 def voigt_wofz(a, u):
+
     ''' Compute the Voigt function using Scipy's wofz().
 
     # Code from https://github.com/nhmc/Barak/blob/\
@@ -40,10 +40,11 @@ def K(W,l,sigma_kernel):
     kernel = np.arange(-len(W)/2.,len(W)/2.,1)
     kernel = np.exp(-kernel**2/2./((sigma_kernel*dwave/dl)**2))
     kernel = kernel/np.sum(kernel)
+
     return kernel
 
-def flux_star(LyA,v_bp,l,kernel,max_f,dp,uf,av):
-    
+def flux_star(LyA,v_bp,l,kernel,max_f,dp,uf,av):  
+
     # Double Voigt profile
     delta_lambda =   LyA*(v_bp/3e5)
      
@@ -164,10 +165,6 @@ def Distrib(x):
    down = y[int(0.1587*len(y))]
    med  = y[int(0.5*len(y))]
    
-   #mean, sigma = np.mean(y), np.std(y)
-   #print stats.norm.interval(0.68, loc=mean, scale=sigma)
-   #print med,up,down 
-   #sys.exit()
    return med,up,down   
 
 def Median_and_Uncertainties(P,S,chain):
@@ -213,14 +210,15 @@ def MCMC(x,X,F,P,Const,S,C):
     ratio       = L_new/L
 
     if (np.random.random() > ratio):
-      P = P - jump
+      P     = P - jump
       moved = 0
     else:
-      L=L_new
+      L     = L_new
       moved = 1
-    moves += moved
+    moves  += moved
     chain[i,:] = np.array(P)
   print "\nAccepted steps: ",round(100.*(moves/C),2),"%"
+  
   return chain, moves
 
 def wave2RV(Wave,rest_wavelength,RV_BP):
@@ -242,10 +240,10 @@ def main():
 
     dat_directory   = "/home/paw/science/betapic/data/HST/dat/"
 
-    Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted_2016_05_23.txt',unpack=True)
-    W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_2016_05_23.txt',unpack=True,skip_header=1850,skip_footer= 1100)
+    Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted_new.txt',unpack=True)
+    W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_new.txt',unpack=True,skip_footer= 600)
     
-    
+
     #np.savetxt(dat_directory+"Ly_a_20160511_v2.txt",np.column_stack((Wo, Fo, Eo)))
     
     # To fit the non-sky subtracted (only cut) data uncomment the two lines below.
@@ -254,7 +252,7 @@ def main():
     
     
     ### Parameters ##############################      
-    mode            = 'mcmc'      # mcmc or lm    
+    mode            = 'lm'      # mcmc or lm    
     LyA             = 1215.6702 # Heliocentric: 1215.6702
     BetaPicRV       = 20.5
 
@@ -271,10 +269,10 @@ def main():
     T_bp            = 1000.       # Temperture of gas in beta Pic disk
 
     # Extra component parameters
-    v_X            = 90.0        # RV of the beta Pic (relative to Heliocentric)
-    nh_X           = 18.34       # Column density beta Pic, Fitting param
-    b_X            = 6.0        # Turbulent velocity
-    T_X            = 1000.       # Temperture of gas in beta Pic disk
+    v_X             = 90.0        # RV of the beta Pic (relative to Heliocentric)
+    nh_X            = 18.34       # Column density beta Pic, Fitting param
+    b_X             = 6.0        # Turbulent velocity
+    T_X             = 1000.       # Temperture of gas in beta Pic disk
 
     # Stellar emission line parameters
     max_f           = 10.2e-12     # Fitting param                 
@@ -286,7 +284,7 @@ def main():
 
     sigma_kernel    = 3.5
 
-    v               = np.arange(-len(Wo)/2,len(Wo)/2,1)         # RV values
+    v               = np.arange(-len(Wo)/1.3,len(Wo)/1.3,1)         # RV values
     l               = LyA*(1.0 + v/3e5)             # Corresponding wavengths
 
     Par             = [nh_bp,max_f,uf,av,v_X,nh_X] # Free parameters
@@ -300,12 +298,11 @@ def main():
         X = F,E,LyModel(Par,Const)[0]
         print "Chi2 before fit:\t",chi2(X)
 
-        Const[0]        = l    # Since we want to plot the region where there is no data.
+        Const[0] = l    # Since we want to plot the region where there is no data.
         f_before_fit, f_star, f_abs_ism, f_abs_bp, f_abs_X         = LyModel(Par,Const)
 
         RV = wave2RV(W,LyA,BetaPicRV)     # Heliocentric rest frame
         RVo = wave2RV(Wo,LyA,BetaPicRV)
-
 
         # Plot starting point
         fig = plt.figure(figsize=(8,6))
@@ -326,11 +323,11 @@ def main():
         plt.plot(v,f_abs_X,lw=1.2,color='purple',label=r'Component X')
         plt.plot(v,f_before_fit,lw=3,color='#FF281C',label=r'Best fit')
 
+        # Data used to make a plot
         #np.savetxt("nh_1825_fit.dat",np.column_stack((v,f_before_fit)))
    
         plt.xlabel(r'Radial Velocity [km/s]')
         plt.ylabel('Flux (erg/s/cm$^2$/\AA)')
-
         
         plt.xlim(-700,600)
         plt.ylim(-2.0e-14,0.8e-13)
