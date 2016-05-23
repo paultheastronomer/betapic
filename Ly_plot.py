@@ -17,55 +17,33 @@ def wave2RV(Wave,rest_wavelength,RV_BP):
     RV = ((delta_wavelength/rest_wavelength)*c)/1.e3	# km/s
     return RV
 
-
-def CreateRight(RV,F):
-    RVnew   = []
-    Fnew    = []
-    for i in range(len(RV)):
-        if RV[i]*-1 > 0:
-            RVnew.append(RV[i]*-1)
-            Fnew.append(F[i])
-    if len(RVnew) < 228:
-        add = 228 - len(RVnew)
-        Fnew = np.concatenate((Fnew,np.zeros(add)))
-        RVnew = np.concatenate((RVnew,np.zeros(add)))      
-    return np.array(RVnew), np.array(Fnew)
-
-def CreateLeft(RV,F):
-    RVnew   = []
-    Fnew    = []
-    for i in range(len(RV)):
-        if RV[i] > 0:
-            RVnew.append(RV[i])
-            Fnew.append(F[i])
-    if len(RVnew) < 228:
-        add = 228 - len(RVnew)
-        Fnew = np.concatenate((np.zeros(add),Fnew))
-        RVnew = np.concatenate((np.zeros(add),RVnew))      
-    return np.array(RVnew), np.array(Fnew)
-
 def main():    
 
     dat_directory = "/home/paw/science/betapic/data/HST/dat/" 
 
     #Wc, Fc, Ec  = np.genfromtxt(dat_directory+'Ly-alpha.dat',skiprows=830,skip_footer=0,unpack=True)
-    W0, F0, E0  = np.genfromtxt(dat_directory+'Ly-alpha_B_2014.dat',skiprows=830,skip_footer=0,unpack=True)
-    W1, F1, E1  = np.genfromtxt(dat_directory+'Ly-alpha_B_10Dec.dat',skiprows=830,skip_footer=0,unpack=True)
-    W2, F2, E2  = np.genfromtxt(dat_directory+'Ly-alpha_B_24Dec.dat',skiprows=830,skip_footer=0,unpack=True)
-    W3, F3, E3  = np.genfromtxt(dat_directory+'Ly-alpha_B_30Jan.dat',skiprows=830,skip_footer=0,unpack=True)
+    W0, F0, E0  = np.genfromtxt(dat_directory+'Ly-alpha_B_2014.dat',skip_header=830,skip_footer=0,unpack=True)
+    W1, F1, E1  = np.genfromtxt(dat_directory+'Ly-alpha_B_10Dec.dat',skip_header=830,skip_footer=0,unpack=True)
+    W2, F2, E2  = np.genfromtxt(dat_directory+'Ly-alpha_B_24Dec.dat',skip_header=830,skip_footer=0,unpack=True)
+    W3, F3, E3  = np.genfromtxt(dat_directory+'Ly-alpha_B_30Jan.dat',skip_header=830,skip_footer=0,unpack=True)
+    
+    #W, F, E     = np.genfromtxt(dat_directory+'Ly_sky_subtracted.txt',unpack=True)
         
     rest_wavelength = 1215.6702 
     RV_BP           = 20.5
+    bin_pnts    = 7
     
     # Convert to RV with beta Pic as reference frame
     #RVc         = wave2RV(Wc,rest_wavelength,RV_BP)
+    #RV      = wave2RV(W,rest_wavelength,20.5)
+    #RVb, Fb, Eb             =   Bin_data(RV,F,E,bin_pnts)
     
     RV0         = wave2RV(W0,rest_wavelength,RV_BP)
     RV1         = wave2RV(W1,rest_wavelength,RV_BP)
     RV2         = wave2RV(W2,rest_wavelength,RV_BP)
     RV3         = wave2RV(W3,rest_wavelength,RV_BP)
 
-    bin_pnts    = 3
+    
 
     RV0b, F0b, E0b   =   Bin_data(RV0,F0,E0,bin_pnts)
     RV1b, F1b, E1b   =   Bin_data(RV1,F1,E1,bin_pnts)
@@ -77,7 +55,7 @@ def main():
     #fig = plt.figure(figsize=(14,5))
     fontlabel_size  = 18
     tick_size       = 18
-    params = {'backend': 'wxAgg', 'lines.markersize' : 2, 'axes.labelsize': fontlabel_size, 'font.size': fontlabel_size, 'legend.fontsize': fontlabel_size, 'xtick.labelsize': tick_size, 'ytick.labelsize': tick_size, 'text.usetex': True}
+    params = {'backend': 'wxAgg', 'lines.markersize' : 2, 'axes.labelsize': fontlabel_size, 'font.size': fontlabel_size, 'legend.fontsize': 15, 'xtick.labelsize': tick_size, 'ytick.labelsize': tick_size, 'text.usetex': True}
     plt.rcParams.update(params)
     plt.rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
     plt.rcParams['text.usetex'] = True
@@ -95,6 +73,10 @@ def main():
 
     # Binned
     #'''
+    
+    #plt.errorbar(RVb,Fb,yerr=Eb,fmt=None,ecolor='black',zorder=3)
+    #plt.scatter(RVb,Fb, marker='o', color='k',zorder=3)
+
     plt.errorbar(RV0b,F0b,yerr=E0b,color='#FF281C')
     plt.scatter(RV0b,F0b,color='#FF281C',s=40,edgecolor='k',label='2014') 
 
@@ -109,12 +91,13 @@ def main():
 
     plt.xlabel(r'RV [km/s]')
     plt.ylabel('Flux (erg/s/cm$^2$/\AA)')
-    plt.xlim(-500,615)
-    plt.ylim(0,3.5e-14)
+    plt.xlim(-710,600)
+    plt.ylim(0,7.3e-14)
     #'''
 
-    plt.legend(loc='upper right', numpoints=1)
-    #plt.savefig('Ly_red_wing.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
+    plt.legend(loc='upper left', numpoints=1)
+    fig.tight_layout()
+    plt.savefig('Ly_only_cut.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
     plt.show()
 
 if __name__ == '__main__':
