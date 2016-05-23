@@ -98,34 +98,27 @@ def chi2_lm(params,F,E,Const):
 def LyModel(params,Const):
     
     # Free parameters
-    nh_bp, max_f, uf, av, v_bp = params
-    
-    
+    nh_bp,max_f,uf,av,v_X,nh_X = params
     
     # Fixed parameters
-    W,l,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,T_bp,LyA,b_bp,slope = Const
+    W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,v_bp,b_bp,T_bp,b_X,T_X,slope = Const
 
     kernel      =   K(W,l,sigma_kernel)
 
     # Calculates the ISM absorption
     abs_ism     =   absorption(l,v_ism,nh_ism,b_ism,T_ism,LyA)
     abs_bp      =   absorption(l,v_bp,nh_bp,b_bp,T_bp,LyA)
+    abs_X       =   absorption(l,v_X,nh_X,b_X,T_X,LyA)
 
     # Stellar Ly-alpha line
-    #f, f_star   =   flux_star(LyA,v_bp,l,kernel,max_f,dp,uf,av)
-    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    
-    f, f_star   =   flux_star(LyA,20.5,l,kernel,max_f,dp,uf,av)
-    
-    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    f, f_star   =   flux_star(LyA,BetaPicRV,l,kernel,max_f,dp,uf,av)
 
     # Stellar spectral profile, as seen from Earth
     # after absorption by the ISM and BP CS disk.
     # Profile has been convolved with HST LSF
     #    -  in (erg cm-2 s-1 A-1)
-    f_abs_con   =   np.convolve(f*abs_ism*abs_bp,kernel,mode='same')
+    f_abs_con   =   np.convolve(f*abs_ism*abs_bp*abs_X,kernel,mode='same')
     
     # Absorption by the ISM
     f_abs_ism   =   np.convolve(f*abs_ism,kernel,mode='same')*(l*slope+1.0)
@@ -133,12 +126,15 @@ def LyModel(params,Const):
     # Absorption by beta Pictoris  
     f_abs_bp    =   np.convolve(f*abs_bp,kernel,mode='same')*(l*slope+1.0)
 
+    # Absorption by component X  
+    f_abs_X    =   np.convolve(f*abs_X,kernel,mode='same')*(l*slope+1.0)
+    
     # Interpolation on COS wavelengths, relative to the star
     f_abs_int   =   np.interp(W,l,f_abs_con)*(W*slope+1.0)
     
     f_star      =   f_star*(l*slope+1.0)
     
-    return f_abs_int, f_star, f_abs_ism, f_abs_bp
+    return f_abs_int, f_star, f_abs_ism, f_abs_bp, f_abs_X
 
 def FindBestParams(params,F,E,Const):
     
@@ -257,8 +253,9 @@ def main():
     
     
     ### Parameters ##############################      
-    mode            = 'mcmc'      # mcmc or lm    
+    mode            = 'lm'      # mcmc or lm    
     LyA             = 1215.6702 # Heliocentric: 1215.6702
+    BetaPicRV       = 20.5
 
     # ISM parameters
     v_ism           = 10.0        # RV of the ISM (relative to Heliocentric)      
@@ -267,16 +264,22 @@ def main():
     T_ism           = 7000.       # Temperature of ISM
 
     # Beta Pic parameters
-    v_bp            = 33.0        # RV of the beta Pic (relative to Heliocentric)
-    nh_bp           = 19.4       # Column density beta Pic, Fitting param
+    v_bp            = 20.5        # RV of the beta Pic (relative to Heliocentric)
+    nh_bp           = 19.1       # Column density beta Pic, Fitting param
     b_bp            = 4.0        # Turbulent velocity
     T_bp            = 1000.       # Temperture of gas in beta Pic disk
 
+    # Extra component parameters
+    v_X            = 43.0        # RV of the beta Pic (relative to Heliocentric)
+    nh_X           = 19.0       # Column density beta Pic, Fitting param
+    b_X            = 6.0        # Turbulent velocity
+    T_X            = 1000.       # Temperture of gas in beta Pic disk
+
     # Stellar emission line parameters
-    max_f           = 9.2e-12     # Fitting param                 
+    max_f           = 8.64e-12     # Fitting param                 
     dp              = 0.0 
-    uf              = 2.91#3.60        # Fitting param
-    av              = 0.039#0.1        # Fitting param
+    uf              = 3.09#3.60        # Fitting param
+    av              = 0.05#0.1        # Fitting param
     
     slope           = 0.0#-0.0008205
 
@@ -285,9 +288,9 @@ def main():
     v               = np.arange(-800,610,1)         # RV values
     l               = LyA*(1.0 + v/3e5)             # Corresponding wavengths
 
-    Par             = [nh_bp,max_f,uf,av,v_bp] # Free parameters
-    Const           = [W,l,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,T_bp,LyA,b_bp,slope] 
-    step            = np.array([0.02,1e-12,0.03,.01,1])/3.  # MCMC step size 0.3
+    Par             = [nh_bp,max_f,uf,av,v_X,nh_X] # Free parameters
+    Const           = [W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,v_bp,b_bp,T_bp,b_X,T_X,slope] 
+    step            = np.array([0.1,3e-12,0.03,.01,3,0.1])/3.  # MCMC step size 0.3
     #############################################
 
 
@@ -297,11 +300,10 @@ def main():
         print "Chi2 before fit:\t",chi2(X)
 
         Const[0]        = l    # Since we want to plot the region where there is no data.
-        f_before_fit, f_star, f_abs_ism, f_abs_bp         = LyModel(Par,Const)
+        f_before_fit, f_star, f_abs_ism, f_abs_bp, f_abs_X         = LyModel(Par,Const)
 
-        RV = wave2RV(W,LyA,20.5)     # Heliocentric rest frame
-        RVo = wave2RV(Wo,LyA,20.5)
-
+        RV = wave2RV(W,LyA,BetaPicRV)     # Heliocentric rest frame
+        RVo = wave2RV(Wo,LyA,BetaPicRV)
 
 
         # Plot starting point
@@ -320,6 +322,7 @@ def main():
         plt.plot(v,f_star,lw=3,color='gray',label=r'$\beta$ Pictoris')
         plt.plot(v,f_abs_ism,lw=1.2,color='#FF9303',label=r'ISM')
         plt.plot(v,f_abs_bp,lw=1.2,color='#0386ff',label=r'Gas disk')
+        plt.plot(v,f_abs_X,lw=1.2,color='purple',label=r'Component X')
         plt.plot(v,f_before_fit,lw=3,color='#FF281C',label=r'Best fit')
 
         #np.savetxt("nh_1825_fit.dat",np.column_stack((v,f_before_fit)))
@@ -335,25 +338,23 @@ def main():
         plt.show()
         #sys.exit()            
         
-        Const           = [W,l,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,T_bp,LyA,b_bp,slope]
+        Const = [W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,v_bp,b_bp,T_bp,b_X,T_X,slope]
         
         print "Best fit paramters:"
         P =  FindBestParams(Par,F,E,Const)
-
-        print Par
-        print P
 
         print "\nlog(N(H)) =\t" ,P[0]
         print "Fmax =\t\t"      ,P[1]
         print "uf=\t\t"         ,P[2]
         print "av=\t\t"         ,P[3]
-        print "v_bp\t\t"        ,P[4]
+        print "v_X\t\t"         ,P[4]
+        print "nh_X\t\t"        ,P[5]
 
         X = F,E,LyModel(P,Const)[0]
         print "Chi2 after fit:\t",chi2(X)
 
         Const[0] = l    # Since we want to plot the region where there is no data.
-        f_after_fit, f_star, f_abs_ism, f_abs_bp         = LyModel(P,Const)
+        f_after_fit, f_star, f_abs_ism, f_abs_bp, f_abs_X         = LyModel(P,Const)
 
         bin_pnts = 3
         RVb, Fb, Eb     = Bin_data(RV,F,E,bin_pnts)
@@ -370,6 +371,7 @@ def main():
         plt.plot(v,f_star,lw=3,color='gray',label=r'$\beta$ Pictoris')
         plt.plot(v,f_abs_ism,lw=1.2,color='#FF9303',label=r'ISM')
         plt.plot(v,f_abs_bp,lw=1.2,color='#0386ff',label=r'Gas disk')
+        plt.plot(v,f_abs_X,lw=1.2,color='purple',label=r'Component X')
         plt.plot(v,f_after_fit,lw=3,color='#FF281C',label=r'Best fit')
    
         plt.xlabel(r'Radial Velocity [km/s]')
@@ -381,22 +383,22 @@ def main():
         plt.show()
 
         # Saving the data for plotting
-        np.savetxt(dat_directory+"Ly_Fit.dat",np.column_stack((v,f_star,f_abs_ism,f_abs_bp,f_after_fit)))
+        #np.savetxt(dat_directory+"Ly_Fit.dat",np.column_stack((v,f_star,f_abs_ism,f_abs_bp,f_after_fit)))
 
 
     elif mode == 'mcmc':
         #X = (F - f_before_fit),E,np.zeros(len(F)),F                                                         # Check this in relation to the Chi2 function!
         X = F,E,LyModel(Par,Const)[0]
    
-        chain, moves = MCMC(W,X,LyModel,Par,Const,step,1e4)
+        chain, moves = MCMC(W,X,LyModel,Par,Const,step,1e5)
         
         outfile = 'chain4'
-        np.savez(outfile, nh_bp = chain[:,0], max_f = chain[:,1], uf = chain[:,2], av = chain[:,3], slope = chain[:,4])
+        np.savez(outfile, nh_bp = chain[:,0], max_f = chain[:,1], uf = chain[:,2], av = chain[:,3], v_X = chain[:,4], nh_X = chain[:,5])
         
         Pout = chain[moves,:]
         P_plot1 = [0,1]
         P_plot2 = [2,3]
-        P_plot3 = [4,4]
+        P_plot3 = [4,5]
         PU1 = Median_and_Uncertainties(P_plot1,step,chain)
         PU2 = Median_and_Uncertainties(P_plot2,step,chain)
         PU3 = Median_and_Uncertainties(P_plot3,step,chain)
@@ -405,7 +407,8 @@ def main():
         print "Fmax =\t\t"      ,PU1[0][1],"\t+",PU1[1][1],"\t-",PU1[2][1]
         print "uf=\t\t"         ,PU2[0][0],"\t+",PU2[1][0],"\t-",PU2[2][0]
         print "av=\t\t"         ,PU2[0][1],"\t+",PU2[1][1],"\t-",PU2[2][1]
-        print "slope=\t\t"      ,PU3[0][0],"\t+",PU3[1][0],"\t-",PU3[2][0]
+        print "v_X=\t\t"        ,PU3[0][0],"\t+",PU3[1][0],"\t-",PU3[2][0]
+        print "nh_X=\t\t"       ,PU3[0][1],"\t+",PU3[1][1],"\t-",PU3[2][1]
 
 if __name__ == '__main__':
     main()
