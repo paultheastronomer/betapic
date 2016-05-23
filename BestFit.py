@@ -40,7 +40,7 @@ def main():
         plt.rcParams['text.usetex'] = True
         plt.rcParams['text.latex.unicode'] = True    
 
-        bin_pnts = 3
+        bin_pnts = 7
         RVb, Fb, Eb             =   Bin_data(RV,F,E,bin_pnts)
         RVob, Fob, Eob             =   Bin_data(RVo,Fo,Eo,bin_pnts)
         RVb_cut, Fb_cut, Eb_cut =   Bin_data(RV_cut,F_cut,E_cut,bin_pnts)
