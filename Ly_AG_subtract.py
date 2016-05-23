@@ -302,11 +302,6 @@ def main():
     #plt.savefig('divided.pdf', bbox_inches='tight', pad_inches=0.1)
     plt.show()
     
-    
-    
-    
-    
-    
 
 if __name__ == '__main__':
     main()
