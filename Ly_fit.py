@@ -241,7 +241,7 @@ def main():
     dat_directory   = "/home/paw/science/betapic/data/HST/dat/"
 
     Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted.txt',unpack=True)
-    W, F, E     = np.genfromtxt(dat_directory+'Ly_sky_subtracted.txt',unpack=True,skip_footer= 640)
+    W, F, E     = np.genfromtxt(dat_directory+'Ly_sky_subtracted.txt',unpack=True,skip_header=100,skip_footer= 640)
     
 
     #np.savetxt(dat_directory+"Ly_a_20160511_v2.txt",np.column_stack((Wo, Fo, Eo)))
