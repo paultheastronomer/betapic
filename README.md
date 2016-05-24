@@ -2,7 +2,7 @@
 
 [![GPL](https://img.shields.io/badge/license-GNU%20GPLv3-brightgreen.svg)](http://choosealicense.com/licenses/gpl-3.0/)
 
-This is a collection of python programs used to work with _HST_/COS data.
+This is a collection of python programs used to work with _HST_/COS data. It is still very much in progress.
 
 **create_dat.py** - Converts a .fits file into a .dat file with columns: wavelength, flux, err, net
 
@@ -21,6 +21,8 @@ This is a collection of python programs used to work with _HST_/COS data.
 **BestFit.py** - Produces a plot showing the best fit to the Ly-alpha line. Both with and without sky subtraction.
 
 **posterior.py** - Plots the posterior distributions of the MCMC chains calculated using Ly_fit.py.
+
+**ColDens.py** - Plots the posterior distributions of H column density estimate from two components.
 
 
 Additional code
