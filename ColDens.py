@@ -54,15 +54,10 @@ data = np.array([nh_bp,max_f/1e-11,uf,av,v_X,nh_X]).T
 columns = ['N','M','uf','av','v_X','nh_X']
 df = pd.DataFrame(data,columns=columns)
 
-# Plot the posterior distributions.
-
 fontlabel_size  = 13
 plt.rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
 params = {'backend': 'wxAgg', 'lines.markersize' : 2, 'axes.labelsize': fontlabel_size, 'font.size': fontlabel_size, 'legend.fontsize': fontlabel_size, 'font.family': 'Computer Modern'}
 plt.rcParams.update(params)
-
-# I'd like to have TeX font on the axis. Sadly the above line does not work.
-#plt.rc('text', usetex=True)
 
 summ = (10**(nh_X) + 10**(nh_bp))
 lsum = np.log10(summ)
@@ -88,21 +83,3 @@ figure = corner.corner(data,labels=[r"$\mathrm{v_X}$", r"$\logN_{\mathrm{H\beta}
                                      use_math_text=True)
 
 figure.savefig("../plots/ColDens.pdf")
-'''
-plt.hist2d(v_X,lsum,bins=50)
-#H = np.ones((4, 4)).cumsum().reshape(4, 4)
-#plt.imshow(H,interpolation='nearest')
-plt.xlabel(r'Radial Velocity [km/s] (Heliocentric)')
-plt.ylabel(r'$(N_{+20.5} + N_{+X})$')
-plt.savefig('rel.pdf')
-plt.show()
-'''
-
-# Uncomment to print uncertainties
-'''
-print Uncertainties(nh_bp)
-print Uncertainties(max_f)
-print Uncertainties(uf)
-print Uncertainties(av)
-print Uncertainties(v_X)
-'''
