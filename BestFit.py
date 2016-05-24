@@ -74,7 +74,7 @@ def main():
         plt.ylim(-2.2e-14,7.3e-14)
         plt.legend(loc='upper left', numpoints=1)
         fig.tight_layout()
-        plt.savefig('Ly_alpha.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
+        plt.savefig('../plots/Ly_alpha.png', bbox_inches='tight', pad_inches=0.1,dpi=300)
         plt.show()
 
 

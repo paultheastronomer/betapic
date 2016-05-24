@@ -57,6 +57,7 @@ def FindFactor(RV,D,E,A,l1,l2):
     weights = 1./(err**2)
     wm      = np.average(region, axis=0, weights=weights)
     errorbars_2 = np.sum(weights*(err**2), axis=0) / np.sum(weights, axis=0)
+    print "Factor:",wm
     return wm, np.sqrt(errorbars_2)
 
 def main():    
@@ -64,10 +65,10 @@ def main():
     dat_directory = "/home/paw/science/betapic/data/HST/dat/"
 
     #Wc, Fc, Ec  = np.genfromtxt('Ly-alpha.dat',skip_header=830,skip_footer=0,unpack=True)
-    W, RV, F0_0, E0_0, AG0, AG0err                                                  = np.genfromtxt(dat_directory+'B_2014.dat',unpack=True,skip_header=8800,skip_footer= 6500)
-    W, RV, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1               = np.genfromtxt(dat_directory+'B_10Dec.dat',unpack=True,skip_header=8800,skip_footer= 6500)
-    W, RV, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2   = np.genfromtxt(dat_directory+'B_24Dec.dat',unpack=True,skip_header=8800,skip_footer= 6500)
-    W, RV, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3   = np.genfromtxt(dat_directory+'B_30Jan.dat',unpack=True,skip_header=8800,skip_footer= 6500)
+    W, RV, F0_0, E0_0, AG0, AG0err                                                  = np.genfromtxt(dat_directory+'B_2014.dat',unpack=True)
+    W, RV, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1               = np.genfromtxt(dat_directory+'B_10Dec.dat',unpack=True)
+    W, RV, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2   = np.genfromtxt(dat_directory+'B_24Dec.dat',unpack=True)
+    W, RV, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3   = np.genfromtxt(dat_directory+'B_30Jan.dat',unpack=True)
     
     rescale    = np.genfromtxt(dat_directory+'rescaling_factors.txt',unpack=True)
     rescale    = np.array(np.append(1.,rescale))# added 1. since we scaled to 2014 data.  
@@ -226,64 +227,46 @@ def main():
     # =========================================
     blue        = np.array([n001,n002,n003,n004,m082,m083,m084])
     blue_err    = np.array([en001,en002,en003,en004,em082,em083,em084])
+
+    #blue        = np.array([n001,n002,n003,m082,m083,m084])
+    #blue_err    = np.array([en001,en002,en003,em082,em083,em084])
     
+    #p083 has been removed due to strange shape
     red         = np.array([n001,n002,n003,n004,p082,p084,p113,p114])
     red_err     = np.array([en001,en002,en003,en004,ep082,ep084,ep113,ep114])
-    #red         = np.array([p082,p083,p084,p113,p114])
-    #red_err     = np.array([ep082,ep083,ep084,ep113,ep114])
     
     
-    F_blue, F_err_blue = weighted_avg_and_errorbars(blue,blue_err)
-    F_red, F_err_red = weighted_avg_and_errorbars(red,red_err)
+    F_blue, F_err_blue  = weighted_avg_and_errorbars(blue,blue_err)
+    F_red, F_err_red    = weighted_avg_and_errorbars(red,red_err)
 
-    tot     = np.array([n001,n002,n003,n004,m082,m083,m084,p082,p084,p113,p114])
-    tot_err = np.array([en001,en002,en003,en004,em083,em082,em084,ep082,ep084,ep113,ep114])
-    #tot     = np.array([n001,n002,n003,n004,m082,m083,m084,p082,p083,p084,p113,p114])
-    #tot_err = np.array([en001,en002,en003,en004,em082,em083,em084,ep082,ep083,ep084,ep113,ep114])
-
-    tot     = np.array([n001,n002,n003,n004,m082,m083,m084,p082,p084,p113,p114])
-    tot_err = np.array([en001,en002,en003,en004,em083,em082,em084,ep082,ep084,ep113,ep114])
-
-    '''
-    cc = ["red", "green", "blue","purple"]
-    for i in range(len(blue)):
-
-        for j in range(len(RV)):
-            if RV[j] < 0:               
-                plt.scatter(RV[j], blue[i][j],color=cc[i])
-
-    for i in range(len(red)):
-        for j in range(len(RV)):
-            if RV[j] > 0:           
-                plt.scatter(RV[j], red[i][j],color=cc[i])
-
-    plt.ylim(-6e-13,6.0e-13)
-    plt.xlim(-610,610)
-    plt.legend(loc='upper left', numpoints=1)
-    plt.show()
-    sys.exit() 
-    '''
-
-
-    F, F_err    = weighted_avg_and_errorbars(tot,tot_err)       
+    
 
     #np.savetxt(dat_directory+"Ly_sky_subtracted.txt",np.column_stack((W,F,F_err)))
 
-    bin_pnts = 1
-    RVb, Fb_blue, Fb_err_blue   = Bin_data(RV,F_blue,F_err_blue,bin_pnts)
-    RVb, Fb_red, Fb_err_red     = Bin_data(RV,F_red,F_err_red,bin_pnts)
-
-    #plt.plot(RV,F_red,color="red")
-
+    '''
     for i in range(len(RV)):
         if RV[i] > 0:
             #plt.scatter(RV[i],F_red[i],color="red")
-            plt.scatter(RV[i], F_red[i],color="red")
+            plt.scatter(RV[i], red[0][i],color="blue")
+            plt.scatter(RV[i], red[1][i],color="red")
+            plt.scatter(RV[i], red[2][i],color="green")
+            plt.scatter(RV[i], red[3][i],color="cyan")
+            plt.scatter(RV[i], red[4][i],color="purple")
+            plt.scatter(RV[i], red[5][i],color="black")
+            plt.scatter(RV[i], red[6][i],color="magenta")
+            plt.scatter(RV[i], red[7][i],color="brown")
+            plt.scatter(RV[i], red[8][i],color="orange")
         else:
             #plt.scatter(RV[i],F_blue[i],color="blue")
-            plt.scatter(RV[i], F_blue[i],color="blue")
-    #'''
-    f = open(dat_directory+'Ly_sky_subtracted_new.txt','w+')
+            plt.scatter(RV[i], blue[0][i],color="blue")
+            plt.scatter(RV[i], blue[1][i],color="red")
+            plt.scatter(RV[i], blue[2][i],color="green")
+            plt.scatter(RV[i], blue[3][i],color="cyan")
+            plt.scatter(RV[i], blue[4][i],color="purple")
+            plt.scatter(RV[i], blue[5][i],color="orange")
+            plt.scatter(RV[i], blue[6][i],color="magenta")
+    '''
+    f = open(dat_directory+'Ly_sky_subtracted_all.txt','w+')
     for i in range(len(W)):
         if W[i] > LyA:
             print >> f, W[i], F_red[i], F_err_red[i]
@@ -292,7 +275,7 @@ def main():
     f.close()
     #'''
 
-    plt.ylim(-4e-14,8.0e-14)
+    plt.ylim(-3e-13,3.0e-13)
     plt.xlim(-610,610)
 
     #plt.errorbar(RVo,Fo,yerr=Eo,color="black")

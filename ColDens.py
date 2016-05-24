@@ -64,23 +64,39 @@ plt.rcParams.update(params)
 # I'd like to have TeX font on the axis. Sadly the above line does not work.
 #plt.rc('text', usetex=True)
 
-figure = corner.corner(data,labels=[r"$\logN_{\mathrm{H}}$", r"$\mathrm{Max}_\mathrm{F}/1\times10^{-11}$", r"$\mathrm{uf}$",
-                                     r"$\mathrm{av}$",r"$\mathrm{v_X}$",r"$\mathrm{nh_X}$"],#$\mathrm{v_X}/1\times10^{-4}$
+summ = (10**(nh_X) + 10**(nh_bp))
+lsum = np.log10(summ)
+
+data = np.array([v_X,lsum]).T
+columns = ['N','nh_X']
+df = pd.DataFrame(data,columns=columns)
+
+
+figure = corner.corner(data,labels=[r"$\mathrm{v_X}$", r"$\logN_{\mathrm{H\beta}} + \logN_{\mathrm{Hx}}$"],
                                      quantiles=[0.16, 0.8413],
                                      levels=(1-np.exp(-0.5),),
                                      #truths=[19.42,9.2,2.915,0.03937,33.06,12.],
-                                     #range=[(18.9,19.4),(0.0,0.95),(2.2,2.8),(0.05,0.3),(-8.21,-8.197)],
+                                     range=[(10,70),(19.2,19.6)],
                                      #fill_contours=True,
                                      #ret=True,
                                      bins=30,
                                      smooth=0.8,
-                                     show_titles=True, title_kwargs={"fontsize": 13},
+                                     #show_titles=True, title_kwargs={"fontsize": 13},
                                      label_kwargs = {"fontsize": 18},
                                      plot_contours=True,
                                      verbose=False,
                                      use_math_text=True)
 
-figure.savefig("../plots/mcmc.pdf")
+figure.savefig("../plots/ColDens.pdf")
+'''
+plt.hist2d(v_X,lsum,bins=50)
+#H = np.ones((4, 4)).cumsum().reshape(4, 4)
+#plt.imshow(H,interpolation='nearest')
+plt.xlabel(r'Radial Velocity [km/s] (Heliocentric)')
+plt.ylabel(r'$(N_{+20.5} + N_{+X})$')
+plt.savefig('rel.pdf')
+plt.show()
+'''
 
 # Uncomment to print uncertainties
 '''
