@@ -4,6 +4,10 @@ import sys
 
 from scipy.optimize import leastsq
 
+from src.statistics import Stats
+
+s = Stats()
+
 def voigt_wofz(a, u):
 
     ''' Compute the Voigt function using Scipy's wofz().
@@ -143,20 +147,6 @@ def FindBestParams(params,F,E,Const):
 
     return best_P
 
-def chi2(X):
-  '''
-  Calculated the Chi2 value
-  X[0] => Obs
-  X[1] => Err
-  X[2] => Model
-  '''
-  return np.sum(((X[0] - X[2]) / X[1])**2.)
-
-def Merit(X):
-  ''' Given a Chi2 value
-  we calculate a likelihood as our merit function
-  '''
-  return np.exp(-chi2(X)/2.)
 
 def Distrib(x):
    '''Finds median and 68% interval of array x.'''
@@ -194,7 +184,7 @@ def MCMC(x,X,F,P,Const,S,C):
   S => Scale
   C => Chain length
   '''
-  L         = Merit(X)
+  L         = s.Merit(X)
   moves     = 0
   chain     = np.zeros(shape=(C,len(P)))
   L_chain   = np.zeros(shape=(C,1))
@@ -205,7 +195,7 @@ def MCMC(x,X,F,P,Const,S,C):
     P           = P + jump
     new_fit     = LyModel(P,Const)[0]
     X           = X[0],X[1],new_fit
-    L_new       = Merit(X)
+    L_new       = s.Merit(X)
     L_chain[i]  = L_new
     ratio       = L_new/L
 
@@ -251,53 +241,22 @@ def main():
     #W, F, E         = np.genfromtxt(dat_directory+'Ly-alpha_no_AG.txt',unpack=True,skiprows=900,skip_footer= 145)
     
     
-    ### Parameters ##############################      
-    mode            = 'lm'      # mcmc or lm    
-    LyA             = 1215.6702 # Heliocentric: 1215.6702
-    BetaPicRV       = 20.5
+    from param import *
 
-    # ISM parameters
-    v_ism           = 10.0        # RV of the ISM (relative to Heliocentric)      
-    nh_ism          = 18.4         # Column density ISM
-    b_ism           = 7.          # Turbulent velocity
-    T_ism           = 7000.       # Temperature of ISM
 
-    # Beta Pic parameters
-    v_bp            = 20.5        # RV of the beta Pic (relative to Heliocentric)
-    nh_bp           = 18.87       # Column density beta Pic, Fitting param
-    b_bp            = 4.0        # Turbulent velocity
-    T_bp            = 1000.       # Temperture of gas in beta Pic disk
+    v   = np.arange(-len(Wo)/1.3,len(Wo)/1.3,1) # RV values
+    l   = LyA*(1.0 + v/3e5) # Corresponding wavengths
 
-    # Extra component parameters
-    v_X             = 34.0        # RV of the beta Pic (relative to Heliocentric)
-    nh_X            = 19.25       # Column density beta Pic, Fitting param
-    b_X             = 6.0        # Turbulent velocity
-    T_X             = 1000.       # Temperture of gas in beta Pic disk
-
-    # Stellar emission line parameters
-    max_f           = 1.7e-11     # Fitting param                 
-    dp              = 0.0 
-    uf              = 3.23#3.60        # Fitting param
-    av              = 0.03#0.1        # Fitting param
-    
-    slope           = 0.0#-0.0008205
-
-    sigma_kernel    = 3.5
-
-    v               = np.arange(-len(Wo)/1.3,len(Wo)/1.3,1)         # RV values
-    l               = LyA*(1.0 + v/3e5)             # Corresponding wavengths
-
-    Par             = [nh_bp,max_f,uf,av,v_X,nh_X] # Free parameters
-    Const           = [W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,v_bp,b_bp,T_bp,b_X,T_X,slope] 
-    step            = np.array([0.1,2e-12,0.03,.001,5,0.1])/3.  # MCMC step size 0.3
+    Par = [nh_bp,max_f,uf,av,v_X,nh_X] # Free parameters
+    Const   = [W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,v_bp,b_bp,T_bp,b_X,T_X,slope] 
+    step= np.array([0.1,2e-12,0.03,.001,5,0.1])/3.  # MCMC step size 0.3
     #############################################
-
 
     if mode == 'lm':
         print "Calculating the best parameters..."
         X = F,E,LyModel(Par,Const)[0]
-        print "Chi2 before fit:\t",chi2(X)
-        print "Chi2red after fit:\t",chi2(X)/(len(F)-len(Par))
+        print "Chi2 before fit:\t",s.chi2(X)
+        print "Chi2red after fit:\t",s.chi2(X)/(len(F)-len(Par))
 
         Const[0] = l    # Since we want to plot the region where there is no data.
         f_before_fit, f_star, f_abs_ism, f_abs_bp, f_abs_X         = LyModel(Par,Const)
@@ -350,8 +309,8 @@ def main():
         print "nh_X\t\t"        ,P[5]
 
         X = F,E,LyModel(P,Const)[0]
-        print "Chi2 after fit:\t",chi2(X)
-        print "Chi2red after fit:\t",chi2(X)/(len(RV)-len(P))
+        print "Chi2 after fit:\t",s.chi2(X)
+        print "Chi2red after fit:\t",s.chi2(X)/(len(RV)-len(P))
 
         Const[0] = l    # Since we want to plot the region where there is no data.
         f_after_fit, f_star, f_abs_ism, f_abs_bp, f_abs_X         = LyModel(P,Const)
@@ -393,7 +352,7 @@ def main():
    
         chain, moves = MCMC(W,X,LyModel,Par,Const,step,1e5)
         
-        outfile = '../chains/chain_c_4'
+        outfile = '../chains/chain_c_5'
         np.savez(outfile, nh_bp = chain[:,0], max_f = chain[:,1], uf = chain[:,2], av = chain[:,3], v_X = chain[:,4], nh_X = chain[:,5])
         
         Pout = chain[moves,:]
