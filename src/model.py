@@ -97,20 +97,68 @@ class Model:
         return abs_ism
 
 
-    def LyModel(self,params,Const):
+    def LyModel(self, params, Const, ModelType):
+        
+        '''
+        ModelType refers to the kind of model you are interested in.
+
+        ModelType = 1
+        ========================================================================
+        This model includes a slope component
+        
+            slope   = The slope of model. i.e. model*(slope + 1.)
+        ========================================================================    
+
+        ModelType = 2
+        ========================================================================
+        No extra components but the H absorption is not fixed to the beta pic
+        reference frame, but is free to vary.
+        ========================================================================            
+                
+        ModelType = 3
+        ========================================================================
+        This model includes an additional component X decribed by the free
+        paramteres:
+        
+            v_X     = the velocity of the additional component
+            nh_X    = the column density of the additional component
+        ========================================================================    
+        '''
         
         # Free parameters
-        nh_bp,max_f,uf,av,v_X,nh_X = params
+        if ModelType == 1:
+            nh_bp, max_f, uf, av, slope     = params
+
+        if ModelType == 2:
+            nh_bp, max_f, uf, av, v_bp      = params
+            
+        if ModelType == 3:
+            nh_bp, max_f, uf, av, v_X, nh_X = params
+
+        if ModelType == 4:
+            nh_bp, max_f, uf, av, nh_X = params
         
         # Fixed parameters
-        W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,v_bp,b_bp,T_bp,b_X,T_X,slope = Const
+        if ModelType == 1:
+            W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,v_bp,b_bp,T_bp           = Const
+
+        if ModelType == 2:
+            W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,b_bp,T_bp                = Const
+            
+        if ModelType == 3:
+            W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,v_bp,b_bp,T_bp,b_X,T_X   = Const
+
+        if ModelType == 4:
+            W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,v_bp,b_bp,T_bp,b_X,T_X, v_X  = Const
 
         kernel      =   self.K(W,l,sigma_kernel)
 
         # Calculates the ISM absorption
         abs_ism     =   self.absorption(l,v_ism,nh_ism,b_ism,T_ism,LyA)
         abs_bp      =   self.absorption(l,v_bp,nh_bp,b_bp,T_bp,LyA)
-        abs_X       =   self.absorption(l,v_X,nh_X,b_X,T_X,LyA)
+        
+        if ModelType in [3,4]:
+            abs_X       =   self.absorption(l,v_X,nh_X,b_X,T_X,LyA)
 
         # Stellar Ly-alpha line
         f, f_star   =   self.flux_star(LyA,BetaPicRV,l,kernel,max_f,dp,uf,av)
@@ -119,20 +167,36 @@ class Model:
         # after absorption by the ISM and BP CS disk.
         # Profile has been convolved with HST LSF
         #    -  in (erg cm-2 s-1 A-1)
-        f_abs_con   =   np.convolve(f*abs_ism*abs_bp*abs_X,kernel,mode='same')
+
+        if ModelType in [3,4]:
+            f_abs_con   =   np.convolve(f*abs_ism*abs_bp*abs_X, kernel, mode='same')
+        else:
+            f_abs_con   =   np.convolve(f*abs_ism*abs_bp, kernel, mode='same')
         
         # Absorption by the ISM
-        f_abs_ism   =   np.convolve(f*abs_ism,kernel,mode='same')*(l*slope+1.0)
-
+        if ModelType == 1:
+            f_abs_ism   =   np.convolve(f*abs_ism, kernel, mode='same')*(l*slope+1.0)
+        else:
+            f_abs_ism   =   np.convolve(f*abs_ism, kernel, mode='same')
+        
         # Absorption by beta Pictoris  
-        f_abs_bp    =   np.convolve(f*abs_bp,kernel,mode='same')*(l*slope+1.0)
+        if ModelType == 1:
+            f_abs_bp    =   np.convolve(f*abs_bp, kernel, mode='same')*(l*slope+1.0)
+        else:
+            f_abs_bp    =   np.convolve(f*abs_bp, kernel, mode='same')
 
         # Absorption by component X  
-        f_abs_X    =   np.convolve(f*abs_X,kernel,mode='same')*(l*slope+1.0)
+        if ModelType in [3,4]:
+            f_abs_X    =   np.convolve(f*abs_X, kernel, mode='same')
         
         # Interpolation on COS wavelengths, relative to the star
-        f_abs_int   =   np.interp(W,l,f_abs_con)*(W*slope+1.0)
-        
-        f_star      =   f_star*(l*slope+1.0)
-        
-        return f_abs_int, f_star, f_abs_ism, f_abs_bp, f_abs_X
+        if ModelType == 1:
+            f_abs_int   =   np.interp(W,l,f_abs_con)*(W*slope+1.0)
+            f_star      =   f_star*(l*slope+1.0)
+        else:
+            f_abs_int   =   np.interp(W,l,f_abs_con)
+                    
+        if ModelType in [3,4]:
+            return f_abs_int, f_star, f_abs_ism, f_abs_bp, f_abs_X
+        else:
+            return f_abs_int, f_star, f_abs_ism, f_abs_bp

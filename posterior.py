@@ -37,21 +37,21 @@ def PlotChain(X,Y,l1,l2,x1,x2,y1,y2,name):
     plt.savefig(name+'.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
 
 # Load the MCMC data
-chain1 = np.load('../chains/chain_c_1.npz')
-chain2 = np.load('../chains/chain_c_2.npz')
-chain3 = np.load('../chains/chain_c_3.npz')
-chain4 = np.load('../chains/chain_c_4.npz')
+chain1 = np.load('../chains/chain_1.npz')
+chain2 = np.load('../chains/chain_2.npz')
+chain3 = np.load('../chains/chain_3.npz')
+chain4 = np.load('../chains/chain_4.npz')
 
 nh_bp   =   np.concatenate((chain1['nh_bp'],chain2['nh_bp'],chain3['nh_bp'],chain4['nh_bp']))
 max_f   =   np.concatenate((chain1['max_f'],chain2['max_f'],chain3['max_f'],chain4['max_f']))
 uf      =   np.concatenate((chain1['uf'],chain2['uf'],chain3['uf'],chain4['uf']))
 av      =   np.concatenate((chain1['av'],chain2['av'],chain3['av'],chain4['av']))
-v_X     =   np.concatenate((chain1['v_X'],chain2['v_X'],chain3['v_X'],chain4['v_X']))
-nh_X    =   np.concatenate((chain1['nh_X'],chain2['nh_X'],chain3['nh_X'],chain4['nh_X']))
+v_H     =   np.concatenate((chain1['v_H'],chain2['v_H'],chain3['v_H'],chain4['v_H']))
+#nh_X    =   np.concatenate((chain1['nh_X'],chain2['nh_X'],chain3['nh_X'],chain4['nh_X']))
 
 # Arange the data into pandas format to be compatible with corner.py
-data = np.array([nh_bp,max_f/1e-11,uf,av,v_X,nh_X]).T
-columns = ['N','M','uf','av','v_X','nh_X']
+data = np.array([nh_bp,max_f/1e-12,uf,av,v_H]).T
+columns = ['N','M','uf','av','v_H']
 df = pd.DataFrame(data,columns=columns)
 
 # Plot the posterior distributions.
@@ -64,8 +64,8 @@ plt.rcParams.update(params)
 # I'd like to have TeX font on the axis. Sadly the above line does not work.
 #plt.rc('text', usetex=True)
 
-figure = corner.corner(data,labels=[r"$\logN_{\mathrm{H}}$", r"$\mathrm{Max}_\mathrm{F}/1\times10^{-11}$", r"$\mathrm{uf}$",
-                                     r"$\mathrm{av}$",r"$\mathrm{v_X}$",r"$\mathrm{nh_X}$"],#$\mathrm{v_X}/1\times10^{-4}$
+figure = corner.corner(data,labels=[r"$\logN_{\mathrm{H}}$", r"$\mathrm{Max}_\mathrm{F}/1\times10^{-12}$", r"$\mathrm{uf}$",
+                                     r"$\mathrm{av}$",r"$\mathrm{v_H}$"],#$\mathrm{v_X}/1\times10^{-4}$
                                      quantiles=[0.16, 0.8413],
                                      levels=(1-np.exp(-0.5),),
                                      #truths=[19.42,9.2,2.915,0.03937,33.06,12.],
@@ -80,7 +80,7 @@ figure = corner.corner(data,labels=[r"$\logN_{\mathrm{H}}$", r"$\mathrm{Max}_\ma
                                      verbose=False,
                                      use_math_text=True)
 
-figure.savefig("../plots/mcmc.pdf")
+figure.savefig("../plots/mcmc_0kms.pdf")
 
 # Uncomment to print uncertainties
 '''
