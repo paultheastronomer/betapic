@@ -216,7 +216,7 @@ def main():
 
     fig.tight_layout()
     # Produce a .pdf
-    plt.savefig(species+'_'+str(line_of_interest)+'.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300) 
+    #plt.savefig(species+'_'+str(line_of_interest)+'.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300) 
     plt.show()
 
     # Uncomment below to save to text file

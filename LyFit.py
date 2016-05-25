@@ -39,13 +39,9 @@ def main():
     Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted_2016_05_25.txt',unpack=True)
     W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_2016_05_25.txt',unpack=True,skip_header=50,skip_footer= 610)
     
-
-    #np.savetxt(dat_directory+"Ly_a_20160511_v2.txt",np.column_stack((Wo, Fo, Eo)))
-    
     # To fit the non-sky subtracted (only cut) data uncomment the two lines below.
     #Wo, Fo, Eo         = np.genfromtxt(dat_directory+'Ly-alpha_no_AG.txt',unpack=True)
     #W, F, E         = np.genfromtxt(dat_directory+'Ly-alpha_no_AG.txt',unpack=True,skiprows=900,skip_footer= 145)
-    
     
     ### Parameters ##############################
     ModelType   = 2         # best model is 2
@@ -74,20 +70,15 @@ def main():
     # Stellar emission line parameters
     max_f       = 8.789e-12 # Fitting param 
     dp          = 0.0 
-    uf          = 2.875#3.60# Fitting param
-    av          = 0.034#0.1# Fitting param
+    uf          = 2.875     # Fitting param
+    av          = 0.034     # Fitting param
 
     slope       = -0.0008205
 
     sigma_kernel= 3.5
 
     v   = np.arange(-len(Wo)/1.3,len(Wo)/1.3,1) # RV values
-    #RVt  = wave2RV(W,LyA,BetaPicRV)
-    #v   = np.arange(W[0],W[-1],(W[-1] - W[0])/len(W))
-    #print len(v)
-    #sys.exit()
-    l   = LyA*(1.0 + v/3e5) # Corresponding wavengths
-
+    l   = LyA*(1.0 + v/3e5)                     # Corresponding wavengths
     
     if ModelType == 1:
         Par     = [nh_bp,max_f,uf,av,slope] # Free parameters
@@ -175,14 +166,9 @@ def main():
         print "Chi2:\t\t",s.chi2(X)
         print "Chi2 reduced:\t",s.chi2(X)/(len(RV)-len(P)),"\n"
 
-
-
-        # Data used to make a plot
+        # To save data used to make a plot with varying b, N_H etc.
         #dat_directory   = "/home/paw/science/betapic/data/HST/dat/"
         #np.savetxt(dat_directory+"b01.dat",np.column_stack((v,f_before_fit)))
-
-
-
 
         Const[0] = l    # Since we want to plot the region where there is no data.
         if ModelType == 3:
@@ -219,9 +205,8 @@ def main():
         fig.tight_layout()
         plt.show()
 
-
        # Saving the data for plotting
-       # np.savetxt(dat_directory+"Ly_Fit.dat",np.column_stack((v,f_star,f_abs_ism,f_abs_bp,f_after_fit)))
+        np.savetxt(dat_directory+"Ly_Fit.dat",np.column_stack((v,f_star,f_abs_ism,f_abs_bp,f_after_fit)))
 
     elif mode == 'mcmc':
         #X = (F - f_before_fit),E,np.zeros(len(F)),F                                                         # Check this in relation to the Chi2 function!
@@ -245,7 +230,6 @@ def main():
         print "Fmax =\t\t"      ,PU1[0][1],"\t+",PU1[1][1],"\t-",PU1[2][1]
         print "uf=\t\t"         ,PU2[0][0],"\t+",PU2[1][0],"\t-",PU2[2][0]
         print "av=\t\t"         ,PU2[0][1],"\t+",PU2[1][1],"\t-",PU2[2][1]
-        #print "v_X=\t\t"        ,PU3[0][0],"\t+",PU3[1][0],"\t-",PU3[2][0]
         print "V_H=\t\t"       ,PU3[0][1],"\t+",PU3[1][1],"\t-",PU3[2][1]
 
 if __name__ == '__main__':

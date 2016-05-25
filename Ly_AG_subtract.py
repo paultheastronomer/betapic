@@ -266,6 +266,7 @@ def main():
             plt.scatter(RV[i], blue[5][i],color="orange")
             plt.scatter(RV[i], blue[6][i],color="magenta")
     '''
+    '''
     f = open(dat_directory+'Ly_sky_subtracted_all.txt','w+')
     for i in range(len(W)):
         if W[i] > LyA:
@@ -273,7 +274,7 @@ def main():
         else:
             print >> f, W[i], F_blue[i], F_err_blue[i]
     f.close()
-    #'''
+    '''
 
     plt.ylim(-3e-13,3.0e-13)
     plt.xlim(-610,610)

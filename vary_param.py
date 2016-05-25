@@ -15,9 +15,9 @@ def wave2RV(Wave,rest_wavelength,RV_BP):
 
 def main():    
 
-    #W1, RV1, F0_01, E0_01, AG0, AG0err  = np.genfromtxt('/home/paw/science/betapic/data/HST/dat/B_2014.dat',unpack=True,skiprows=7000,skip_footer=6000)
-    Wo, Fo, Eo                          = np.genfromtxt('Ly-alpha.dat',unpack=True)
-    W, F, E                             = np.genfromtxt('Ly-alpha.dat',skiprows=900,skip_footer=145,unpack=True)
+    dat_directory   = "/home/paw/science/betapic/data/HST/dat/"
+    Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted_2016_05_25.txt',unpack=True)
+    W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_2016_05_25.txt',unpack=True,skip_header=50,skip_footer= 610)
     
 
     LyA             = 1215.6702
@@ -35,8 +35,8 @@ def main():
 
 
  
-
-    dir_contents = os.listdir('.')
+    dat_directory   = "/home/paw/science/betapic/data/HST/dat/"
+    dir_contents = os.listdir(dat_directory)
     
     ax1 = plt.subplot('121')
     files = sorted([fn for fn in dir_contents if fn.startswith('b') and fn.endswith('.dat')])
@@ -44,7 +44,7 @@ def main():
     colors = iter(cm.Blues(np.linspace(0.1, 1, len(files))))
 
     for i in range(len(files)):
-        v, fit = np.genfromtxt(files[i],unpack=True)
+        v, fit = np.genfromtxt(dat_directory+files[i],unpack=True)
         
         ax1.plot(v,fit,lw=2,color=next(colors))
 
@@ -77,7 +77,7 @@ def main():
     plt.ylim(0.0,0.34e-13)
 
     fig.tight_layout()
-    plt.savefig('Ly_alpha_vary_param.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
+    #plt.savefig('Ly_alpha_vary_param.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
     plt.show()
 
 if __name__ == '__main__':
