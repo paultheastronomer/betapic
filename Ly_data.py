@@ -76,11 +76,13 @@ def main():
     n2 = 8900
     
     # Uncomment to see region
+    '''
     plt.plot(W,F0_0)
     plt.plot(W,F0_1)
     plt.plot(W[n1:n2],F0_1[n1:n2])
     plt.show()
     sys.exit()
+    '''
     
     # Calculate the Correction Factor 
     C   = [CF(F0_1,E0_1,F0_0,E0_0,n1,n2),CF(F1_1,E1_1,F0_0,E0_0,n1,n2),CF(F2_1,E2_1,F0_0,E0_0,n1,n2),\
@@ -275,6 +277,7 @@ def main():
         if RV[j] > shift_0_r:
             plt.plot(RV[j],F_tot[j], marker='o', color='black')
             print >> f, " ","{: 1.10e}".format(W[j])," "+"{: 1.10e}".format(F_tot[j])," "+"{: 1.10e}".format(F_tot_err[j])
+
         # Save 0.8" shift data
         if  shift_0_l < RV[j] < shift_08_l:
             #plt.errorbar(RV[j],F1[j],yerr=F1_err[j],color='green')

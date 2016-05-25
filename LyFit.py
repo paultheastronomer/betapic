@@ -36,8 +36,8 @@ def main():
 
     dat_directory   = "/home/paw/science/betapic/data/HST/dat/"
 
-    Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted.txt',unpack=True)
-    W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted.txt',unpack=True,skip_header=100,skip_footer= 630)
+    Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted_2016_05_25.txt',unpack=True)
+    W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_2016_05_25.txt',unpack=True,skip_header=50,skip_footer= 610)
     
 
     #np.savetxt(dat_directory+"Ly_a_20160511_v2.txt",np.column_stack((Wo, Fo, Eo)))
@@ -60,8 +60,8 @@ def main():
     T_ism       = 7000.   # Temperature of ISM
 
     # Beta Pic parameters
-    v_bp        = 9.0#20.5# RV of the beta Pic (relative to Heliocentric)
-    nh_bp       = 19.41 # Column density beta Pic, Fitting param
+    v_bp        = 9.57#20.5# RV of the beta Pic (relative to Heliocentric)
+    nh_bp       = 19.37 # Column density beta Pic, Fitting param
     b_bp        = 4.0# Turbulent velocity
     T_bp        = 1000.   # Temperture of gas in beta Pic disk
 
@@ -72,10 +72,10 @@ def main():
     T_X         = 1000.   # Temperture of gas in beta Pic disk
 
     # Stellar emission line parameters
-    max_f       = 7.0e-12 # Fitting param 
+    max_f       = 6.27e-12 # Fitting param 
     dp          = 0.0 
-    uf          = 2.84#3.60# Fitting param
-    av          = 0.04#0.1# Fitting param
+    uf          = 2.94#3.60# Fitting param
+    av          = 0.05#0.1# Fitting param
 
     slope       = -0.0008205
 
@@ -92,7 +92,7 @@ def main():
     if ModelType == 2:
         Par     = [nh_bp,max_f,uf,av,v_bp] # Free parameters
         Const   = [W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,b_bp,T_bp]
-        step= np.array([0.03,2e-12,0.1,.01,1])/3.
+        step= np.array([0.03,2e-12,0.08,.01,1])/3.
     if ModelType == 3:
         Par     = [nh_bp,max_f,uf,av,v_X,nh_X] # Free parameters
         Const   = [W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,v_bp,b_bp,T_bp,b_X,T_X]
@@ -211,7 +211,7 @@ def main():
         plt.show()
 
         # Saving the data for plotting
-        #np.savetxt(dat_directory+"Ly_Fit.dat",np.column_stack((v,f_star,f_abs_ism,f_abs_bp,f_after_fit)))
+        np.savetxt(dat_directory+"Ly_Fit.dat",np.column_stack((v,f_star,f_abs_ism,f_abs_bp,f_after_fit)))
 
     elif mode == 'mcmc':
         #X = (F - f_before_fit),E,np.zeros(len(F)),F                                                         # Check this in relation to the Chi2 function!
@@ -219,7 +219,7 @@ def main():
    
         chain, moves = mc.McMC(W,X,m.LyModel, ModelType, Par, Const, step,1e5)
         
-        outfile = '../chains/chain_4'
+        outfile = '../chains/chain_6'
         if ModelType == 2:
             np.savez(outfile, nh_bp = chain[:,0], max_f = chain[:,1], uf = chain[:,2], av = chain[:,3], v_H = chain[:,4])
         

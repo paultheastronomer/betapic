@@ -22,10 +22,10 @@ def main():
     dat_directory = "/home/paw/science/betapic/data/HST/dat/" 
 
     #Wc, Fc, Ec  = np.genfromtxt(dat_directory+'Ly-alpha.dat',skiprows=830,skip_footer=0,unpack=True)
-    W0, F0, E0  = np.genfromtxt(dat_directory+'Ly-alpha_B_2014.dat',skip_header=830,skip_footer=0,unpack=True)
-    W1, F1, E1  = np.genfromtxt(dat_directory+'Ly-alpha_B_10Dec.dat',skip_header=830,skip_footer=0,unpack=True)
-    W2, F2, E2  = np.genfromtxt(dat_directory+'Ly-alpha_B_24Dec.dat',skip_header=830,skip_footer=0,unpack=True)
-    W3, F3, E3  = np.genfromtxt(dat_directory+'Ly-alpha_B_30Jan.dat',skip_header=830,skip_footer=0,unpack=True)
+    W0, F0, E0  = np.genfromtxt(dat_directory+'Ly-alpha_B_2014.dat',skip_header=8500,skip_footer=6500,unpack=True)
+    W1, F1, E1  = np.genfromtxt(dat_directory+'Ly-alpha_B_10Dec.dat',skip_header=8500,skip_footer=6500,unpack=True)
+    W2, F2, E2  = np.genfromtxt(dat_directory+'Ly-alpha_B_24Dec.dat',skip_header=8500,skip_footer=6500,unpack=True)
+    W3, F3, E3  = np.genfromtxt(dat_directory+'Ly-alpha_B_30Jan.dat',skip_header=8500,skip_footer=6500,unpack=True)
     
     #W, F, E     = np.genfromtxt(dat_directory+'Ly_sky_subtracted.txt',unpack=True)
         
@@ -76,6 +76,11 @@ def main():
     
     #plt.errorbar(RVb,Fb,yerr=Eb,fmt=None,ecolor='black',zorder=3)
     #plt.scatter(RVb,Fb, marker='o', color='k',zorder=3)
+    
+    W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted.txt',unpack=True,skip_header=50,skip_footer= 610)
+    #RV  = wave2RV(W,1215.6702,0)
+    
+    #plt.scatter(RV,F,color='black',s=40,edgecolor='k',label='2014')
 
     plt.errorbar(RV0b,F0b,yerr=E0b,color='#FF281C')
     plt.scatter(RV0b,F0b,color='#FF281C',s=40,edgecolor='k',label='2014') 
@@ -97,7 +102,7 @@ def main():
 
     plt.legend(loc='upper left', numpoints=1)
     fig.tight_layout()
-    plt.savefig('Ly_only_cut.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
+    plt.savefig('../plots/Ly_only_cut.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
     plt.show()
 
 if __name__ == '__main__':
