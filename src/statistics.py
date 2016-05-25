@@ -1,14 +1,12 @@
 import numpy as np
 
+from src.model import Model
+m = Model()
+
 class Stats:
     '''
-    
+    A collection of statistical functions.
     '''
-    #def __init__(self):
-    #    self.Welcome()
-
-    def Welcome(self):
-        print "Welcome"
         
     def chi2(self, X):
         '''
@@ -18,6 +16,10 @@ class Stats:
         X[2] => Model
         '''
         return np.sum(((X[0] - X[2]) / X[1])**2.)
+
+    def chi2_lm(self, params,F,E,Const):
+        c = m.LyModel(params,Const)[0]
+        return (c - F)**2 / E**2
     
     def Merit(self, X):
         ''' Given a Chi2 value
