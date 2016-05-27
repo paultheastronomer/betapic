@@ -36,18 +36,18 @@ def main():
 
     dat_directory   = "/home/paw/science/betapic/data/HST/dat/"
 
-    Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted_2016_05_25.txt',unpack=True)
-    W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_2016_05_25.txt',unpack=True,skip_header=50,skip_footer= 610)
+    Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_05_26.txt',unpack=True,skip_header=8300,skip_footer= 6700)
+    W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_05_26.txt',unpack=True,skip_header=8850,skip_footer= 7110)
     
     # To fit the non-sky subtracted (only cut) data uncomment the two lines below.
-    #Wo, Fo, Eo         = np.genfromtxt(dat_directory+'Ly-alpha_no_AG.txt',unpack=True)
-    #W, F, E         = np.genfromtxt(dat_directory+'Ly-alpha_no_AG.txt',unpack=True,skiprows=900,skip_footer= 145)
+    #Wo, Fo, Eo         = np.genfromtxt(dat_directory+'Ly-alpha_no_AG_2016_05_26.txt',unpack=True,skip_header=8000,skip_footer= 6000)
+    #W, F, E         = np.genfromtxt(dat_directory+'Ly-alpha_no_AG_2016_05_26.txt',unpack=True,skip_header=8859,skip_footer= 7102)
     
     ### Parameters ##############################
     ModelType   = 2         # best model is 2
     mode        = 'lm'      # mcmc or lm
     LyA         = 1215.6702 # Heliocentric: 1215.6702
-    BetaPicRV   = 0
+    BetaPicRV   = 20.5
 
     # ISM parameters
     v_ism       = 10.0      # RV of the ISM (relative to Heliocentric)  
@@ -56,8 +56,8 @@ def main():
     T_ism       = 7000.     # Temperature of ISM
 
     # Beta Pic parameters
-    v_bp        = 10.16     #20.5# RV of the beta Pic (relative to Heliocentric)
-    nh_bp       = 19.437    # Column density beta Pic, Fitting param
+    v_bp        = 33.5     #20.5# RV of the beta Pic (relative to Heliocentric)
+    nh_bp       = 19.4    # Column density beta Pic, Fitting param
     b_bp        = 7.0       # Turbulent velocity
     T_bp        = 1000.     # Temperture of gas in beta Pic disk
 
@@ -68,17 +68,21 @@ def main():
     T_X         = 1000.     # Temperture of gas in beta Pic disk
 
     # Stellar emission line parameters
-    max_f       = 8.789e-12 # Fitting param 
+    max_f       = 9.79e-12 # Fitting param 
     dp          = 0.0 
-    uf          = 2.875     # Fitting param
-    av          = 0.034     # Fitting param
+    uf          = 2.94     # Fitting param
+    av          = 0.035     # Fitting param
 
     slope       = -0.0008205
 
     sigma_kernel= 3.5
 
-    v   = np.arange(-len(Wo)/1.3,len(Wo)/1.3,1) # RV values
+    v   = np.arange(-len(Wo),len(Wo),1) # RV values
     l   = LyA*(1.0 + v/3e5)                     # Corresponding wavengths
+    vBP= wave2RV(l,LyA,BetaPicRV) 
+
+    RV  = wave2RV(W,LyA,BetaPicRV)     # BetaPic rest frame
+    RVo = wave2RV(Wo,LyA,BetaPicRV)
     
     if ModelType == 1:
         Par     = [nh_bp,max_f,uf,av,slope] # Free parameters
@@ -110,9 +114,6 @@ def main():
             f_before_fit, f_star, f_abs_ism, f_abs_bp, f_abs_X  = m.LyModel(Par,Const,ModelType)
         else:
             f_before_fit, f_star, f_abs_ism, f_abs_bp           = m.LyModel(Par,Const,ModelType)
-        
-        RV  = wave2RV(W,LyA,BetaPicRV)     # BetaPic rest frame
-        RVo = wave2RV(Wo,LyA,BetaPicRV)
 
         # Plot starting point
         fig = plt.figure(figsize=(7,5))
@@ -127,12 +128,12 @@ def main():
         plt.scatter(RVo,Fo,color='black',alpha=0.25,label='Data not used for fit')
         plt.scatter(RV,F,color='black',label='Data used for fit')
 
-        plt.plot(v,f_star,lw=3,color='gray',label=r'$\beta$ Pictoris')
-        plt.plot(v,f_abs_ism,lw=1.2,color='#FF9303',label=r'ISM')
-        plt.plot(v,f_abs_bp,lw=1.2,color='#0386ff',label=r'Gas disk')
+        plt.plot(vBP,f_star,lw=3,color='gray',label=r'$\beta$ Pictoris')
+        plt.plot(vBP,f_abs_ism,lw=1.2,color='#FF9303',label=r'ISM')
+        plt.plot(vBP,f_abs_bp,lw=1.2,color='#0386ff',label=r'Gas disk')
         if ModelType == 3:
             plt.plot(v,f_abs_X,lw=1.2,color='purple',label=r'Component X')
-        plt.plot(v,f_before_fit,lw=3,color='#FF281C',label=r'Best fit')
+        plt.plot(vBP,f_before_fit,lw=3,color='#FF281C',label=r'Best fit')
 
    
         plt.xlabel(r'Radial Velocity [km/s]')
@@ -176,7 +177,7 @@ def main():
         else:
             f_after_fit, f_star, f_abs_ism, f_abs_bp            = m.LyModel(P,Const,ModelType)
 
-        bin_pnts = 7
+        bin_pnts = 3
         RVb, Fb, Eb     = Bin_data(RV,F,E,bin_pnts)
         RVob, Fob, Eob  = Bin_data(RVo,Fo,Eo,bin_pnts)
 
@@ -190,12 +191,14 @@ def main():
             if l[0] < Wo[i] < l[-1]:
                 plt.scatter(Wo[i],Fo[i],color='black') 
         '''
-        plt.plot(v,f_star,lw=3,color='gray',label=r'$\beta$ Pictoris')
-        plt.plot(v,f_abs_ism,lw=1.2,color='#FF9303',label=r'ISM')
-        plt.plot(v,f_abs_bp,lw=1.2,color='#0386ff',label=r'Gas disk')
+        plt.plot(vBP,f_star,lw=3,color='gray',label=r'$\beta$ Pictoris')
+        plt.plot(vBP,f_abs_ism,lw=1.2,color='#FF9303',label=r'ISM')
+        plt.plot(vBP,f_abs_bp,lw=1.2,color='#0386ff',label=r'Gas disk')
         if ModelType == 3:
-            plt.plot(v,f_abs_X,lw=1.2,color='purple',label=r'Component X')
-        plt.plot(v,f_after_fit,lw=3,color='#FF281C',label=r'Best fit')
+            plt.plot(vBP,f_abs_X,lw=1.2,color='purple',label=r'Component X')
+        plt.plot(vBP,f_after_fit,lw=3,color='#FF281C',label=r'Best fit')
+
+        
    
         plt.xlabel(r'Radial Velocity [km/s]')
         plt.ylabel('Flux (erg/s/cm$^2$/\AA)')
@@ -212,9 +215,9 @@ def main():
         #X = (F - f_before_fit),E,np.zeros(len(F)),F                                                         # Check this in relation to the Chi2 function!
         X = F, E, m.LyModel(Par,Const,ModelType)[0]
    
-        chain, moves = mc.McMC(W,X,m.LyModel, ModelType, Par, Const, step,1e5)
+        chain, moves = mc.McMC(W,X,m.LyModel, ModelType, Par, Const, step,1e4)
         
-        outfile = '../chains/chain_6'
+        outfile = 'chains/chain_u_1'
         if ModelType == 2:
             np.savez(outfile, nh_bp = chain[:,0], max_f = chain[:,1], uf = chain[:,2], av = chain[:,3], v_H = chain[:,4])
         

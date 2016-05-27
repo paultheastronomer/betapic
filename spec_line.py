@@ -54,14 +54,14 @@ def main():
 
     # Parameters you can change
     #====================================================
-    species             = 'NI'      # Name of species
+    species             = 'OV'      # Name of species
     part                = 'B'       # Part of the spectrum
-    line_of_interest    = 1199.5496 # Wavelength of line
+    line_of_interest    = 1218.3440 # Wavelength of line
     RV_BP               = 20.5      # RV of Beta Pic
     width               = 450       # [-2*width:2*width]
-    bin_pnts            = 3         # Number of points to bin
-    n1                  = 320       # Start norm region #CII 150
-    n2                  = 420       # End norm region   #CII 320
+    bin_pnts            = 7         # Number of points to bin
+    n1                  = 620#300       # Start norm region #CII 150
+    n2                  = 800#360       # End norm region   #CII 320
     #====================================================
     
     dat_directory = "/home/paw/science/betapic/data/HST/dat/"
@@ -126,6 +126,7 @@ def main():
     F  = [F0_1,F1_1,F2_1,F0_2,F1_2,F2_2,F3_2,F0_3,F1_3,F2_3,F3_3]
     E  = [E0_1,E1_1,E2_1,E0_2,E1_2,E2_2,E3_2,E0_3,E1_3,E2_3,E3_3]   
 
+
     Fc = [[] for _ in range(len(C))]
     Ec = [[] for _ in range(len(C))]
 
@@ -153,23 +154,25 @@ def main():
     Flux_w_30Jan, Err_w_30Jan   =  weighted_avg_and_errorbars(Flux_30Jan,Err_30Jan)
     Flux_w_tot, Err_w_tot       =  weighted_avg_and_errorbars(Flux_tot,Err_tot)
 
-    fig = plt.figure(figsize=(14,10))
+    fig = plt.figure(figsize=(7,5))
     
     # Fancy customisation to make the plot look nice
     #================================================
-    fontlabel_size = 18
-    tick_size = 18
-    params = {'backend': 'wxAgg', 'lines.markersize' : 2, 'axes.labelsize': fontlabel_size, 'font.size': fontlabel_size, 'legend.fontsize': fontlabel_size, 'xtick.labelsize': tick_size, 'ytick.labelsize': tick_size, 'text.usetex': True}
+    fontlabel_size  = 18
+    tick_size       = 18
+    params = {'backend': 'wxAgg', 'lines.markersize' : 2, 'axes.labelsize': fontlabel_size, 'font.size': fontlabel_size, 'legend.fontsize': 15, 'xtick.labelsize': tick_size, 'ytick.labelsize': tick_size, 'text.usetex': True}
     plt.rcParams.update(params)
     plt.rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
     plt.rcParams['text.usetex'] = True
-    plt.rcParams['text.latex.unicode'] = True 
+    plt.rcParams['text.latex.unicode'] = True    
     #================================================
 
     # Plot region used to normalise
-    plt.plot([RV[n1],RV[n1]],[F0_0.min(),F0_0.max()],'--k')
-    plt.plot([RV[n2],RV[n2]],[F0_0.min(),F0_0.max()],'--k')
+    #plt.plot([RV[n1],RV[n1]],[F0_0.min(),F0_0.max()],'--k')
+    #plt.plot([RV[n2],RV[n2]],[F0_0.min(),F0_0.max()],'--k')
     
+    
+    plt.plot([0,0],[0,F0_0.max()],'--k')
     
     if bin_pnts > 1:
         RVb, F0_0b, E0_0b	                =	Bin_data(RV,F0_0,E0_0,bin_pnts)
@@ -188,35 +191,54 @@ def main():
         #plt.step(RVb,F0_0b-Flux_w_b_10Dec,color="#FF281C",label='2014')
         #plt.step(RVb,13*AirG_W_b,color="purple")
         #'''
-        #plt.step(RVb,F0_0b,color="#FF281C",label='2014')
-        plt.step(RVb,Flux_w_b_10Dec,color="#FF9303",label='2015v1')
-        plt.step(RVb,Flux_w_b_26Dec,color="#0386FF",label='2015v2')
-        plt.step(RVb,Flux_w_b_30Jan,color="#00B233",label='2016')
-        plt.step(RVb,Flux_w_b_tot,color="black",lw=1.2,label='All data combined')
+        
+        plt.text(95,4.7e-14,r'$\mathrm{O\,V}$',va='center')
+        plt.text(-440,3e-15,r'$\mathrm{Airglow}$',va='center',rotation=-10)
+        #plt.plot([450,550],[4e-14,3e-14],color="black")
+ 
+        # Plot the airglow
+        plt.step(RVb,AirG_W_b,color="#87CEEB",lw=2)
+        
+        plt.errorbar(RVb,F0_0b,yerr=E0_0b,fmt=None,ecolor='black',zorder=2)
+        plt.scatter(RVb,F0_0b, marker='o',s=50, edgecolor="black",color='#FF281C',zorder=3,label=r'2014')
+        
+        plt.errorbar(RVb,Flux_w_b_10Dec,yerr=Err_w_b_10Dec,fmt=None,ecolor='black',zorder=2)
+        plt.scatter(RVb,Flux_w_b_10Dec, marker='o',s=50, edgecolor="black",color='#FF9303',zorder=3,label=r'2015v1')
+
+        plt.errorbar(RVb,Flux_w_b_26Dec,yerr=Err_w_b_26Dec,fmt=None,ecolor='black',zorder=2)
+        plt.scatter(RVb,Flux_w_b_26Dec, marker='o',s=50, edgecolor="black",color='#0386FF',zorder=3,label=r'2015v2')
+
+        plt.errorbar(RVb,Flux_w_b_30Jan,yerr=Err_w_b_30Jan,fmt=None,ecolor='black',zorder=2)
+        plt.scatter(RVb,Flux_w_b_30Jan, marker='o',s=50, edgecolor="black",color='#00B233',zorder=3,label=r'2016')
+        
+        #plt.step(RVb,Flux_w_b_tot,color="black",lw=1.2,label='All data combined')
         
     else:
-        #plt.step(RV,F0_0,color="#FF281C",label='2014')
+        plt.step(RV,F0_0,color="#FF281C",label='2014')
         plt.step(RV,Flux_w_10Dec,color="#FF9303",label='2015v1')
         plt.step(RV,Flux_w_26Dec,color="#0386FF",label='2015v2')
         plt.step(RV,Flux_w_30Jan,color="#00B233",label='2016')
         plt.step(RV,Flux_w_tot,color="black",lw=1.2,label='All data combined')
+        
+
 
     # Plot the airglow
-    plt.step(RV,AirG_W,color="red")
+    #plt.step(RV,AirG_W,color="#87CEEB")
     
     # Place a legend in the lower right
-    plt.legend(loc='lower right', numpoints=1)
+    plt.legend(loc='upper right', numpoints=1)
     
     # Add labels to the axis
     plt.xlabel('RV [km/s]')
-    plt.ylabel('Normalised Flux')
+    plt.ylabel('Flux (erg/s/cm$^2$/\AA)')
     
-    plt.xlim(-300,700)
+    plt.ylim(0,5.5e-14)
+    plt.xlim(-550,550)
     plt.minorticks_on()
 
     fig.tight_layout()
     # Produce a .pdf
-    #plt.savefig(species+'_'+str(line_of_interest)+'.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300) 
+    plt.savefig(species+'_'+str(line_of_interest)+'.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300) 
     plt.show()
 
     # Uncomment below to save to text file

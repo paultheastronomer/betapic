@@ -264,11 +264,11 @@ def main():
     # Units in km/s
     shift_0_l       = -240#-365#337.5 350
     shift_0_r       =  230#295#315#271.7 295
-    shift_08_l      = -145#-164#shift_0_l+68#-183.3  ok
+    shift_08_l      = -155#-164#shift_0_l+68#-183.3  ok
     shift_08_r      = 150#135#143#shift_0_r-68#157#142.5 140!
     shift_11_r      = 115#115#113#shift_0_r-94# 108 ok
     
-    f = open(dat_directory+'Ly-alpha_no_AG.txt', 'w+')
+    f = open(dat_directory+'Ly-alpha_no_AG.txt', 'w+')  #Ly-alpha_no_AG.txt
     for j in range(len(RV)):
         # Save 0.0" shift data
         if RV[j] < shift_0_l:

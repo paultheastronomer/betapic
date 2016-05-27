@@ -21,10 +21,10 @@ def main():
         dat_directory = "/home/paw/science/betapic/data/HST/dat/" 
 
         v,f_star,f_abs_ism,f_abs_bp,f_after_fit = np.genfromtxt(dat_directory+'Ly_Fit.dat',unpack=True)
-        W_cut, F_cut, E_cut = np.genfromtxt(dat_directory+'Ly-alpha_no_AG.txt',skip_header=500,unpack=True)      
+        W_cut, F_cut, E_cut = np.genfromtxt(dat_directory+'Ly-alpha_no_AG_2016_05_26.txt',skip_header=500,unpack=True)      
         
-        Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted_2016_05_25.txt',unpack=True)
-        W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_2016_05_25.txt',unpack=True,skip_header=50,skip_footer= 610)
+        Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_05_26.txt',unpack=True)
+        W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_05_26.txt',unpack=True,skip_header=8850,skip_footer= 7110)
         
         LyA     = 1215.6702
         RV      = wave2RV(W,LyA,20.5)
@@ -45,38 +45,16 @@ def main():
         RVob, Fob, Eob             =   Bin_data(RVo,Fo,Eo,bin_pnts)
         RVb_cut, Fb_cut, Eb_cut =   Bin_data(RV_cut,F_cut,E_cut,bin_pnts)
 
-        '''
         plt.plot(v,f_star,lw=3,color='gray',label=r'$\beta$ Pictoris')
         plt.plot(v,f_abs_ism,lw=1.2,color='#FF9303',label=r'ISM')
         plt.plot(v,f_abs_bp,lw=1.2,color='#0386ff',label=r'Gas disk')
         plt.plot(v,f_after_fit,lw=3,color='#FF281C',label=r'Best fit')
 
-        last = len(RVb)
-        #plt.errorbar(RVob[last:],Fob[last:],yerr=Eob[last:],fmt=None,ecolor='black',zorder=2)
-        #plt.scatter(RVob[last:],Fob[last:], marker='o', edgecolor="black", color='gray',zorder=3)
-
         plt.errorbar(RVb_cut,Fb_cut,yerr=Eb_cut,fmt=None,ecolor='black',zorder=3)
         plt.scatter(RVb_cut,Fb_cut, marker='o', edgecolor="black",color='white',zorder=3,label=r'Method 1')
         plt.errorbar(RVb,Fb,yerr=Eb,fmt=None,ecolor='black',zorder=3)
         plt.scatter(RVb,Fb, marker='o', color='k',zorder=3,label=r'Method 2')
-        '''
-        diff = F-f_after_fit
-        #print np.std(diff)
-        #print np.mean(E)
-        #print np.std(diff)/np.mean(E)
-        
-        #plt.errorbar(RV,diff/E, yerr=E,fmt=None,ecolor='black',zorder=3)
-        plt.scatter(RV,diff/E, marker='o', color='k',zorder=3,label=r'diff')
-        
-        print "\n\n"
-        j = 0
-        for i in range(len(RV)):
-            if 100 < RV[i]:
-                if j < 10:
-                    print diff[i]/E[i],"\t\t",E[i]
-                j+=1
-        print "\n\n"
-        #ax = plt.axes()
+
         plt.text(400,4.2e-14,r'$\mathrm{O\,V}$',va='center')
         plt.plot([450,550],[4e-14,3e-14],color="black")
         
@@ -87,11 +65,11 @@ def main():
         #plt.ylim(-2.0e-14,6.0e-14)
 
         plt.xlim(-750,600)
-        #plt.ylim(-2.5e-14,7.0e-14)
+        plt.ylim(-2.5e-14,7.0e-14)
         #plt.ylim(-7.5e-14,7.0e-14)
         plt.legend(loc='upper left', numpoints=1)
         fig.tight_layout()
-        #plt.savefig('../plots/Ly_alpha.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
+        plt.savefig('../plots/Ly_alpha.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
         plt.show()
 
 

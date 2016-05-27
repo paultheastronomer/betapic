@@ -46,10 +46,10 @@ class Model:
         return kernel
 
         
-    def flux_star(self, LyA,v_bp,l,kernel,max_f,dp,uf,av):  
+    def flux_star(self, LyA,BetaPicRV,l,kernel,max_f,dp,uf,av):  
 
         # Double Voigt profile
-        delta_lambda =   LyA*(v_bp/3e5)
+        delta_lambda =   LyA*(BetaPicRV/3e5)
          
         lambda0 =   LyA                     # Lyman alpha center
         lambda1 =   LyA -dp + delta_lambda  # blue peak center
@@ -63,7 +63,7 @@ class Model:
         return f, f_star
         
 
-    def absorption(self, l,v_RV,nh,vturb,T,LyA):
+    def absorption(self, l,v_bp,nh,vturb,T,LyA):
         
         # [Hydrogen, Deuterium]   
         w       = [LyA,1215.3394]
@@ -78,10 +78,10 @@ class Model:
         abs_ism = np.ones(len(l))
 
         for i in range(len(w)):
-            b_wid   = np.sqrt((T/mass[i]) + ((vturb/0.129)**2))#np.sqrt((T/mass[i]) + ((vturb/np.sqrt(2*k/u)/1e3)**2)) # non-thermal + thermal broadening
+            b_wid   = np.sqrt((T/mass[i]) + ((vturb/np.sqrt(2*k/u)/1e3)**2)) # non-thermal + thermal broadening
             b       = 4.30136955e-3*b_wid
             dnud    = b*c/w[i]
-            xc      = l/(1.+v_RV*1.e9/c)
+            xc      = l/(1.+v_bp*1.e9/c)
             v       = 1.e4*abs(((c/xc)-(c/w[i]))/dnud)
             tv      = 1.16117705e-14*N_col[i]*w[i]*fosc[i]/b_wid
             a       = delta[i]/dnud

@@ -77,7 +77,7 @@ def main():
     #plt.errorbar(RVb,Fb,yerr=Eb,fmt=None,ecolor='black',zorder=3)
     #plt.scatter(RVb,Fb, marker='o', color='k',zorder=3)
     
-    W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted.txt',unpack=True,skip_header=50,skip_footer= 610)
+    #W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted.txt',unpack=True,skip_header=50,skip_footer= 610)
     #RV  = wave2RV(W,1215.6702,0)
     
     #plt.scatter(RV,F,color='black',s=40,edgecolor='k',label='2014')
@@ -97,7 +97,7 @@ def main():
     plt.xlabel(r'RV [km/s]')
     plt.ylabel('Flux (erg/s/cm$^2$/\AA)')
     plt.xlim(-710,600)
-    plt.ylim(0,7.3e-14)
+    plt.ylim(0,6.6e-14)
     #'''
 
     plt.legend(loc='upper left', numpoints=1)
