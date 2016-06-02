@@ -10,7 +10,11 @@ def Extract(fits_file):
     net = tbdata['NET']
     wavelength = tbdata['WAVELENGTH']
     flux = tbdata['FLUX']
-    err = tbdata['ERROR']
+    #err = tbdata['ERROR']
+    a           = net*exptime.T
+    for i in range(len(a)):
+        a[i]    = [1e-15 if x==0 else x for x in a[i]]
+    err         = np.sqrt(gcounts+1)*(flux / (a))
     return wavelength[0], flux[0], err[0], net[0]
 
 def main():
