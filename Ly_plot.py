@@ -68,23 +68,32 @@ def main():
     #plt.scatter(RV3,F3,color='#00B233',alpha=0.5,label='2016v3')
     #'''  
 
+
     norm = 1e-14
     ax1.errorbar(RV0b,F0b/norm,yerr=E0b/norm,color='black')
     ax1.scatter(RV0b,F0b/norm,color='#FF281C',s=25,edgecolor='k',label='2014',zorder=3)
+    ax1.fill_between([0,230.5], -1, 6,color="#D3D3D3")
+    ax1.text(65,3,'Airglow',ha='left',rotation='-24')
     ax1.text(450,4,'2014',ha='left')
 
     ax2.errorbar(RV1b,F1b/norm,yerr=E1b/norm,color='black')
     ax2.scatter(RV1b,F1b/norm,color='#FF9303',s=25,edgecolor='k',label='2015v1',zorder=3)
+    ax2.fill_between([0,150], -1, 6,color="#D3D3D3")
+    ax2.text(27,3,'Airglow',ha='left',rotation='-24')
     ax2.text(450,4,'2015v1',ha='left')
 
 
     ax3.errorbar(RV2b,F2b/norm,yerr=E2b/norm,color='black')
     ax3.scatter(RV2b,F2b/norm,color='#0386FF',s=25,edgecolor='k',label='2015v2',zorder=3)
+    ax3.fill_between([0,113], -1, 6,color="#D3D3D3")
+    ax3.text(11,3,'Airglow',ha='left',rotation='-24')
     ax3.text(450,4,'2015v2',ha='left')
 
 
     ax4.errorbar(RV3b,F3b/norm,yerr=E3b/norm,color='black')
     ax4.scatter(RV3b,F3b/norm,color='#00B233',s=25,edgecolor='k',label='2016',zorder=3)
+    ax4.fill_between([0,113], -1, 6,color="#D3D3D3")
+    ax4.text(11,3,'Airglow',ha='left',rotation='-24')
     ax4.text(450,4,'2016',ha='left')
 
     fig.text(0.03, 0.5, r'Flux$/1\times10^{-14}$ (erg/s/cm$^2$/\AA)', ha='center', va='center', rotation='vertical')
@@ -97,7 +106,7 @@ def main():
     #plt.subplots_adjust(hspace=0.43)
     #fig.tight_layout()
     plt.savefig('../plots/Ly_only_cut.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
-    #plt.show()
+    plt.show()
 
 if __name__ == '__main__':
     main()
