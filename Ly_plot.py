@@ -92,6 +92,7 @@ def main():
     plt.xlim(0,580)
     plt.ylim(0,5.5)
 
+    plt.minorticks_on()
     #plt.legend(loc='upper right', numpoints=1)
     #plt.subplots_adjust(hspace=0.43)
     #fig.tight_layout()
