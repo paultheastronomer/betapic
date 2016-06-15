@@ -34,16 +34,14 @@ def main():
     bin_pnts    = 7
     
     # Convert to RV with beta Pic as reference frame
-    #RVc         = wave2RV(Wc,rest_wavelength,RV_BP)
-    #RV      = wave2RV(W,rest_wavelength,20.5)
-    #RVb, Fb, Eb             =   Bin_data(RV,F,E,bin_pnts)
+    #RVc                = wave2RV(Wc,rest_wavelength,RV_BP)
+    #RV                 = wave2RV(W,rest_wavelength,20.5)
+    #RVb, Fb, Eb        =   Bin_data(RV,F,E,bin_pnts)
     
     RV0         = wave2RV(W0,rest_wavelength,RV_BP)
     RV1         = wave2RV(W1,rest_wavelength,RV_BP)
     RV2         = wave2RV(W2,rest_wavelength,RV_BP)
     RV3         = wave2RV(W3,rest_wavelength,RV_BP)
-
-    
 
     RV0b, F0b, E0b   =   Bin_data(RV0,F0,E0,bin_pnts)
     RV1b, F1b, E1b   =   Bin_data(RV1,F1,E1,bin_pnts)
@@ -51,8 +49,7 @@ def main():
     RV3b, F3b, E3b   =   Bin_data(RV3,F3,E3,bin_pnts)
 
     # Plot the results
-    fig = plt.figure(figsize=(6,4.5))
-    #fig = plt.figure(figsize=(14,5))
+    fig, (ax1, ax2, ax3, ax4) = plt.subplots(4, sharex=True, sharey=True,figsize=(6,8))
     fontlabel_size  = 18
     tick_size       = 18
     params = {'backend': 'wxAgg', 'lines.markersize' : 2, 'axes.labelsize': fontlabel_size, 'font.size': fontlabel_size, 'legend.fontsize': 15, 'xtick.labelsize': tick_size, 'ytick.labelsize': tick_size, 'text.usetex': True}
@@ -71,39 +68,35 @@ def main():
     #plt.scatter(RV3,F3,color='#00B233',alpha=0.5,label='2016v3')
     #'''  
 
-    # Binned
-    #'''
-    
-    #plt.errorbar(RVb,Fb,yerr=Eb,fmt=None,ecolor='black',zorder=3)
-    #plt.scatter(RVb,Fb, marker='o', color='k',zorder=3)
-    
-    #W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted.txt',unpack=True,skip_header=50,skip_footer= 610)
-    #RV  = wave2RV(W,1215.6702,0)
-    
-    #plt.scatter(RV,F,color='black',s=40,edgecolor='k',label='2014')
+    norm = 1e-14
+    ax1.errorbar(RV0b,F0b/norm,yerr=E0b/norm,color='black')
+    ax1.scatter(RV0b,F0b/norm,color='#FF281C',s=25,edgecolor='k',label='2014',zorder=3)
+    ax1.text(450,4,'2014',ha='left')
 
-    plt.errorbar(RV0b,F0b,yerr=E0b,color='#FF281C')
-    plt.scatter(RV0b,F0b,color='#FF281C',s=40,edgecolor='k',label='2014') 
+    ax2.errorbar(RV1b,F1b/norm,yerr=E1b/norm,color='black')
+    ax2.scatter(RV1b,F1b/norm,color='#FF9303',s=25,edgecolor='k',label='2015v1',zorder=3)
+    ax2.text(450,4,'2015v1',ha='left')
 
-    plt.errorbar(RV1b,F1b,yerr=E1b,color='#FF9303')
-    plt.scatter(RV1b,F1b,color='#FF9303',s=40,edgecolor='k',label='2015v1') 
 
-    plt.errorbar(RV2b,F2b,yerr=E2b,color='#0386FF')
-    plt.scatter(RV2b,F2b,color='#0386FF',s=40,edgecolor='k',label='2015v2') 
+    ax3.errorbar(RV2b,F2b/norm,yerr=E2b/norm,color='black')
+    ax3.scatter(RV2b,F2b/norm,color='#0386FF',s=25,edgecolor='k',label='2015v2',zorder=3)
+    ax3.text(450,4,'2015v2',ha='left')
 
-    plt.errorbar(RV3b,F3b,yerr=E3b,color='#00B233')
-    plt.scatter(RV3b,F3b,color='#00B233',s=40,edgecolor='k',label='2016')
 
+    ax4.errorbar(RV3b,F3b/norm,yerr=E3b/norm,color='black')
+    ax4.scatter(RV3b,F3b/norm,color='#00B233',s=25,edgecolor='k',label='2016',zorder=3)
+    ax4.text(450,4,'2016',ha='left')
+
+    fig.text(0.03, 0.5, r'Flux$/1\times10^{-14}$ (erg/s/cm$^2$/\AA)', ha='center', va='center', rotation='vertical')
     plt.xlabel(r'RV [km/s]')
-    plt.ylabel('Flux (erg/s/cm$^2$/\AA)')
-    plt.xlim(-710,600)
-    plt.ylim(0,6.6e-14)
-    #'''
+    plt.xlim(0,580)
+    plt.ylim(0,5.5)
 
-    plt.legend(loc='upper left', numpoints=1)
-    fig.tight_layout()
+    #plt.legend(loc='upper right', numpoints=1)
+    #plt.subplots_adjust(hspace=0.43)
+    #fig.tight_layout()
     plt.savefig('../plots/Ly_only_cut.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
-    plt.show()
+    #plt.show()
 
 if __name__ == '__main__':
     main()
