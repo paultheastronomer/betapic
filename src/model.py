@@ -1,9 +1,24 @@
 import numpy as np
+from scipy.special import wofz
 
 class Model:
     '''
     A collection of functions for modeling the line absorption.
     '''
+
+
+    def Voigt(self, x, alpha, gamma):
+        """
+        This function is not used in the code!
+        
+        Return the Voigt line shape at x with Lorentzian component HWHM gamma
+        and Gaussian component HWHM alpha.
+
+        """
+        sigma = alpha / np.sqrt(2 * np.log(2))
+
+        return np.real(wofz((x + 1j*gamma)/sigma/np.sqrt(2))) / sigma\
+                                                               /np.sqrt(2*np.pi)
         
     def voigt_wofz(self, a, u):
 
@@ -11,6 +26,8 @@ class Model:
 
         # Code from https://github.com/nhmc/Barak/blob/\
         087602fb372812c0603441ca1ce6820e96963b88/barak/absorb/voigt.py
+        
+        Explanation: https://nhmc.github.io/Barak/generated/barak.voigt.voigt.html#barak.voigt.voigt
 
         Parameters
         ----------
@@ -58,6 +75,7 @@ class Model:
         u2      =   uf*(l-lambda2)          # red peak wavelengths
 
         f       =   max_f*(self.voigt_wofz(av,u1)+self.voigt_wofz(av,u2))
+        #f       =   max_f*(self.Voigt(l,av,u1)+self.Voigt(l,av,u2))
         f_star  =   np.convolve(f,kernel,mode='same')
         
         return f, f_star
@@ -86,6 +104,7 @@ class Model:
             tv      = 1.16117705e-14*N_col[i]*w[i]*fosc[i]/b_wid
             a       = delta[i]/dnud
             hav     = tv*self.voigt_wofz(a,v)
+            #hav     = tv*self.Voigt(l,a,v)
             
             # To avoid underflow which occurs when you have exp(small negative number)
             for j in range(len(hav)):
