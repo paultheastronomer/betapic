@@ -7,37 +7,24 @@ from scipy.optimize import leastsq
 from src.statistics import Stats
 from src.model import Model
 from src.mcmc import MCMC
+from src.calculations import Calc
 
 s   = Stats()
 m   = Model()
-mc  = MCMC() 
+mc  = MCMC()
+c   = Calc()
 
 
 def FindBestParams(params,F,E,Const,ModelType):
     best_P, success = leastsq(s.chi2_lm, params, args=(F,E,Const,ModelType), maxfev=1000)
     return best_P
 
-def wave2RV(Wave,rest_wavelength,RV_BP):
-    c = 299792458
-    rest_wavelength = rest_wavelength*(RV_BP*1.e3)/c + rest_wavelength # Convert to beta pic reference frame
-    delta_wavelength = Wave-rest_wavelength
-    RV = ((delta_wavelength/rest_wavelength)*c)/1.e3	# km/s
-    return RV
-
-def Bin_data(x,y1,e1,bin_pnts):
-    bin_size    = int(len(x)/bin_pnts)
-    bins        = np.linspace(x[0], x[-1], bin_size)
-    digitized   = np.digitize(x, bins)
-    bin_y       = np.array([y1[digitized == i].mean() for i in range(0, len(bins))])
-    bin_e       = np.array([e1[digitized == i].mean() for i in range(0, len(bins))])
-    return bins, bin_y ,bin_e/np.sqrt(bin_pnts)
-
 def main():    
 
     dat_directory   = "/home/paw/science/betapic/data/HST/dat/"
 
-    Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_05_26.txt',unpack=True,skip_header=8300,skip_footer= 6700)
-    W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_05_26.txt',unpack=True,skip_header=8850,skip_footer= 7110)
+    Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=8300,skip_footer= 6700)
+    W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=8850,skip_footer= 7110)
     
     # To fit the non-sky subtracted (only cut) data uncomment the two lines below.
     #Wo, Fo, Eo         = np.genfromtxt(dat_directory+'Ly-alpha_no_AG_2016_05_26.txt',unpack=True,skip_header=8000,skip_footer= 6000)
@@ -47,6 +34,7 @@ def main():
     ModelType   = 2         # best model is 2
     mode        = 'lm'      # mcmc or lm
     LyA         = 1215.6702 # Heliocentric: 1215.6702
+    cLight      = 299792458
     BetaPicRV   = 20.5
 
     # ISM parameters
@@ -56,8 +44,8 @@ def main():
     T_ism       = 7000.     # Temperature of ISM
 
     # Beta Pic parameters
-    v_bp        = 33.5     #20.5# RV of the beta Pic (relative to Heliocentric)
-    nh_bp       = 19.4    # Column density beta Pic, Fitting param
+    v_bp        = 32.018     #20.5# RV of the beta Pic (relative to Heliocentric)
+    nh_bp       = 19.37    # Column density beta Pic, Fitting param
     b_bp        = 7.0       # Turbulent velocity
     T_bp        = 1000.     # Temperture of gas in beta Pic disk
 
@@ -68,10 +56,10 @@ def main():
     T_X         = 1000.     # Temperture of gas in beta Pic disk
 
     # Stellar emission line parameters
-    max_f       = 9.79e-12 # Fitting param 
+    max_f       = 9.2376e-12 # Fitting param 
     dp          = 0.0 
-    uf          = 2.94     # Fitting param
-    av          = 0.035     # Fitting param
+    uf          = 3.027     # Fitting param
+    av          = 0.04     # Fitting param
 
     slope       = -0.0008205
 
@@ -79,10 +67,11 @@ def main():
 
     v   = np.arange(-len(Wo),len(Wo),1) # RV values
     l   = LyA*(1.0 + v/3e5)                     # Corresponding wavengths
-    vBP= wave2RV(l,LyA,BetaPicRV) 
 
-    RV  = wave2RV(W,LyA,BetaPicRV)     # BetaPic rest frame
-    RVo = wave2RV(Wo,LyA,BetaPicRV)
+    vBP = c.Wave2RV(l,LyA,BetaPicRV) 
+
+    RV  = c.Wave2RV(W,LyA,BetaPicRV)     # BetaPic rest frame
+    RVo = c.Wave2RV(Wo,LyA,BetaPicRV)
     
     if ModelType == 1:
         Par     = [nh_bp,max_f,uf,av,slope] # Free parameters
@@ -144,17 +133,22 @@ def main():
     
         fig.tight_layout()
         plt.show()
+
+       # Saving the data for plotting
+        #np.savetxt(dat_directory+"Ly_Fit.dat",np.column_stack((v,f_star,f_abs_ism,f_abs_bp,f_before_fit)))
+
         #sys.exit()            
         
         Const[0] = W
         
         print "\nBest fit paramters:"
         P =  FindBestParams(Par, F, E, Const, ModelType)
+        U_RV = (1/P[2])*cLight/LyA/1e3
 
         print "\nlog(N(H)) =\t" ,P[0]
         print "Fmax =\t\t"      ,P[1]
-        print "uf=\t\t"         ,P[2]
-        print "av=\t\t"         ,P[3]
+        print "uf=\t\t"         ,U_RV,"km/s or ",1/P[2],"Angstrom"
+        print "av=\t\t"         ,P[3]*U_RV*np.sqrt(2),"km/s or ",P[3]*1/P[2]*np.sqrt(2),"Angstrom"
         if ModelType == 1:
             print "Slope\t\t"   ,P[4]
         if ModelType == 2:
@@ -178,19 +172,14 @@ def main():
             f_after_fit, f_star, f_abs_ism, f_abs_bp            = m.LyModel(P,Const,ModelType)
 
         bin_pnts = 3
-        RVb, Fb, Eb     = Bin_data(RV,F,E,bin_pnts)
-        RVob, Fob, Eob  = Bin_data(RVo,Fo,Eo,bin_pnts)
+        RVb, Fb, Eb     = c.BinData(RV,F,E,bin_pnts)
+        RVob, Fob, Eob  = c.BinData(RVo,Fo,Eo,bin_pnts)
 
         plt.scatter(RVob,Fob,color='black',alpha=0.25,label='Data not used for fit')
 
         plt.errorbar(RVb,Fb,yerr=Eb,fmt=None,ecolor='black',zorder=3)
         plt.scatter(RVb,Fb, marker='o', color='k',zorder=3,label='Data used for fit')
         
-        '''
-        for i in range(len(Wo)):
-            if l[0] < Wo[i] < l[-1]:
-                plt.scatter(Wo[i],Fo[i],color='black') 
-        '''
         plt.plot(vBP,f_star,lw=3,color='gray',label=r'$\beta$ Pictoris')
         plt.plot(vBP,f_abs_ism,lw=1.2,color='#FF9303',label=r'ISM')
         plt.plot(vBP,f_abs_bp,lw=1.2,color='#0386ff',label=r'Gas disk')
@@ -198,8 +187,6 @@ def main():
             plt.plot(vBP,f_abs_X,lw=1.2,color='purple',label=r'Component X')
         plt.plot(vBP,f_after_fit,lw=3,color='#FF281C',label=r'Best fit')
 
-        
-   
         plt.xlabel(r'Radial Velocity [km/s]')
         plt.ylabel('Flux (erg/s/cm$^2$/\AA)')
 
@@ -207,9 +194,6 @@ def main():
         plt.ylim(-2.2e-14,7.3e-14)
         fig.tight_layout()
         plt.show()
-
-       # Saving the data for plotting
-        np.savetxt(dat_directory+"Ly_Fit.dat",np.column_stack((v,f_star,f_abs_ism,f_abs_bp,f_after_fit)))
 
     elif mode == 'mcmc':
         #X = (F - f_before_fit),E,np.zeros(len(F)),F                                                         # Check this in relation to the Chi2 function!
