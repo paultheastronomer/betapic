@@ -3,48 +3,8 @@ import matplotlib.pyplot as plt
 from math import factorial
 import sys
 
-def Bin_data(x,y1,e1,bin_pnts):
-    bin_size    = int(len(x)/bin_pnts)
-    bins        = np.linspace(x[0], x[-1], bin_size)
-    digitized   = np.digitize(x, bins)
-    bin_y       = np.array([y1[digitized == i].mean() for i in range(0, len(bins))])
-    bin_e       = np.array([e1[digitized == i].mean() for i in range(0, len(bins))])
-    return bins, bin_y, bin_e/np.sqrt(bin_pnts)
-
-def weighted_avg_and_errorbars(Flux, Err):
-    """
-    Return the weighted average and Error bars.
-    """
-    Flux        = replace_with_median(Flux)
-    Err         = replace_with_median(Err)
-    weights     =1./(Err**2)
-    average     = np.average(Flux, axis=0, weights=weights)
-    errorbars_2 = np.sum(weights*(Err**2), axis=0) / np.sum(weights, axis=0)
-    return average, np.sqrt(errorbars_2)
-
-def CF(flux,flux_err,ref,ref_err,n1,n2):
-    flux        = replace_with_median(flux)
-    flux_err    = replace_with_median(flux_err)
-    ratio = np.average(flux[n1:n2], axis=0, weights=1./(flux_err[n1:n2]**2))/ \
-            np.average(ref[n1:n2],  axis=0, weights=1./(ref_err[n1:n2]**2 ))                       
-    return 1./ratio
-
-def ShiftAG(AG,units):
-    zeros   = np.zeros(abs(units))
-    if units > 0.:
-        AG      = np.concatenate((zeros,AG))[:-units]
-    else:
-        AG      = np.concatenate((AG,zeros))[abs(units):]
-    return AG
-
-def replace_with_median(X):
-    X[np.isnan(X)] = 0
-    m = np.median(X[X > 0])
-    X[X == 0] = m
-    return X
-
-def PlotCut():
-    return 1
+from src.calculations import Calc
+c   = Calc()
 
 def main():    
     #############################################################################################
@@ -85,9 +45,9 @@ def main():
     '''
     
     # Calculate the Correction Factor 
-    C   = [CF(F0_1,E0_1,F0_0,E0_0,n1,n2),CF(F1_1,E1_1,F0_0,E0_0,n1,n2),CF(F2_1,E2_1,F0_0,E0_0,n1,n2),\
-    CF(F0_2,E0_2,F0_0,E0_0,n1,n2),CF(F1_2,E1_2,F0_0,E0_0,n1,n2),CF(F2_2,E2_2,F0_0,E0_0,n1,n2),CF(F3_2,E3_2,F0_0,E0_0,n1,n2),\
-    CF(F0_3,E0_3,F0_0,E0_0,n1,n2),CF(F1_3,E1_3,F0_0,E0_0,n1,n2),CF(F2_3,E2_3,F0_0,E0_0,n1,n2),CF(F3_3,E3_3,F0_0,E0_0,n1,n2)]
+    C   = [c.CF(F0_1,E0_1,F0_0,E0_0,n1,n2),c.CF(F1_1,E1_1,F0_0,E0_0,n1,n2),c.CF(F2_1,E2_1,F0_0,E0_0,n1,n2),\
+    c.CF(F0_2,E0_2,F0_0,E0_0,n1,n2),c.CF(F1_2,E1_2,F0_0,E0_0,n1,n2),c.CF(F2_2,E2_2,F0_0,E0_0,n1,n2),c.CF(F3_2,E3_2,F0_0,E0_0,n1,n2),\
+    c.CF(F0_3,E0_3,F0_0,E0_0,n1,n2),c.CF(F1_3,E1_3,F0_0,E0_0,n1,n2),c.CF(F2_3,E2_3,F0_0,E0_0,n1,n2),c.CF(F3_3,E3_3,F0_0,E0_0,n1,n2)]
     
     np.savetxt(dat_directory+"rescaling_factors.txt",C)
     
@@ -121,7 +81,7 @@ def main():
     #Flux = np.array([Fc[8]])
     #Err  = np.array([Ec[8]])
     
-    F1, F1_err    =  weighted_avg_and_errorbars(Flux,Err)         
+    F1, F1_err    =  c.WeightedAvg(Flux,Err)         
 
     #############################################################################################    
 
@@ -148,7 +108,7 @@ def main():
     #Flux = np.array([Fc[9]])
     #Err  = np.array([Ec[9]])
 
-    F2, F2_err    =  weighted_avg_and_errorbars(Flux,Err)         
+    F2, F2_err    =  c.WeightedAvg(Flux,Err)         
     #############################################################################################
 
     # 1.1" Ly-alpha wing
@@ -165,7 +125,7 @@ def main():
     #Flux = np.array([Fc[10]])
     #Err  = np.array([Ec[10]])
     
-    F3, F3_err    =  weighted_avg_and_errorbars(Flux,Err)         
+    F3, F3_err    =  c.WeightedAvg(Flux,Err)         
     #############################################################################################
 
     Flux = np.array([F0_0,Fc[0],Fc[1],Fc[2],Fc[3],Fc[4],Fc[5],Fc[6],Fc[7],Fc[8],Fc[9],Fc[10]])
@@ -185,7 +145,7 @@ def main():
     #Flux = np.array([Fc[7],Fc[8],Fc[9],Fc[10]])
     #Err  = np.array([Ec[7],Ec[8],Ec[9],Ec[10]])
     
-    F_tot, F_tot_err    =  weighted_avg_and_errorbars(Flux,Err)
+    F_tot, F_tot_err    =  c.WeightedAvg(Flux,Err)
     #F_tot, F_tot_err    =  F0_0, E0_0
     #############################################################################################
 
@@ -193,18 +153,18 @@ def main():
     # Combining AG measurements. Not including AG2 due to problem with data.
     AirG                = np.array([AG0,AG1,AG3])
     AirG_err            = np.array([AG0err,AG1err,AG3err])
-    AirG_W, AirG_W_err  = weighted_avg_and_errorbars(AirG,AirG_err) 
+    AirG_W, AirG_W_err  = c.WeightedAvg(AirG,AirG_err) 
     
-    AG1    = ShiftAG(AirG_W,-28)    #2015v1 +0.8" AG
-    AG2    = ShiftAG(AirG_W,-32)    #2015v2 +0.8" AG
-    AG3    = ShiftAG(AirG_W,-25)    #2016 +0.8" AG
+    AG1    = c.ShiftAG(AirG_W,-28)    #2015v1 +0.8" AG
+    AG2    = c.ShiftAG(AirG_W,-32)    #2015v2 +0.8" AG
+    AG3    = c.ShiftAG(AirG_W,-25)    #2016 +0.8" AG
 
-    AG4    = ShiftAG(AirG_W,-42)    #2015v2 +1.1" AG
-    AG5    = ShiftAG(AirG_W,-43)    #2016 +1.1" AG
+    AG4    = c.ShiftAG(AirG_W,-42)    #2015v2 +1.1" AG
+    AG5    = c.ShiftAG(AirG_W,-43)    #2016 +1.1" AG
 
-    AG6    = ShiftAG(AirG_W,32)     #2015v1 -0.8" AG
-    AG7    = ShiftAG(AirG_W,35)     #2015v2 -0.8" AG
-    AG8    = ShiftAG(AirG_W,33)     #2016 -0.8" AG
+    AG6    = c.ShiftAG(AirG_W,32)     #2015v1 -0.8" AG
+    AG7    = c.ShiftAG(AirG_W,35)     #2015v2 -0.8" AG
+    AG8    = c.ShiftAG(AirG_W,33)     #2016 -0.8" AG
 
 
     # 0.0"
