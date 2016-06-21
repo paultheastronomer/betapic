@@ -134,7 +134,7 @@ def main():
         fig.tight_layout()
         plt.show()
 
-       # Saving the data for plotting
+        # Saving the data for plotting
         #np.savetxt(dat_directory+"Ly_Fit.dat",np.column_stack((v,f_star,f_abs_ism,f_abs_bp,f_before_fit)))
 
         #sys.exit()            
@@ -143,6 +143,7 @@ def main():
         
         print "\nBest fit paramters:"
         P =  FindBestParams(Par, F, E, Const, ModelType)
+        
         U_RV = (1/P[2])*cLight/LyA/1e3
 
         print "\nlog(N(H)) =\t" ,P[0]
@@ -170,6 +171,10 @@ def main():
             f_after_fit, f_star, f_abs_ism, f_abs_bp, f_abs_X   = m.LyModel(P,Const,ModelType)
         else:
             f_after_fit, f_star, f_abs_ism, f_abs_bp            = m.LyModel(P,Const,ModelType)
+
+        
+        # Saving the data for plotting
+        np.savetxt(dat_directory+"Ly_Fit.dat",np.column_stack((v,f_star,f_abs_ism,f_abs_bp,f_after_fit)))
 
         bin_pnts = 3
         RVb, Fb, Eb     = c.BinData(RV,F,E,bin_pnts)
@@ -217,7 +222,7 @@ def main():
         print "Fmax =\t\t"      ,PU1[0][1],"\t+",PU1[1][1],"\t-",PU1[2][1]
         print "uf=\t\t"         ,PU2[0][0],"\t+",PU2[1][0],"\t-",PU2[2][0]
         print "av=\t\t"         ,PU2[0][1],"\t+",PU2[1][1],"\t-",PU2[2][1]
-        print "V_H=\t\t"       ,PU3[0][1],"\t+",PU3[1][1],"\t-",PU3[2][1]
+        print "V_H=\t\t"        ,PU3[0][1],"\t+",PU3[1][1],"\t-",PU3[2][1]
 
 if __name__ == '__main__':
     main()
