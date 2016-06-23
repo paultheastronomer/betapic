@@ -23,39 +23,8 @@ def Uncertainties(x):
    
    return med,up-med,med-down   
 
-def PlotChain(X,Y,l1,l2,x1,x2,y1,y2,name):
-    sns.set_context("paper")
-    sns.set(style="white",font_scale=2.5)
-    sns.set_style("ticks", {"xtick.major.size": 4, "ytick.major.size": 4})
-    
-    g = sns.JointGrid(X, Y, space=0,xlim=(x1, x2), ylim=(y1, y2))
-    #g = sns.JointGrid(X, Y, space=0)
-    g = g.plot_joint(sns.kdeplot, cmap="Blues_d")
-    sns.axlabel(l1, l2)
-    g = g.plot_marginals(sns.kdeplot, shade=True)
-    
-    plt.savefig(name+'.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
-
-
-
-# 4 chain
-'''
-# Load the MCMC data
-chain1 = np.load('../chains/chain_c_1.npz')
-chain2 = np.load('../chains/chain_c_2.npz')
-chain3 = np.load('../chains/chain_c_3.npz')
-chain4 = np.load('../chains/chain_c_4.npz')
-
-nh_bp   =   np.concatenate((chain1['nh_bp'],chain2['nh_bp'],chain3['nh_bp'],chain4['nh_bp']))
-max_f   =   np.concatenate((chain1['max_f'],chain2['max_f'],chain3['max_f'],chain4['max_f']))
-uf      =   np.concatenate((chain1['uf'],chain2['uf'],chain3['uf'],chain4['uf']))
-av      =   np.concatenate((chain1['av'],chain2['av'],chain3['av'],chain4['av']))
-v_H     =   np.concatenate((chain1['v_H'],chain2['v_H'],chain3['v_H'],chain4['v_H']))
-'''
-
-# 12 chain
-letter = 'c'
-
+# Select which posterior distributions to use.
+letter = 'X'
 
 # Load the MCMC data
 chain1 = np.load('../chains/chain_'+letter+'_1.npz')
@@ -70,16 +39,77 @@ chain9 = np.load('../chains/chain_'+letter+'_9.npz')
 chain10 = np.load('../chains/chain_'+letter+'_10.npz')
 chain11 = np.load('../chains/chain_'+letter+'_11.npz')
 chain12 = np.load('../chains/chain_'+letter+'_12.npz')
+chain13 = np.load('../chains/chain_'+letter+'_13.npz')
+chain14 = np.load('../chains/chain_'+letter+'_14.npz')
+chain15 = np.load('../chains/chain_'+letter+'_15.npz')
+chain16 = np.load('../chains/chain_'+letter+'_16.npz')
+chain17 = np.load('../chains/chain_'+letter+'_17.npz')
+chain18 = np.load('../chains/chain_'+letter+'_18.npz')
+chain19 = np.load('../chains/chain_'+letter+'_19.npz')
+chain20 = np.load('../chains/chain_'+letter+'_20.npz')
+chain21 = np.load('../chains/chain_'+letter+'_21.npz')
+chain22 = np.load('../chains/chain_'+letter+'_22.npz')
+chain23 = np.load('../chains/chain_'+letter+'_23.npz')
+chain34 = np.load('../chains/chain_'+letter+'_24.npz')
 
-nh_bp   =   np.concatenate((chain1['nh_bp'],chain2['nh_bp'],chain3['nh_bp'],chain4['nh_bp'],chain5['nh_bp'],chain6['nh_bp'],chain7['nh_bp'],chain8['nh_bp'],chain9['nh_bp'],chain10['nh_bp'],chain11['nh_bp'],chain12['nh_bp']))
-max_f   =   np.concatenate((chain1['max_f'],chain2['max_f'],chain3['max_f'],chain4['max_f'],chain5['max_f'],chain6['max_f'],chain7['max_f'],chain8['max_f'],chain9['max_f'],chain10['max_f'],chain11['max_f'],chain12['max_f']))
-uf      =   np.concatenate((chain1['uf'],chain2['uf'],chain3['uf'],chain4['uf'],chain5['uf'],chain6['uf'],chain7['uf'],chain8['uf'],chain9['uf'],chain10['uf'],chain11['uf'],chain12['uf']))
-av      =   np.concatenate((chain1['av'],chain2['av'],chain3['av'],chain4['av'],chain5['av'],chain6['av'],chain7['av'],chain8['av'],chain9['av'],chain10['av'],chain11['av'],chain12['av']))
-v_H     =   np.concatenate((chain1['v_H'],chain2['v_H'],chain3['v_H'],chain4['v_H'],chain5['v_H'],chain6['v_H'],chain7['v_H'],chain8['v_H'],chain9['v_H'],chain10['v_H'],chain11['v_H'],chain12['v_H']))
+nh_bp   =   np.concatenate((chain1['nh_bp'],chain2['nh_bp'],chain3['nh_bp'],\
+chain4['nh_bp'],chain5['nh_bp'],chain6['nh_bp'],chain7['nh_bp'],\
+chain8['nh_bp'],chain9['nh_bp'],chain10['nh_bp'],chain11['nh_bp'],\
+chain12['nh_bp'],chain13['nh_bp'],chain14['nh_bp'],chain15['nh_bp'],\
+chain16['nh_bp'],chain17['nh_bp'],chain18['nh_bp'],chain19['nh_bp'],\
+chain20['nh_bp'],chain21['nh_bp'],chain22['nh_bp'],chain23['nh_bp'],\
+chain24['nh_bp']))
+
+max_f   =   np.concatenate((chain1['max_f'],chain2['max_f'],chain3['max_f'],\
+chain4['max_f'],chain5['max_f'],chain6['max_f'],chain7['max_f'],\
+chain8['max_f'],chain9['max_f'],chain10['max_f'],chain11['max_f'],\
+chain12['max_f'],chain13['max_f'],chain14['max_f'],chain15['max_f'],\
+chain16['max_f'],chain17['max_f'],chain18['max_f'],chain19['max_f'],\
+chain20['max_f'],chain21['max_f'],chain22['max_f'],chain23['max_f'],\
+chain24['max_f']))
+
+uf   =   np.concatenate((chain1['uf'],chain2['uf'],chain3['uf'],\
+chain4['uf'],chain5['uf'],chain6['uf'],chain7['uf'],\
+chain8['uf'],chain9['uf'],chain10['uf'],chain11['uf'],\
+chain12['uf'],chain13['uf'],chain14['uf'],chain15['uf'],\
+chain16['uf'],chain17['uf'],chain18['uf'],chain19['uf'],\
+chain20['uf'],chain21['uf'],chain22['uf'],chain23['uf'],\
+chain24['uf']))
+
+av   =   np.concatenate((chain1['av'],chain2['av'],chain3['av'],\
+chain4['av'],chain5['av'],chain6['av'],chain7['av'],\
+chain8['av'],chain9['av'],chain10['av'],chain11['av'],\
+chain12['av'],chain13['av'],chain14['av'],chain15['av'],\
+chain16['av'],chain17['av'],chain18['av'],chain19['av'],\
+chain20['av'],chain21['av'],chain22['av'],chain23['av'],\
+chain24['av']))
+
+v_H   =   np.concatenate((chain1['v_H'],chain2['v_H'],chain3['v_H'],\
+chain4['v_H'],chain5['v_H'],chain6['v_H'],chain7['v_H'],\
+chain8['v_H'],chain9['v_H'],chain10['v_H'],chain11['v_H'],\
+chain12['v_H'],chain13['v_H'],chain14['v_H'],chain15['v_H'],\
+chain16['v_H'],chain17['v_H'],chain18['v_H'],chain19['v_H'],\
+chain20['v_H'],chain21['v_H'],chain22['v_H'],chain23['v_H'],\
+chain24['v_H']))
+
+nh_ISM   =   np.concatenate((chain1['nh_ISM'],chain2['nh_ISM'],chain3['nh_ISM'],\
+chain4['nh_ISM'],chain5['nh_ISM'],chain6['nh_ISM'],chain7['nh_ISM'],\
+chain8['nh_ISM'],chain9['nh_ISM'],chain10['nh_ISM'],chain11['nh_ISM'],\
+chain12['nh_ISM'],chain13['nh_ISM'],chain14['nh_ISM'],chain15['nh_ISM'],\
+chain16['nh_ISM'],chain17['nh_ISM'],chain18['nh_ISM'],chain19['nh_ISM'],\
+chain20['nh_ISM'],chain21['nh_ISM'],chain22['nh_ISM'],chain23['nh_ISM'],\
+chain24['nh_ISM']))
 
 # Arange the data into pandas format to be compatible with corner.py
-data = np.array([nh_bp,max_f/1e-12,uf,av,v_H]).T
-columns = ['N','M','uf','av','v_H']
+print Uncertainties(nh_bp)
+print Uncertainties(max_f)
+print Uncertainties(uf)
+print Uncertainties(av)
+print Uncertainties(v_H)
+print Uncertainties(nh_ISM)
+#sys.exit()
+data = np.array([nh_bp,max_f/1e-11,1./uf,av*(1./uf)*np.sqrt(2),v_H,nh_ISM]).T
+columns = ['N','M','uf','av','v_H','nh_ISM']
 df = pd.DataFrame(data,columns=columns)
 
 # Plot the posterior distributions.
@@ -92,12 +122,12 @@ plt.rcParams.update(params)
 # I'd like to have TeX font on the axis. Sadly the above line does not work.
 #plt.rc('text', usetex=True)
 
-figure = corner.corner(data,labels=[r"$\logN_{\mathrm{H}}$", r"$F_{\mathrm{max}}/1\times10^{-12}$", r"$\mathrm{uf}$",
-                                     r"$\mathrm{av}$",r"$v\mathrm{_H}$"],#$\mathrm{v_X}/1\times10^{-4}$
-                                     quantiles=[0.16, 0.8413],
+figure = corner.corner(data,labels=[r"$\log(N_{\mathrm{H}})_{\mathrm{disk}}$", r"$F_{\mathrm{max}}/1\times10^{-11}$", r"$\sigma_{\mathrm{Ly}\alpha}$",
+                                     r"$\gamma_{\mathrm{Ly}\alpha}$",r"$v_{\mathrm{disk}}$",r"$\log(N_{\mathrm{H}})_{\mathrm{ISM}}$"],#$\mathrm{v_X}/1\times10^{-4}$
+                                     quantiles=[0.16, 0.5,0.8413],
                                      levels=(1-np.exp(-0.5),),
-                                     #truths=[19.42,9.2,2.915,0.03937,33.06,12.],
-                                     range=[(19.24,19.49),(2,24),(2.7,3.38),(0.01,0.09),(26.8,38)],
+                                     truths=[18.672,4.66,0.022,0.029,57.65,18.034],
+                                     range=[(18.4,18.90),(-1,15),(-0.01,0.20),(0.0,0.075),(40.0,80),(17.8,18.5)],
                                      #fill_contours=True,
                                      #ret=True,
                                      bins=40,
@@ -109,12 +139,3 @@ figure = corner.corner(data,labels=[r"$\logN_{\mathrm{H}}$", r"$F_{\mathrm{max}}
                                      use_math_text=True)
 
 figure.savefig("../plots/mcmc_"+letter+".pdf")
-
-# Uncomment to print uncertainties
-'''
-print Uncertainties(nh_bp)
-print Uncertainties(max_f)
-print Uncertainties(uf)
-print Uncertainties(av)
-print Uncertainties(v_X)
-'''
