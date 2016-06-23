@@ -222,13 +222,13 @@ def main():
 
     # Decide at which RV airglow affects the different measurements
     # Units in km/s
-    shift_0_l       = -240#-365#337.5 350
-    shift_0_r       =  230#295#315#271.7 295
-    shift_08_l      = -155#-164#shift_0_l+68#-183.3  ok
-    shift_08_r      = 150#135#143#shift_0_r-68#157#142.5 140!
-    shift_11_r      = 115#115#113#shift_0_r-94# 108 ok
+    shift_0_l       = -248
+    shift_0_r       =  190
+    shift_08_l      = -162
+    shift_08_r      = 122
+    shift_11_r      = 106
     
-    f = open(dat_directory+'Ly-alpha_no_AG.txt', 'w+')  #Ly-alpha_no_AG.txt
+    f = open(dat_directory+'Ly-alpha_no_AG_2016_06_23.txt', 'w+')  #Ly-alpha_no_AG.txt
     for j in range(len(RV)):
         # Save 0.0" shift data
         if RV[j] < shift_0_l:
@@ -237,7 +237,7 @@ def main():
         if RV[j] > shift_0_r:
             plt.plot(RV[j],F_tot[j], marker='o', color='black')
             print >> f, " ","{: 1.10e}".format(W[j])," "+"{: 1.10e}".format(F_tot[j])," "+"{: 1.10e}".format(F_tot_err[j])
-
+    
         # Save 0.8" shift data
         if  shift_0_l < RV[j] < shift_08_l:
             #plt.errorbar(RV[j],F1[j],yerr=F1_err[j],color='green')
