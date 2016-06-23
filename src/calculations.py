@@ -16,21 +16,23 @@ class Calc:
     def WeightedAvg(self,Flux, Err):
         """
         Return the weighted average and Error bars.
-        """
-        weights=1./(Err**2)
-        average = np.average(Flux, axis=0, weights=weights)
-        errorbars_2 = np.sum(weights*(Err**2), axis=0) / np.sum(weights, axis=0)
-        return average, np.sqrt(errorbars_2)
+        """        
+        Flux        = self.ReplaceWithMedian(Flux)
+        Err         = self.ReplaceWithMedian(Err)
+        weights     = 1./(Err**2)
+        average     = np.average(Flux, axis=0, weights=weights)
+        errorbars_2 = np.sum((weights*Err)**2, axis=0)
+        return average, np.sqrt(errorbars_2)/ np.sum(weights, axis=0)
 
     def CF(self,flux,flux_err,ref,ref_err,n1,n2):
         flux        = self.ReplaceWithMedian(flux)
         flux_err    = self.ReplaceWithMedian(flux_err)
         ref_err     = self.ReplaceWithMedian(ref_err)
-        ratio = np.average(flux[n1:n2], axis=0, weights=1./(flux_err[n1:n2]**2))/ \
-                np.average(ref[n1:n2],  axis=0, weights=1./(ref_err[n1:n2]**2 ))                       
-        return 1./ratio
+        ratio       = np.average(ref[n1:n2],  axis=0, weights=1./(ref_err[n1:n2]**2 ))/ \
+                        np.average(flux[n1:n2], axis=0, weights=1./(flux_err[n1:n2]**2))                
+        return ratio
         
-    def wave2RV(self,Wave,rest_wavelength,RV_BP):
+    def Wave2RV(self,Wave,rest_wavelength,RV_BP):
         c = 299792458
         rest_wavelength = rest_wavelength*(RV_BP*1.e3)/c + rest_wavelength # Convert to beta pic reference frame
         delta_wavelength = Wave-rest_wavelength
@@ -48,8 +50,32 @@ class Calc:
               break
         return ans
 
+    def FindFactor(self, RV,D,E,A,l1,l2):
+        region  = []
+        err     = []
+        E         = self.ReplaceWithMedian(E)
+        for i in range(len(RV)):
+            if l1 < RV[i] < l2:
+                region.append(D[i])
+                err.append(np.sqrt(E[i]**2+A[i]**2))
+        region  = np.array(region)
+        err     = np.array(err)
+        
+        factor, factor_err = self.WeightedAvg(region,err)
+
+        print "Factor:",factor
+        return factor, factor_err
+
     def ReplaceWithMedian(self, X):
         X[np.isnan(X)] = 0
         m = np.median(X[X > 0])
         X[X == 0] = m
         return X
+
+    def ShiftAG(self, AG,units):
+        zeros   = np.zeros(abs(units))
+        if units > 0.:
+            AG      = np.concatenate((zeros,AG))[:-units]
+        else:
+            AG      = np.concatenate((AG,zeros))[abs(units):]
+        return AG

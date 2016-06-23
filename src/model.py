@@ -5,20 +5,6 @@ class Model:
     '''
     A collection of functions for modeling the line absorption.
     '''
-
-
-    def Voigt(self, x, alpha, gamma):
-        """
-        This function is not used in the code!
-        
-        Return the Voigt line shape at x with Lorentzian component HWHM gamma
-        and Gaussian component HWHM alpha.
-
-        """
-        sigma = alpha / np.sqrt(2 * np.log(2))
-
-        return np.real(wofz((x + 1j*gamma)/sigma/np.sqrt(2))) / sigma\
-                                                               /np.sqrt(2*np.pi)
         
     def voigt_wofz(self, a, u):
 
@@ -75,7 +61,6 @@ class Model:
         u2      =   uf*(l-lambda2)          # red peak wavelengths
 
         f       =   max_f*(self.voigt_wofz(av,u1)+self.voigt_wofz(av,u2))
-        #f       =   max_f*(self.Voigt(l,av,u1)+self.Voigt(l,av,u2))
         f_star  =   np.convolve(f,kernel,mode='same')
         
         return f, f_star
@@ -145,23 +130,38 @@ class Model:
 
         ModelType = 4
         ========================================================================
-        No extra components. NEEDS CHECKING
+        No extra components.
         ========================================================================  
-        
+
+        ModelType = 5
+        ========================================================================
+        Same as ModelType = 2, but with the ISM column density free to vary.
+        ========================================================================          
+
+        ModelType = 6
+        ========================================================================
+        Same as ModelType = 3, but with the ISM column density free to vary.
+        ========================================================================   
         '''
         
         # Free parameters
         if ModelType == 1:
-            nh_bp, max_f, uf, av, slope     = params
+            nh_bp, max_f, uf, av, slope             = params
 
         if ModelType == 2:
-            nh_bp, max_f, uf, av, v_bp      = params
+            nh_bp, max_f, uf, av, v_bp              = params
             
         if ModelType == 3:
-            nh_bp, max_f, uf, av, v_X, nh_X = params
+            nh_bp, max_f, uf, av, v_X, nh_X         = params
 
         if ModelType == 4:
-            nh_bp, max_f, uf, av = params
+            nh_bp, max_f, uf, av                    = params
+
+        if ModelType == 5:
+            nh_bp, max_f, uf, av, v_bp, nh_ism      = params
+
+        if ModelType == 6:
+            nh_bp, max_f, uf, av, v_X, nh_X, nh_ism = params
         
         # Fixed parameters
         if ModelType == 1:
@@ -176,13 +176,19 @@ class Model:
         if ModelType == 4:
             W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,v_bp,b_bp,T_bp           = Const
 
+        if ModelType == 5:
+            W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,b_bp,T_bp                       = Const
+
+        if ModelType == 6:
+            W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,v_bp,b_bp,T_bp,b_X,T_X          = Const
+
         kernel      =   self.K(W,l,sigma_kernel)
 
         # Calculates the ISM absorption
         abs_ism     =   self.absorption(l,v_ism,nh_ism,b_ism,T_ism,LyA)
         abs_bp      =   self.absorption(l,v_bp,nh_bp,b_bp,T_bp,LyA)
         
-        if ModelType == 3:
+        if ModelType in [3,6]:
             abs_X       =   self.absorption(l,v_X,nh_X,b_X,T_X,LyA)
 
         # Stellar Ly-alpha line
@@ -193,7 +199,7 @@ class Model:
         # Profile has been convolved with HST LSF
         #    -  in (erg cm-2 s-1 A-1)
 
-        if ModelType == 3:
+        if ModelType in [3,6]:
             f_abs_con   =   np.convolve(f*abs_ism*abs_bp*abs_X, kernel, mode='same')
         else:
             f_abs_con   =   np.convolve(f*abs_ism*abs_bp, kernel, mode='same')
@@ -211,7 +217,7 @@ class Model:
             f_abs_bp    =   np.convolve(f*abs_bp, kernel, mode='same')
 
         # Absorption by component X  
-        if ModelType == 3:
+        if ModelType in [3,6]:
             f_abs_X    =   np.convolve(f*abs_X, kernel, mode='same')
         
         # Interpolation on COS wavelengths, relative to the star
@@ -221,7 +227,7 @@ class Model:
         else:
             f_abs_int   =   np.interp(W,l,f_abs_con)
                     
-        if ModelType == 3:
+        if ModelType in [3,6]:
             return f_abs_int, f_star, f_abs_ism, f_abs_bp, f_abs_X
         else:
             return f_abs_int, f_star, f_abs_ism, f_abs_bp
