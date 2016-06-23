@@ -23,10 +23,41 @@ def main():
 
     dat_directory   = "/home/paw/science/betapic/data/HST/dat/"
 
+    Wa, Fa, Ea      = np.genfromtxt(dat_directory+'Ly-alpha_no_AG_2016_06_23.txt',unpack=True,skip_header=7500,skip_footer= 4500)
     Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=8300,skip_footer= 6700)
-    #W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=8850,skip_footer= 7110)
-    W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=8980,skip_footer= 7110)
+    #Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=7500,skip_footer= 4000)
+    W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=8850,skip_footer= 7110)
+    #W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=8980,skip_footer= 7110)
+    #W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=8650,skip_footer= 7110)
     
+    
+    x1  = 920
+    x2  = 1200
+    x3  = 2050
+    x4  = -1250
+    
+    fitting_region_x  = np.concatenate((Wa[x1:x2],Wa[x3:x4]))
+    fitting_region_y  = np.concatenate((Fa[x1:x2],Fa[x3:x4]))
+    fitting_region_err= np.concatenate((Ea[x1:x2],Ea[x3:x4]))
+
+    
+    order = 4
+    weights = 1/fitting_region_err**2
+    z       = np.polyfit(fitting_region_x, fitting_region_y, 3, rcond=None, full=False, w=weights)
+    pn = np.poly1d(z)
+    print pn
+    
+    '''
+    plt.step(Wa,Fa)
+    plt.step(fitting_region_x,fitting_region_y)
+    plt.plot(Wa,pn(Wa))
+    #plt.step(Wa[920:1200],Fa[920:1200])
+    #plt.step(Wa[2050:-650],Fa[2050:-650])
+    plt.show()
+    sys.exit()
+    '''
+    
+
     # To fit the non-sky subtracted (only cut) data uncomment the two lines below.
     #Wo, Fo, Eo         = np.genfromtxt(dat_directory+'Ly-alpha_no_AG_2016_06_23.txt',unpack=True,skip_header=8000,skip_footer= 6000)
     #W, F, E         = np.genfromtxt(dat_directory+'Ly-alpha_no_AG_2016_06_23.txt',unpack=True,skip_header=8859,skip_footer= 7102)
@@ -69,6 +100,8 @@ def main():
     v   = np.arange(-len(Wo),len(Wo),1) # RV values
     l   = LyA*(1.0 + v/3e5)                     # Corresponding wavengths
 
+    continuum_fit = pn(l)
+
     vBP = c.Wave2RV(l,LyA,BetaPicRV) 
 
     RV  = c.Wave2RV(W,LyA,BetaPicRV)     # BetaPic rest frame
@@ -92,7 +125,7 @@ def main():
         step= np.array([0.1,2e-12,0.03,.001,5,0.1])/3.
     if ModelType == 5:
         Par     = [nh_bp,max_f,uf,av,v_bp,nh_ism] # Free parameters
-        Const   = [W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,b_bp,T_bp]
+        Const   = [W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,b_bp,T_bp,continuum_fit]
         step= np.array([0.03,2e-12,0.08,.01,1])/3.
     if ModelType == 6:
         Par     = [nh_bp,max_f,uf,av,v_X,nh_X,nh_ism] # Free parameters
@@ -214,7 +247,7 @@ def main():
         plt.xlabel(r'Radial Velocity [km/s]')
         plt.ylabel('Flux (erg/s/cm$^2$/\AA)')
 
-        plt.xlim(-710,600)
+        #plt.xlim(-710,600)
         plt.ylim(-2.2e-14,7.3e-14)
         fig.tight_layout()
         plt.show()

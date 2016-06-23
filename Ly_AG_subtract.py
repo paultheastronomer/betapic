@@ -17,6 +17,8 @@ def main():
     W, RV, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2   = np.genfromtxt(dat_directory+'B_24Dec.dat',unpack=True)
     W, RV, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3   = np.genfromtxt(dat_directory+'B_30Jan.dat',unpack=True)
     
+    print W[0]
+    sys.exit()
     rescale    = np.genfromtxt(dat_directory+'rescaling_factors.txt',unpack=True)
     rescale    = np.array(np.append(1.,rescale))# added 1. since we scaled to 2014 data.  
     rescale    = np.array([rescale])            # 

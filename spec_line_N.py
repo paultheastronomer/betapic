@@ -23,10 +23,12 @@ def main():
     #===============================================================
     
     dat_directory = "/home/paw/science/betapic/data/HST/dat/"
-    W, RV, F0_0, E0_0, AG0, AG0err                                                  = np.genfromtxt(dat_directory+part+"_2014.dat",unpack=True)
-    W, RV, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1               = np.genfromtxt(dat_directory+part+"_10Dec.dat",unpack=True)
-    W, RV, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2   = np.genfromtxt(dat_directory+part+"_24Dec.dat",unpack=True)
-    W, RV, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3   = np.genfromtxt(dat_directory+part+"_30Jan.dat",unpack=True)
+
+    W, RV, F0_0, E0_0, AG0, AG0err                                                  = np.genfromtxt(dat_directory+'B_2014.dat',unpack=True)
+    W, RV, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1               = np.genfromtxt(dat_directory+'B_10Dec.dat',unpack=True)
+    W, RV, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2   = np.genfromtxt(dat_directory+'B_24Dec.dat',unpack=True)
+    W, RV, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3   = np.genfromtxt(dat_directory+'B_30Jan.dat',unpack=True)
+
 
     mid_pnt = c.FindCenter(W,line_of_interest)
 
@@ -70,6 +72,8 @@ def main():
     AG2err  = AG2err[mid_pnt-width:mid_pnt+width]
     AG3err  = AG3err[mid_pnt-width:mid_pnt+width]
 
+
+
     # Combining AG measurements.
     AirG                = np.array([AG0,AG1,AG2,AG3])
     AirG_err            = np.array([AG0err,AG1err,AG2err,AG3err])
@@ -85,13 +89,18 @@ def main():
     E  = [E0_1,E1_1,E2_1,E0_2,E1_2,E2_2,E3_2,E0_3,E1_3,E2_3,E3_3]   
 
 
+
     Fc = [[] for _ in range(len(C))]
     Ec = [[] for _ in range(len(C))]
-
+    
+    
+    E0_0    = c.ReplaceWithMedian(E0_0)
     for i in range(len(C)):
-        Fc[i] = F[i]*C[i]   # Correct for lower efficiency
+        Fc[i] = F[i]*C[i]   # Correct for lower efficiency    
+        E[i]  = c.ReplaceWithMedian(E[i]) 
+        #Ec[i] = np.sqrt((C[i]*E[i])**2 +E0_0**2)  
         Ec[i] = E[i]*C[i]   # accordingly correct the tabulated error bars
-
+        
     Flux_10Dec  = np.array([Fc[0],Fc[1],Fc[2]])
     Err_10Dec   = np.array([Ec[0],Ec[1],Ec[2]])
 
@@ -102,11 +111,16 @@ def main():
     Err_30Jan   = np.array([Ec[7],Ec[8],Ec[9],Ec[10]])
     
     factor      = 9
-    Fcs         = Fc[0] - factor*AirG_W_err
+    Fcs         = Fc[0] - factor*AirG_W
     Ecs         = np.sqrt(Ec[0]**2+(factor*AirG_W_err)**2)
     
     Flux_tot    = np.array([Fcs,Fc[1],Fc[2],Fc[3],Fc[4],Fc[5],Fc[6],Fc[7],Fc[8],Fc[9],Fc[10]])
     Err_tot     = np.array([Ecs,Ec[1],Ec[2],Ec[3],Ec[4],Ec[5],Ec[6],Ec[7],Ec[8],Ec[9],Ec[10]])
+
+    Flux_tot    = np.array([Fcs,Fc[1],Fc[2],Fc[3],Fc[4],Fc[5],Fc[6],Fc[7],Fc[8],Fc[9],Fc[10]])
+    Err_tot     = np.array([Ecs,Ec[1],Ec[2],Ec[3],Ec[4],Ec[5],Ec[6],Ec[7],Ec[8],Ec[9],Ec[10]])
+
+
     
     #print Err_tot
     
@@ -195,9 +209,9 @@ def main():
     plt.xlabel('RV [km/s]')
     plt.ylabel('Flux (erg/s/cm$^2$/\AA)')
     
-    #plt.ylim(0.0,2.2e-14)
+    plt.ylim(0.0,2.2e-14)
     #plt.xlim(1198.6,1202)  # For NI at 1999
-    plt.xlim(1133,1137)
+    #plt.xlim(1133,1137)
     plt.minorticks_on()
 
     fig.tight_layout()
@@ -209,12 +223,12 @@ def main():
     #np.savetxt(dat_directory+"NI_20160512_v1.txt",np.column_stack((W,Flux_w_tot, Err_w_tot)))
         
     # Uncomment below to make a datafile compatible with owens.f
-    '''
+    #'''
     f = open(dat_directory+'N_1999.dat', 'w+')
     for i in range(len(W)):
-        print >> f, " ","{: 1.10e}".format(W[i])," "+"{: 1.10e}".format(Flux_w_tot[i])," "+"{: 1.10e}".format(Err_w_tot[i]/4.)
+        print >> f, " ","{: 1.10e}".format(W[i])," "+"{: 1.10e}".format(Flux_w_tot[i])," "+"{: 1.10e}".format(Err_w_tot[i])
     f.close()
-    '''     
+    #'''     
 
 if __name__ == '__main__':
     main()

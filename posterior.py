@@ -50,7 +50,7 @@ chain20 = np.load('../chains/chain_'+letter+'_20.npz')
 chain21 = np.load('../chains/chain_'+letter+'_21.npz')
 chain22 = np.load('../chains/chain_'+letter+'_22.npz')
 chain23 = np.load('../chains/chain_'+letter+'_23.npz')
-chain34 = np.load('../chains/chain_'+letter+'_24.npz')
+chain24 = np.load('../chains/chain_'+letter+'_24.npz')
 
 nh_bp   =   np.concatenate((chain1['nh_bp'],chain2['nh_bp'],chain3['nh_bp'],\
 chain4['nh_bp'],chain5['nh_bp'],chain6['nh_bp'],chain7['nh_bp'],\
@@ -127,7 +127,7 @@ figure = corner.corner(data,labels=[r"$\log(N_{\mathrm{H}})_{\mathrm{disk}}$", r
                                      quantiles=[0.16, 0.5,0.8413],
                                      levels=(1-np.exp(-0.5),),
                                      truths=[18.672,4.66,0.022,0.029,57.65,18.034],
-                                     range=[(18.4,18.90),(-1,15),(-0.01,0.20),(0.0,0.075),(40.0,80),(17.8,18.5)],
+                                     #range=[(18.4,18.90),(-1,15),(-0.01,0.20),(0.0,0.075),(40.0,80),(17.8,18.5)],
                                      #fill_contours=True,
                                      #ret=True,
                                      bins=40,

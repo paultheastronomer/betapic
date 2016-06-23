@@ -54,14 +54,14 @@ def main():
 
     # Parameters you can change
     #====================================================
-    species             = 'OV'      # Name of species
+    species             = 'LyA'      # Name of species
     part                = 'B'       # Part of the spectrum
-    line_of_interest    = 1218.3440 # Wavelength of line
+    line_of_interest    = 1215.6702 # Wavelength of line
     RV_BP               = 20.5      # RV of Beta Pic
     width               = 450       # [-2*width:2*width]
-    bin_pnts            = 7         # Number of points to bin
-    n1                  = 620#300       # Start norm region #CII 150
-    n2                  = 800#360       # End norm region   #CII 320
+    bin_pnts            = 3         # Number of points to bin
+    n1                  = 140#300       # Start norm region #CII 150
+    n2                  = 280#360       # End norm region   #CII 320
     #====================================================
     
     dat_directory = "/home/paw/science/betapic/data/HST/dat/"
@@ -172,7 +172,7 @@ def main():
     #plt.plot([RV[n2],RV[n2]],[F0_0.min(),F0_0.max()],'--k')
     
     
-    plt.plot([0,0],[0,F0_0.max()],'--k')
+    #plt.plot([0,0],[0,F0_0.max()],'--k')
     
     if bin_pnts > 1:
         RVb, F0_0b, E0_0b	                =	Bin_data(RV,F0_0,E0_0,bin_pnts)
@@ -192,24 +192,31 @@ def main():
         #plt.step(RVb,13*AirG_W_b,color="purple")
         #'''
         
-        plt.text(95,4.7e-14,r'$\mathrm{O\,V}$',va='center')
-        plt.text(-440,3e-15,r'$\mathrm{Airglow}$',va='center',rotation=-10)
+        #plt.text(95,4.7e-14,r'$\mathrm{O\,V}$',va='center')
+        #plt.text(-440,3e-15,r'$\mathrm{Airglow}$',va='center',rotation=-10)
         #plt.plot([450,550],[4e-14,3e-14],color="black")
  
         # Plot the airglow
-        plt.step(RVb,AirG_W_b,color="#87CEEB",lw=2)
+        #plt.step(RVb,AirG_W_b,color="#87CEEB",lw=2)
         
-        plt.errorbar(RVb,F0_0b,yerr=E0_0b,fmt=None,ecolor='black',zorder=2)
-        plt.scatter(RVb,F0_0b, marker='o',s=50, edgecolor="black",color='#FF281C',zorder=3,label=r'2014')
+        #plt.errorbar(RVb,F0_0b,yerr=E0_0b,fmt=None,ecolor='black',zorder=2)
+        #plt.scatter(RVb,F0_0b, marker='o',s=50, edgecolor="black",color='#FF281C',zorder=3,label=r'2014')
+        #plt.step(RVb,F0_0b,lw=1.5,color='#FF281C',zorder=3,label=r'2014')
+        plt.step(RVb,F0_0b-6.5*AirG_W_b,lw=1.5,color='#FF281C',zorder=3,label=r'2014')
         
-        plt.errorbar(RVb,Flux_w_b_10Dec,yerr=Err_w_b_10Dec,fmt=None,ecolor='black',zorder=2)
-        plt.scatter(RVb,Flux_w_b_10Dec, marker='o',s=50, edgecolor="black",color='#FF9303',zorder=3,label=r'2015v1')
+        #plt.errorbar(RVb,Flux_w_b_10Dec,yerr=Err_w_b_10Dec,fmt=None,ecolor='black',zorder=2)
+        #plt.scatter(RVb,Flux_w_b_10Dec, marker='o',s=50, edgecolor="black",color='#FF9303',zorder=3,label=r'2015v1')
+        plt.step(RVb,Flux_w_b_10Dec,lw=1.5,color='#FF9303',zorder=3,label=r'2015v1')
 
-        plt.errorbar(RVb,Flux_w_b_26Dec,yerr=Err_w_b_26Dec,fmt=None,ecolor='black',zorder=2)
-        plt.scatter(RVb,Flux_w_b_26Dec, marker='o',s=50, edgecolor="black",color='#0386FF',zorder=3,label=r'2015v2')
+        #plt.errorbar(RVb,Flux_w_b_26Dec,yerr=Err_w_b_26Dec,fmt=None,ecolor='black',zorder=2)
+        #plt.scatter(RVb,Flux_w_b_26Dec, marker='o',s=50, edgecolor="black",color='#0386FF',zorder=3,label=r'2015v2')
+        #plt.step(RVb,Flux_w_b_26Dec,lw=1.5,color='#0386FF',zorder=3,label=r'2015v2')
+        plt.step(RVb,Flux_w_b_26Dec-0.8*AirG_W_b,lw=1.5,color='#0386FF',zorder=3,label=r'2015v2')
 
-        plt.errorbar(RVb,Flux_w_b_30Jan,yerr=Err_w_b_30Jan,fmt=None,ecolor='black',zorder=2)
-        plt.scatter(RVb,Flux_w_b_30Jan, marker='o',s=50, edgecolor="black",color='#00B233',zorder=3,label=r'2016')
+        #plt.errorbar(RVb,Flux_w_b_30Jan,yerr=Err_w_b_30Jan,fmt=None,ecolor='black',zorder=2)
+        #plt.scatter(RVb,Flux_w_b_30Jan, marker='o',s=50, edgecolor="black",color='#00B233',zorder=3,label=r'2016')
+        #plt.step(RVb,Flux_w_b_30Jan,lw=1.5,color='#00B233',zorder=3,label=r'2016')
+        plt.step(RVb,Flux_w_b_30Jan-AirG_W_b,lw=1.5,color='#00B233',zorder=3,label=r'2016')
         
         #plt.step(RVb,Flux_w_b_tot,color="black",lw=1.2,label='All data combined')
         
@@ -226,19 +233,19 @@ def main():
     #plt.step(RV,AirG_W,color="#87CEEB")
     
     # Place a legend in the lower right
-    plt.legend(loc='upper right', numpoints=1)
+    plt.legend(loc='lower right', numpoints=1)
     
     # Add labels to the axis
     plt.xlabel('RV [km/s]')
     plt.ylabel('Flux (erg/s/cm$^2$/\AA)')
     
-    plt.ylim(0,5.5e-14)
-    plt.xlim(-550,550)
+    plt.ylim(0.0,2.0e-13)
+    plt.xlim(-400,420)
     plt.minorticks_on()
 
     fig.tight_layout()
     # Produce a .pdf
-    plt.savefig(species+'_'+str(line_of_interest)+'.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300) 
+    #plt.savefig('../plots/'+species+'_'+str(line_of_interest)+'.png', bbox_inches='tight', pad_inches=0.1,dpi=300) 
     plt.show()
 
     # Uncomment below to save to text file
