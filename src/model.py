@@ -49,7 +49,7 @@ class Model:
         return kernel
 
         
-    def flux_star(self, LyA,BetaPicRV,l,kernel,max_f,dp,uf,av):  
+    def flux_star(self, LyA,BetaPicRV,l,kernel,max_f,dp,uf,av,continuum_fit):  
 
         # Double Voigt profile
         delta_lambda =   LyA*(BetaPicRV/3e5)
@@ -61,6 +61,7 @@ class Model:
         u2      =   uf*(l-lambda2)          # red peak wavelengths
 
         f       =   max_f*(self.voigt_wofz(av,u1)+self.voigt_wofz(av,u2))
+        f       += continuum_fit
         f_star  =   np.convolve(f,kernel,mode='same')
         
         return f, f_star
@@ -177,7 +178,7 @@ class Model:
             W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,v_bp,b_bp,T_bp           = Const
 
         if ModelType == 5:
-            W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,b_bp,T_bp                       = Const
+            W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,b_bp,T_bp,continuum_fit         = Const
 
         if ModelType == 6:
             W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,v_bp,b_bp,T_bp,b_X,T_X          = Const
@@ -192,12 +193,13 @@ class Model:
             abs_X       =   self.absorption(l,v_X,nh_X,b_X,T_X,LyA)
 
         # Stellar Ly-alpha line
-        f, f_star   =   self.flux_star(LyA,BetaPicRV,l,kernel,max_f,dp,uf,av)
-
+        f, f_star   =   self.flux_star(LyA,BetaPicRV,l,kernel,max_f,dp,uf,av,continuum_fit)
+       
         # Stellar spectral profile, as seen from Earth
         # after absorption by the ISM and BP CS disk.
         # Profile has been convolved with HST LSF
         #    -  in (erg cm-2 s-1 A-1)
+
 
         if ModelType in [3,6]:
             f_abs_con   =   np.convolve(f*abs_ism*abs_bp*abs_X, kernel, mode='same')
