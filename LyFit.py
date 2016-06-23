@@ -24,14 +24,15 @@ def main():
     dat_directory   = "/home/paw/science/betapic/data/HST/dat/"
 
     Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=8300,skip_footer= 6700)
-    W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=8850,skip_footer= 7110)
+    #W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=8850,skip_footer= 7110)
+    W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=8980,skip_footer= 7110)
     
     # To fit the non-sky subtracted (only cut) data uncomment the two lines below.
-    #Wo, Fo, Eo         = np.genfromtxt(dat_directory+'Ly-alpha_no_AG_2016_05_26.txt',unpack=True,skip_header=8000,skip_footer= 6000)
-    #W, F, E         = np.genfromtxt(dat_directory+'Ly-alpha_no_AG_2016_05_26.txt',unpack=True,skip_header=8859,skip_footer= 7102)
+    #Wo, Fo, Eo         = np.genfromtxt(dat_directory+'Ly-alpha_no_AG_2016_06_23.txt',unpack=True,skip_header=8000,skip_footer= 6000)
+    #W, F, E         = np.genfromtxt(dat_directory+'Ly-alpha_no_AG_2016_06_23.txt',unpack=True,skip_header=8859,skip_footer= 7102)
     
     ### Parameters ##############################
-    ModelType   = 2         # best model is 2
+    ModelType   = 5         # see description in src/model.py
     mode        = 'lm'      # mcmc or lm
     LyA         = 1215.6702 # Heliocentric: 1215.6702
     cLight      = 299792458
@@ -39,27 +40,27 @@ def main():
 
     # ISM parameters
     v_ism       = 10.0      # RV of the ISM (relative to Heliocentric)  
-    nh_ism      = 18.4      # Column density ISM
+    nh_ism      = 18.15     # Column density ISM
     b_ism       = 7.        # Turbulent velocity
     T_ism       = 7000.     # Temperature of ISM
 
     # Beta Pic parameters
-    v_bp        = 32.018     #20.5# RV of the beta Pic (relative to Heliocentric)
-    nh_bp       = 19.37    # Column density beta Pic, Fitting param
+    v_bp        = 57.98     #20.5# RV of the beta Pic (relative to Heliocentric)
+    nh_bp       = 18.66    # Column density beta Pic, Fitting param
     b_bp        = 7.0       # Turbulent velocity
     T_bp        = 1000.     # Temperture of gas in beta Pic disk
 
     # Extra component parameters
     v_X         = 40.0      # RV of the beta Pic (relative to Heliocentric)
-    nh_X        = 19.0      # Column density beta Pic, Fitting param
+    nh_X        = 18.0      # Column density beta Pic, Fitting param
     b_X         = 6.0       # Turbulent velocity
     T_X         = 1000.     # Temperture of gas in beta Pic disk
 
     # Stellar emission line parameters
-    max_f       = 9.2376e-12 # Fitting param 
+    max_f       = 4.66e-11 # Fitting param 
     dp          = 0.0 
-    uf          = 3.027     # Fitting param
-    av          = 0.04     # Fitting param
+    uf          = 44.72     # Fitting param
+    av          = 0.928     # Fitting param
 
     slope       = -0.0008205
 
@@ -89,6 +90,14 @@ def main():
         Par     = [nh_bp,max_f,uf,av] # Free parameters
         Const   = [W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,v_bp,b_bp,T_bp]
         step= np.array([0.1,2e-12,0.03,.001,5,0.1])/3.
+    if ModelType == 5:
+        Par     = [nh_bp,max_f,uf,av,v_bp,nh_ism] # Free parameters
+        Const   = [W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,b_bp,T_bp]
+        step= np.array([0.03,2e-12,0.08,.01,1])/3.
+    if ModelType == 6:
+        Par     = [nh_bp,max_f,uf,av,v_X,nh_X,nh_ism] # Free parameters
+        Const   = [W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,v_bp,b_bp,T_bp,b_X,T_X]
+        step= np.array([0.1,2e-12,0.03,.001,5,0.1])/3.
     #############################################
 
     if mode == 'lm':
@@ -99,7 +108,7 @@ def main():
 
         Const[0] = l    # Since we want to plot the region where there is no data.
 
-        if ModelType == 3:
+        if ModelType in [3,6]:
             f_before_fit, f_star, f_abs_ism, f_abs_bp, f_abs_X  = m.LyModel(Par,Const,ModelType)
         else:
             f_before_fit, f_star, f_abs_ism, f_abs_bp           = m.LyModel(Par,Const,ModelType)
@@ -144,6 +153,9 @@ def main():
         print "\nBest fit paramters:"
         P =  FindBestParams(Par, F, E, Const, ModelType)
         
+        print P[2]
+        print P[3]
+        
         U_RV = (1/P[2])*cLight/LyA/1e3
 
         print "\nlog(N(H)) =\t" ,P[0]
@@ -153,10 +165,17 @@ def main():
         if ModelType == 1:
             print "Slope\t\t"   ,P[4]
         if ModelType == 2:
-            print "V_H\t\t"   ,P[4]
+            print "V_H\t\t"     ,P[4]
         if ModelType == 3:
             print "v_X\t\t"     ,P[4]
             print "nh_X\t\t"    ,P[5]
+        if ModelType == 5:
+            print "V_H\t\t"     ,P[4]
+            print "nh_ISM\t\t"  ,P[5]
+        if ModelType == 6:
+            print "v_X\t\t"     ,P[4]
+            print "nh_X\t\t"    ,P[5]
+            print "nh_ISM\t\t"  ,P[6]
 
         X = F,E,m.LyModel(P,Const, ModelType)[0]
         print "Chi2:\t\t",s.chi2(X)
@@ -167,16 +186,16 @@ def main():
         #np.savetxt(dat_directory+"b01.dat",np.column_stack((v,f_before_fit)))
 
         Const[0] = l    # Since we want to plot the region where there is no data.
-        if ModelType == 3:
+        if ModelType in [3,6]:
             f_after_fit, f_star, f_abs_ism, f_abs_bp, f_abs_X   = m.LyModel(P,Const,ModelType)
         else:
             f_after_fit, f_star, f_abs_ism, f_abs_bp            = m.LyModel(P,Const,ModelType)
 
         
         # Saving the data for plotting
-        np.savetxt(dat_directory+"Ly_Fit.dat",np.column_stack((v,f_star,f_abs_ism,f_abs_bp,f_after_fit)))
+        #np.savetxt(dat_directory+"Ly_Fit.dat",np.column_stack((v,f_star,f_abs_ism,f_abs_bp,f_after_fit)))
 
-        bin_pnts = 3
+        bin_pnts = 5
         RVb, Fb, Eb     = c.BinData(RV,F,E,bin_pnts)
         RVob, Fob, Eob  = c.BinData(RVo,Fo,Eo,bin_pnts)
 
@@ -200,29 +219,6 @@ def main():
         fig.tight_layout()
         plt.show()
 
-    elif mode == 'mcmc':
-        #X = (F - f_before_fit),E,np.zeros(len(F)),F                                                         # Check this in relation to the Chi2 function!
-        X = F, E, m.LyModel(Par,Const,ModelType)[0]
-   
-        chain, moves = mc.McMC(W,X,m.LyModel, ModelType, Par, Const, step,1e4)
-        
-        outfile = 'chains/chain_u_1'
-        if ModelType == 2:
-            np.savez(outfile, nh_bp = chain[:,0], max_f = chain[:,1], uf = chain[:,2], av = chain[:,3], v_H = chain[:,4])
-        
-        Pout = chain[moves,:]
-        P_plot1 = [0,1]
-        P_plot2 = [2,3]
-        P_plot3 = [3,4]
-        PU1 = mc.Median_and_Uncertainties(P_plot1,step,chain)
-        PU2 = mc.Median_and_Uncertainties(P_plot2,step,chain)
-        PU3 = mc.Median_and_Uncertainties(P_plot3,step,chain)
-        
-        print "\nlog(N(H)) =\t" ,PU1[0][0],"\t+",PU1[1][0],"\t-",PU1[2][0]
-        print "Fmax =\t\t"      ,PU1[0][1],"\t+",PU1[1][1],"\t-",PU1[2][1]
-        print "uf=\t\t"         ,PU2[0][0],"\t+",PU2[1][0],"\t-",PU2[2][0]
-        print "av=\t\t"         ,PU2[0][1],"\t+",PU2[1][1],"\t-",PU2[2][1]
-        print "V_H=\t\t"        ,PU3[0][1],"\t+",PU3[1][1],"\t-",PU3[2][1]
 
 if __name__ == '__main__':
     main()
