@@ -40,13 +40,19 @@ class Model:
         Dispersion of the theoretical wavelength range
         np.roll is equivalent to the IDL shift function
         '''
-        dl     =   np.mean((l-np.roll(l,1))[1:])
-        dwave  =   np.median((W-np.roll(W,1))[1:])  
-        kernel = np.arange(-len(W)/2.,len(W)/2.,1)
-        kernel = np.exp(-kernel**2/2./((sigma_kernel*dwave/dl)**2))
-        kernel = kernel/np.sum(kernel)
-
+        dispersion          =   9.97e-3                 # Ang /pix
+        dl                  = np.mean((l-np.roll(l,1))[1:])
+        # dl is the step size of the wavelength on which "kernel" is to be calculated.
+        dwave               = np.median((W-np.roll(W,1))[1:])
+        fwhm_cos_G130M_Ang  = sigma_kernel * dispersion # FWHM in Ang.
+        fwhm_cos_G130M_dl   = fwhm_cos_G130M_Ang / dl
+        sigma_kernel_dl     = fwhm_cos_G130M_dl / (2.*np.sqrt(2.*np.log(2.)))
+        kernel              = np.arange(-len(W)/2.,len(W)/2.,1)
+        kernel              = np.exp(-kernel**2/2./((sigma_kernel*dwave/dl)**2))
+        kernel              = kernel/np.sum(kernel)     
+        
         return kernel
+
 
         
     def flux_star(self, LyA,BetaPicRV,l,kernel,max_f,dp,uf,av,continuum_fit):  
@@ -166,22 +172,22 @@ class Model:
         
         # Fixed parameters
         if ModelType == 1:
-            W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,v_bp,b_bp,T_bp           = Const
+            W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,v_bp,b_bp,T_bp,continuum_fit           = Const
 
         if ModelType == 2:
-            W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,b_bp,T_bp                = Const
+            W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,b_bp,T_bp,continuum_fit                = Const
             
         if ModelType == 3:
-            W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,v_bp,b_bp,T_bp,b_X,T_X   = Const
+            W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,v_bp,b_bp,T_bp,b_X,T_X,continuum_fit   = Const
 
         if ModelType == 4:
-            W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,v_bp,b_bp,T_bp           = Const
+            W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,v_bp,b_bp,T_bp,continuum_fit           = Const
 
         if ModelType == 5:
             W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,b_bp,T_bp,continuum_fit         = Const
 
         if ModelType == 6:
-            W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,v_bp,b_bp,T_bp,b_X,T_X          = Const
+            W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,v_bp,b_bp,T_bp,b_X,T_X,continuum_fit          = Const
 
         kernel      =   self.K(W,l,sigma_kernel)
 
