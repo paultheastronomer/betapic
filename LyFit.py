@@ -63,7 +63,7 @@ def main():
     #W, F, E         = np.genfromtxt(dat_directory+'Ly-alpha_no_AG_2016_06_23.txt',unpack=True,skip_header=8859,skip_footer= 7102)
     
     ### Parameters ##############################
-    ModelType   = 5         # see description in src/model.py
+    ModelType   = 6         # see description in src/model.py
     mode        = 'lm'      # mcmc or lm
     LyA         = 1215.6702 # Heliocentric: 1215.6702
     cLight      = 299792458
@@ -71,13 +71,13 @@ def main():
 
     # ISM parameters
     v_ism       = 10.0      # RV of the ISM (relative to Heliocentric)  
-    nh_ism      = 18.15     # Column density ISM
+    nh_ism      = 18.1     # Column density ISM
     b_ism       = 7.        # Turbulent velocity
     T_ism       = 7000.     # Temperature of ISM
 
     # Beta Pic parameters
-    v_bp        = 57.98     #20.5# RV of the beta Pic (relative to Heliocentric)
-    nh_bp       = 18.66    # Column density beta Pic, Fitting param
+    v_bp        = 20.5     #20.5# RV of the beta Pic (relative to Heliocentric)
+    nh_bp       = 18.46    # Column density beta Pic, Fitting param
     b_bp        = 7.0       # Turbulent velocity
     T_bp        = 1000.     # Temperture of gas in beta Pic disk
 
@@ -88,14 +88,14 @@ def main():
     T_X         = 1000.     # Temperture of gas in beta Pic disk
 
     # Stellar emission line parameters
-    max_f       = 4.66e-11 # Fitting param 
+    max_f       = 1.15e-10 # Fitting param 
     dp          = 0.0 
-    uf          = 44.72     # Fitting param
-    av          = 0.928     # Fitting param
+    uf          = 129     # Fitting param
+    av          = 2.36     # Fitting param
 
     slope       = -0.0008205
 
-    sigma_kernel= 3.5
+    sigma_kernel= 6.5
 
     v   = np.arange(-len(Wo),len(Wo),1) # RV values
     l   = LyA*(1.0 + v/3e5)                     # Corresponding wavengths
@@ -129,7 +129,7 @@ def main():
         step= np.array([0.03,2e-12,0.08,.01,1])/3.
     if ModelType == 6:
         Par     = [nh_bp,max_f,uf,av,v_X,nh_X,nh_ism] # Free parameters
-        Const   = [W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,v_bp,b_bp,T_bp,b_X,T_X]
+        Const   = [W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,v_bp,b_bp,T_bp,b_X,T_X,continuum_fit]
         step= np.array([0.1,2e-12,0.03,.001,5,0.1])/3.
     #############################################
 
@@ -194,7 +194,7 @@ def main():
         print "\nlog(N(H)) =\t" ,P[0]
         print "Fmax =\t\t"      ,P[1]
         print "uf=\t\t"         ,U_RV,"km/s or ",1/P[2],"Angstrom"
-        print "av=\t\t"         ,P[3]*U_RV*np.sqrt(2),"km/s or ",P[3]*1/P[2]*np.sqrt(2),"Angstrom"
+        print "av=\t\t"         ,P[3]*U_RV*np.sqrt(2),"km/s or ",P[3]*(1/P[2])*np.sqrt(2),"Angstrom"
         if ModelType == 1:
             print "Slope\t\t"   ,P[4]
         if ModelType == 2:
