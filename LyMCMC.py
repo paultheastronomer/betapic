@@ -60,35 +60,35 @@ def main():
     #W, F, E         = np.genfromtxt(dat_directory+'Ly-alpha_no_AG_2016_06_23.txt',unpack=True,skip_header=8859,skip_footer= 7102)
     
     ### Parameters ##############################
-    ModelType   = 6         # see description in src/model.py
-    mode        = 'lm'      # mcmc or lm
+    ModelType   = 5         # see description in src/model.py
+    mode        = 'mcmc'      # mcmc or lm
     LyA         = 1215.6702 # Heliocentric: 1215.6702
     cLight      = 299792458
     BetaPicRV   = 20.5
 
     # ISM parameters
     v_ism       = 10.0      # RV of the ISM (relative to Heliocentric)  
-    nh_ism      = 18.1     # Column density ISM
-    b_ism       = 7.        # Turbulent velocity
-    T_ism       = 7000.     # Temperature of ISM
+    nh_ism      = 18.11     # Column density ISM
+    b_ism       = 2.9       # Turbulent velocity
+    T_ism       = 6000.     # Temperature of ISM
 
     # Beta Pic parameters
-    v_bp        = 20.5     #20.5# RV of the beta Pic (relative to Heliocentric)
-    nh_bp       = 18.46    # Column density beta Pic, Fitting param
+    v_bp        = 69.5     #20.5# RV of the beta Pic (relative to Heliocentric)
+    nh_bp       = 18.42    # Column density beta Pic, Fitting param
     b_bp        = 7.0       # Turbulent velocity
     T_bp        = 1000.     # Temperture of gas in beta Pic disk
 
     # Extra component parameters
-    v_X         = 40.0      # RV of the beta Pic (relative to Heliocentric)
-    nh_X        = 18.0      # Column density beta Pic, Fitting param
-    b_X         = 6.0       # Turbulent velocity
+    v_X         = 70.0      # RV of the beta Pic (relative to Heliocentric)
+    nh_X        = 18.4      # Column density beta Pic, Fitting param
+    b_X         = 7.0       # Turbulent velocity
     T_X         = 1000.     # Temperture of gas in beta Pic disk
 
     # Stellar emission line parameters
-    max_f       = 1.15e-10 # Fitting param 
+    max_f       = 1.24e-10 # Fitting param 
     dp          = 0.0 
     uf          = 129     # Fitting param
-    av          = 2.36     # Fitting param
+    av          = 2.24     # Fitting param
 
     slope       = -0.0008205
 
@@ -118,7 +118,7 @@ def main():
     if ModelType == 5:
         Par     = [nh_bp,max_f,uf,av,v_bp,nh_ism] # Free parameters
         Const   = [W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,b_bp,T_bp,continuum_fit]
-        step= np.array([0.03,2e-12,0.08,.01,1])/3.
+        step= np.array([0.07,1e-11,7.0,0.2,5.,0.07])/3.0
     if ModelType == 6:
         Par     = [nh_bp,max_f,uf,av,v_X,nh_X,nh_ism] # Free parameters
         Const   = [W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,v_bp,b_bp,T_bp,b_X,T_X,continuum_fit]
@@ -130,26 +130,26 @@ def main():
 
     chain, moves = mc.McMC(W,X,m.LyModel, ModelType, Par, Const, step,1e4)
     
-    outfile = 'chains/chain_H_'+sys.argv[1]
-    np.savez(outfile, nh_bp = chain[:,0], max_f = chain[:,1], uf = chain[:,2], av = chain[:,3], v_X = chain[:,4], nh_X = chain[:,5], nh_ISM = chain[:,6])
+    outfile = 'chains/chain_A_'+sys.argv[1]
+    np.savez(outfile, nh_bp = chain[:,0], max_f = chain[:,1], uf = chain[:,2], av = chain[:,3], v_H = chain[:,4], nh_ISM = chain[:,5])
     
     Pout = chain[moves,:]
     P_plot1 = [0,1]
     P_plot2 = [2,3]
     P_plot3 = [4,5]
-    P_plot4 = [6,6]
+    #P_plot4 = [6,6]
     PU1 = mc.Median_and_Uncertainties(P_plot1,step,chain)
     PU2 = mc.Median_and_Uncertainties(P_plot2,step,chain)
     PU3 = mc.Median_and_Uncertainties(P_plot3,step,chain)
-    PU4 = mc.Median_and_Uncertainties(P_plot4,step,chain)
+    #PU4 = mc.Median_and_Uncertainties(P_plot4,step,chain)
     
     print "\nlog(N(H)) =\t" ,PU1[0][0],"\t+",PU1[1][0],"\t-",PU1[2][0]
     print "Fmax =\t\t"      ,PU1[0][1],"\t+",PU1[1][1],"\t-",PU1[2][1]
     print "uf=\t\t"         ,PU2[0][0],"\t+",PU2[1][0],"\t-",PU2[2][0]
     print "av=\t\t"         ,PU2[0][1],"\t+",PU2[1][1],"\t-",PU2[2][1]
     print "v_X=\t\t"        ,PU3[0][0],"\t+",PU3[1][0],"\t-",PU3[2][0]
-    print "nh_X=\t\t"       ,PU3[0][1],"\t+",PU3[1][1],"\t-",PU3[2][1]
-    print "nh_ISM=\t\t"     ,PU4[0][0],"\t+",PU4[1][0],"\t-",PU4[2][0]
+    print "nh_H=\t\t"       ,PU3[0][1],"\t+",PU3[1][1],"\t-",PU3[2][1]
+    #print "nh_ISM=\t\t"     ,PU4[0][0],"\t+",PU4[1][0],"\t-",PU4[2][0]
 
 
 if __name__ == '__main__':
