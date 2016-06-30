@@ -23,7 +23,7 @@ def main():
     Wa, Fa, Ea      = np.genfromtxt(dat_directory+'Ly-alpha_no_AG_2016_06_23.txt',unpack=True,skip_header=7500,skip_footer= 4500)
     Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=8300,skip_footer= 6700)
     #Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=7500,skip_footer= 4000)
-    W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=8850,skip_footer= 7110)
+    W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=9027,skip_footer= 7155)
     #W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=8980,skip_footer= 7110)
     #W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=8650,skip_footer= 7110)
     
@@ -68,13 +68,13 @@ def main():
 
     # ISM parameters
     v_ism       = 10.0      # RV of the ISM (relative to Heliocentric)  
-    nh_ism      = 18.11     # Column density ISM
+    nh_ism      = 18.13     # Column density ISM
     b_ism       = 2.9       # Turbulent velocity
     T_ism       = 6000.     # Temperature of ISM
 
     # Beta Pic parameters
-    v_bp        = 69.5     #20.5# RV of the beta Pic (relative to Heliocentric)
-    nh_bp       = 18.42    # Column density beta Pic, Fitting param
+    v_bp        = 64.7     #20.5# RV of the beta Pic (relative to Heliocentric)
+    nh_bp       = 18.52    # Column density beta Pic, Fitting param
     b_bp        = 7.0       # Turbulent velocity
     T_bp        = 1000.     # Temperture of gas in beta Pic disk
 
@@ -85,10 +85,10 @@ def main():
     T_X         = 1000.     # Temperture of gas in beta Pic disk
 
     # Stellar emission line parameters
-    max_f       = 1.24e-10 # Fitting param 
+    max_f       = 3.62e-10 # Fitting param 
     dp          = 0.0 
-    uf          = 129     # Fitting param
-    av          = 2.24     # Fitting param
+    uf          = 313     # Fitting param
+    av          = 4.95     # Fitting param
 
     slope       = -0.0008205
 
@@ -118,7 +118,7 @@ def main():
     if ModelType == 5:
         Par     = [nh_bp,max_f,uf,av,v_bp,nh_ism] # Free parameters
         Const   = [W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,b_bp,T_bp,continuum_fit]
-        step= np.array([0.07,1e-11,7.0,0.2,5.,0.07])/3.0
+        step= np.array([0.06,1e-12,0.005,.0005,4.,0.05])
     if ModelType == 6:
         Par     = [nh_bp,max_f,uf,av,v_X,nh_X,nh_ism] # Free parameters
         Const   = [W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,v_bp,b_bp,T_bp,b_X,T_X,continuum_fit]
@@ -128,9 +128,9 @@ def main():
 
     X = F, E, m.LyModel(Par,Const,ModelType)[0]
 
-    chain, moves = mc.McMC(W,X,m.LyModel, ModelType, Par, Const, step,1e4)
+    chain, moves = mc.McMC(W,X,m.LyModel, ModelType, Par, Const, step,1e5)
     
-    outfile = 'chains/chain_A_'+sys.argv[1]
+    outfile = 'chains/chain_O_'+sys.argv[1]
     np.savez(outfile, nh_bp = chain[:,0], max_f = chain[:,1], uf = chain[:,2], av = chain[:,3], v_H = chain[:,4], nh_ISM = chain[:,5])
     
     Pout = chain[moves,:]
