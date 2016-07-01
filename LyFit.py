@@ -26,16 +26,58 @@ def main():
     Wa, Fa, Ea      = np.genfromtxt(dat_directory+'Ly-alpha_no_AG_2016_06_23.txt',unpack=True,skip_header=7500,skip_footer= 4500)
     Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=8300,skip_footer= 6700)
     #Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=7500,skip_footer= 4000)
-    W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=8850,skip_footer= 7110)
-    #W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=8980,skip_footer= 7110)
+    #Original:
+    #W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=8850,skip_footer= 7110)
+    W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=9027,skip_footer= 7155)
     #W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=8650,skip_footer= 7110)
-    
     
     x1  = 920
     x2  = 1200
     x3  = 2050
     x4  = -1250
     
+    # To fit the non-sky subtracted (only cut) data uncomment the two lines below.
+    #Wo, Fo, Eo         = np.genfromtxt(dat_directory+'Ly-alpha_no_AG_2016_06_23.txt',unpack=True,skip_header=8000,skip_footer= 6000)
+    #W, F, E         = np.genfromtxt(dat_directory+'Ly-alpha_no_AG_2016_06_23.txt',unpack=True,skip_header=8859,skip_footer= 7102)
+    
+    ### Parameters ##############################
+    ModelType   = 5         # see description in src/model.py
+    mode        = 'lm'      # mcmc or lm
+    LyA         = 1215.6702 # Heliocentric: 1215.6702
+    cLight      = 299792458
+    BetaPicRV   = 20.5
+
+    # ISM parameters
+    v_ism       = 10.0      # RV of the ISM (relative to Heliocentric)  
+    nh_ism      = 18.16     # Column density ISM
+    b_ism       = 2.9        # Turbulent velocity
+    T_ism       = 6000.     # Temperature of ISM
+
+    # Beta Pic parameters
+    v_bp        = 61.37     #20.5# RV of the beta Pic (relative to Heliocentric)
+    nh_bp       = 18.5781 # Column density beta Pic, Fitting param
+    b_bp        = 7.0       # Turbulent velocity
+    T_bp        = 1000.     # Temperture of gas in beta Pic disk
+
+    # Extra component parameters
+    v_X         = 70.0      # RV of the beta Pic (relative to Heliocentric)
+    nh_X        = 18.413      # Column density beta Pic, Fitting param
+    b_X         = 6.0       # Turbulent velocity
+    T_X         = 1000.     # Temperture of gas in beta Pic disk
+
+    # Stellar emission line parameters
+    max_f       = 4.072e-10 # Fitting param 
+    dp          = 0.0 
+    uf          = 313.125     # Fitting param
+    av          = 4.9461     # Fitting param
+
+    slope       = -0.0008205
+
+    sigma_kernel= 6.5
+
+    v   = np.arange(-len(Wo),len(Wo),1) # RV values
+    l   = LyA*(1.0 + v/3e5)                     # Corresponding wavengths
+
     fitting_region_x  = np.concatenate((Wa[x1:x2],Wa[x3:x4]))
     fitting_region_y  = np.concatenate((Fa[x1:x2],Fa[x3:x4]))
     fitting_region_err= np.concatenate((Ea[x1:x2],Ea[x3:x4]))
@@ -46,7 +88,7 @@ def main():
     z       = np.polyfit(fitting_region_x, fitting_region_y, 3, rcond=None, full=False, w=weights)
     pn = np.poly1d(z)
     print pn
-    
+    RVa = c.Wave2RV(Wa,LyA,BetaPicRV)
     '''
     plt.step(Wa,Fa)
     plt.step(fitting_region_x,fitting_region_y)
@@ -56,49 +98,6 @@ def main():
     plt.show()
     sys.exit()
     '''
-    
-
-    # To fit the non-sky subtracted (only cut) data uncomment the two lines below.
-    #Wo, Fo, Eo         = np.genfromtxt(dat_directory+'Ly-alpha_no_AG_2016_06_23.txt',unpack=True,skip_header=8000,skip_footer= 6000)
-    #W, F, E         = np.genfromtxt(dat_directory+'Ly-alpha_no_AG_2016_06_23.txt',unpack=True,skip_header=8859,skip_footer= 7102)
-    
-    ### Parameters ##############################
-    ModelType   = 6         # see description in src/model.py
-    mode        = 'lm'      # mcmc or lm
-    LyA         = 1215.6702 # Heliocentric: 1215.6702
-    cLight      = 299792458
-    BetaPicRV   = 20.5
-
-    # ISM parameters
-    v_ism       = 10.0      # RV of the ISM (relative to Heliocentric)  
-    nh_ism      = 18.1     # Column density ISM
-    b_ism       = 7.        # Turbulent velocity
-    T_ism       = 7000.     # Temperature of ISM
-
-    # Beta Pic parameters
-    v_bp        = 20.5     #20.5# RV of the beta Pic (relative to Heliocentric)
-    nh_bp       = 18.46    # Column density beta Pic, Fitting param
-    b_bp        = 7.0       # Turbulent velocity
-    T_bp        = 1000.     # Temperture of gas in beta Pic disk
-
-    # Extra component parameters
-    v_X         = 40.0      # RV of the beta Pic (relative to Heliocentric)
-    nh_X        = 18.0      # Column density beta Pic, Fitting param
-    b_X         = 6.0       # Turbulent velocity
-    T_X         = 1000.     # Temperture of gas in beta Pic disk
-
-    # Stellar emission line parameters
-    max_f       = 1.15e-10 # Fitting param 
-    dp          = 0.0 
-    uf          = 129     # Fitting param
-    av          = 2.36     # Fitting param
-
-    slope       = -0.0008205
-
-    sigma_kernel= 6.5
-
-    v   = np.arange(-len(Wo),len(Wo),1) # RV values
-    l   = LyA*(1.0 + v/3e5)                     # Corresponding wavengths
 
     continuum_fit = pn(l)
 
@@ -156,6 +155,7 @@ def main():
         plt.rcParams['text.usetex'] = True
         plt.rcParams['text.latex.unicode'] = True    
 
+
         plt.scatter(RVo,Fo,color='black',alpha=0.25,label='Data not used for fit')
         plt.scatter(RV,F,color='black',label='Data used for fit')
 
@@ -178,6 +178,7 @@ def main():
 
         # Saving the data for plotting
         #np.savetxt(dat_directory+"Ly_Fit.dat",np.column_stack((v,f_star,f_abs_ism,f_abs_bp,f_before_fit)))
+        #np.savetxt(dat_directory+"Ly_Fit_19.dat",np.column_stack((f_before_fit)))
 
         #sys.exit()            
         
@@ -226,13 +227,18 @@ def main():
 
         
         # Saving the data for plotting
-        #np.savetxt(dat_directory+"Ly_Fit.dat",np.column_stack((v,f_star,f_abs_ism,f_abs_bp,f_after_fit)))
+        np.savetxt(dat_directory+"Ly_Fit.dat",np.column_stack((v,f_star,f_abs_ism,f_abs_bp,f_after_fit)))
+        np.savetxt(dat_directory+"PolyFit.dat",np.column_stack((RVa,pn(Wa))))
 
         bin_pnts = 5
         RVb, Fb, Eb     = c.BinData(RV,F,E,bin_pnts)
-        RVob, Fob, Eob  = c.BinData(RVo,Fo,Eo,bin_pnts)
+        #RVob, Fob, Eob  = c.BinData(RVo,Fo,Eo,bin_pnts)
+        RVab, Fab, Eab  = c.BinData(RVa,Fa,Ea,bin_pnts)
 
-        plt.scatter(RVob,Fob,color='black',alpha=0.25,label='Data not used for fit')
+        plt.plot(RVa,pn(Wa),lw=2)
+
+        #plt.scatter(RVob,Fob,color='black',alpha=0.25,label='Data not used for fit')
+        plt.scatter(RVab,Fab,color='black',alpha=0.25,label='Data not used for fit')
 
         plt.errorbar(RVb,Fb,yerr=Eb,fmt=None,ecolor='black',zorder=3)
         plt.scatter(RVb,Fb, marker='o', color='k',zorder=3,label='Data used for fit')

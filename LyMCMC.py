@@ -73,8 +73,8 @@ def main():
     T_ism       = 6000.     # Temperature of ISM
 
     # Beta Pic parameters
-    v_bp        = 64.7     #20.5# RV of the beta Pic (relative to Heliocentric)
-    nh_bp       = 18.52    # Column density beta Pic, Fitting param
+    v_bp        = 61.37     #20.5# RV of the beta Pic (relative to Heliocentric)
+    nh_bp       = 18.578    # Column density beta Pic, Fitting param
     b_bp        = 7.0       # Turbulent velocity
     T_bp        = 1000.     # Temperture of gas in beta Pic disk
 
@@ -85,10 +85,10 @@ def main():
     T_X         = 1000.     # Temperture of gas in beta Pic disk
 
     # Stellar emission line parameters
-    max_f       = 3.62e-10 # Fitting param 
+    max_f       = 4.07e-10 # Fitting param 
     dp          = 0.0 
-    uf          = 313     # Fitting param
-    av          = 4.95     # Fitting param
+    uf          = 313.125     # Fitting param
+    av          = 4.9461     # Fitting param
 
     slope       = -0.0008205
 
@@ -128,7 +128,7 @@ def main():
 
     X = F, E, m.LyModel(Par,Const,ModelType)[0]
 
-    chain, moves = mc.McMC(W,X,m.LyModel, ModelType, Par, Const, step,1e5)
+    chain, moves = mc.McMC(W,X,m.LyModel, ModelType, Par, Const, step,1.67e5)
     
     outfile = 'chains/chain_O_'+sys.argv[1]
     np.savez(outfile, nh_bp = chain[:,0], max_f = chain[:,1], uf = chain[:,2], av = chain[:,3], v_H = chain[:,4], nh_ISM = chain[:,5])

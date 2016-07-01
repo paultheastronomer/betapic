@@ -22,6 +22,8 @@ def main():
 
     RVa,Pa                                  = np.genfromtxt(dat_directory+'PolyFit.dat',unpack=True)
     v,f_star,f_abs_ism,f_abs_bp,f_after_fit = np.genfromtxt(dat_directory+'Ly_Fit.dat',unpack=True)
+    LyFit18                                 = np.genfromtxt(dat_directory+'Ly_Fit_18.dat',unpack=True)
+    LyFit19                                 = np.genfromtxt(dat_directory+'Ly_Fit_19.dat',unpack=True)
     W_cut, F_cut, E_cut = np.genfromtxt(dat_directory+'Ly-alpha_no_AG_2016_06_23.txt',skip_header=500,unpack=True)      
     
     Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True)
@@ -55,8 +57,13 @@ def main():
     RVob, Fob, Eob          =   Bin_data(RVo,Fo,Eo,bin_pnts)
     RVb_cut, Fb_cut, Eb_cut =   Bin_data(RV_cut,F_cut,E_cut,bin_pnts)
 
-
-    #'''
+    plt.errorbar(RVb,Fb,yerr=Eb,fmt=None,ecolor='black',zorder=3)
+    plt.scatter(RVb,Fb, marker='o', color='k',zorder=3,label=r'Method 2')
+    plt.plot(v,LyFit18,lw=3,color='#12B84B',label=r'Best fit')
+    plt.plot(v,f_after_fit,lw=3,color='#EE0600',label=r'Best fit')
+    plt.plot(v,LyFit19,lw=3,color='#1695A3',label=r'Best fit')
+    # AG subtracted
+    '''
     plt.errorbar(RVb_cut,Fb_cut,yerr=Eb_cut,fmt=None,ecolor='black',zorder=3)
     plt.scatter(RVb_cut,Fb_cut, marker='o', edgecolor="black",color='white',zorder=3,label=r'Method 1')
     plt.plot(v,f_star,lw=3,color='gray',label=r'$\beta$ Pictoris')
@@ -65,9 +72,12 @@ def main():
     plt.plot(v,f_after_fit,lw=3,color='#FF281C',label=r'Best fit')
     plt.errorbar(RVb,Fb,yerr=Eb,fmt=None,ecolor='black',zorder=3)
     plt.scatter(RVb,Fb, marker='o', color='k',zorder=3,label=r'Method 2')
-
+    '''
+    
     # AG FREE
     '''
+    plt.errorbar(RVb_cut,Fb_cut,yerr=Eb_cut,fmt=None,ecolor='black',zorder=3)
+    plt.scatter(RVb_cut,Fb_cut, marker='o', edgecolor="black",color='white',zorder=3,label=r'Method 1')
     plt.text(720,3.1e-14,r'$\mathrm{O\,V}$',ha='center')
     plt.text(40,4.7e-14,r'$\mathrm{Ly}\alpha$',ha='center')
     
@@ -83,12 +93,12 @@ def main():
 
     plt.xlabel(r'Radial Velocity [km/s]')
     plt.ylabel('Flux (erg/s/cm$^2$/\AA)')
-    plt.xlim(-310,310) 
+    plt.xlim(-250,270) 
     plt.ylim(-2.8e-14,8.0e-14)
 
     #plt.legend(loc='upper left', numpoints=1)
     fig.tight_layout()
-    #plt.savefig('../plots/AG_corrected.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
+    plt.savefig('../plots/DiffColDens3.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
     plt.show()
 
 
