@@ -57,7 +57,6 @@ def main():
     factor, ferr    = c.FindFactor(RV,F[4]/AGs,E[4],AirG_W_err,l1,l2)
     n003 = F[4]-AGs*factor
     en003 = np.sqrt(E[4]**2+(factor*AirG_W_err)**2)
-
     
     # 4 visit 0.0" offset
     AGs    = c.ShiftAG(AirG_W,-2)
@@ -99,7 +98,6 @@ def main():
     factor, ferr    = c.FindFactor(RV,F[6]/AGs,E2_2,AirG_W_err,l1,l2)
     p083 = F[6]-AGs*factor
     ep083 = np.sqrt(E[6]**2+(factor*AirG_W_err)**2)
- 
 
     # 4 visit +0.8" offset
     #===============================
@@ -107,7 +105,6 @@ def main():
     factor, ferr    = c.FindFactor(RV,F[10]/AGs,E[10],AirG_W_err,l1,l2)
     p084 = F[10]-AGs*factor
     ep084 = np.sqrt(E[10]**2+(factor*AirG_W_err)**2)
-
 
     # 3 visit +1.1" offset
     #===============================
