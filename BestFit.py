@@ -57,38 +57,42 @@ def main():
     RVob, Fob, Eob          =   Bin_data(RVo,Fo,Eo,bin_pnts)
     RVb_cut, Fb_cut, Eb_cut =   Bin_data(RV_cut,F_cut,E_cut,bin_pnts)
 
+    '''
     plt.errorbar(RVb,Fb,yerr=Eb,fmt=None,ecolor='black',zorder=3)
     plt.scatter(RVb,Fb, marker='o', color='k',zorder=3,label=r'Method 2')
     plt.plot(v,LyFit18,lw=3,color='#12B84B',label=r'Best fit')
     plt.plot(v,f_after_fit,lw=3,color='#EE0600',label=r'Best fit')
     plt.plot(v,LyFit19,lw=3,color='#1695A3',label=r'Best fit')
-    # AG subtracted
     '''
+    
+    
+    # AG subtracted
+    #'''
     plt.errorbar(RVb_cut,Fb_cut,yerr=Eb_cut,fmt=None,ecolor='black',zorder=3)
-    plt.scatter(RVb_cut,Fb_cut, marker='o', edgecolor="black",color='white',zorder=3,label=r'Method 1')
+    plt.scatter(RVb_cut,Fb_cut, marker='o', edgecolor="black",color='#199AFF',zorder=3,label=r'Method 1')
     plt.plot(v,f_star,lw=3,color='gray',label=r'$\beta$ Pictoris')
     plt.plot(v,f_abs_ism,lw=1.2,color='#FFA500',label=r'ISM')
     plt.plot(v,f_abs_bp,lw=1.2,color='#0386ff',label=r'Gas disk')
     plt.plot(v,f_after_fit,lw=3,color='#FF281C',label=r'Best fit')
     plt.errorbar(RVb,Fb,yerr=Eb,fmt=None,ecolor='black',zorder=3)
     plt.scatter(RVb,Fb, marker='o', color='k',zorder=3,label=r'Method 2')
-    '''
+    #'''
     
     # AG FREE
     '''
     plt.errorbar(RVb_cut,Fb_cut,yerr=Eb_cut,fmt=None,ecolor='black',zorder=3)
-    plt.scatter(RVb_cut,Fb_cut, marker='o', edgecolor="black",color='white',zorder=3,label=r'Method 1')
+    plt.scatter(RVb_cut,Fb_cut, marker='o', edgecolor="black",color='#199AFF',zorder=3,label=r'Method 1')
     plt.text(720,3.1e-14,r'$\mathrm{O\,V}$',ha='center')
     plt.text(40,4.7e-14,r'$\mathrm{Ly}\alpha$',ha='center')
     
+    plt.plot(RVa[x2:x3],Pa[x2:x3],color="red",lw=1.0,zorder=4)
     plt.plot(RVa[x1:x2],Pa[x1:x2],color="black",lw=5.0,zorder=4)
-    plt.plot(RVa[x1:x2],Pa[x1:x2],color="red",lw=3.0,zorder=4)
-    plt.plot(RVa[x2:x3],Pa[x2:x3],color="red",lw=1.0,zorder=4) 
+    plt.plot(RVa[x1:x2],Pa[x1:x2],color="#FFB23E",lw=3.0,zorder=4)
     plt.plot(RVa[x3:x4],Pa[x3:x4],color="black",lw=5.0,zorder=4)
-    plt.plot(RVa[x3:x4],Pa[x3:x4],color="red",lw=3.0,zorder=4)
+    plt.plot(RVa[x3:x4],Pa[x3:x4],color="#FFB23E",lw=3.0,zorder=4)
      
     plt.xlim(-2000,4000)
-    plt.ylim(0,5.2e-14)
+    plt.ylim(0,5.4e-14)
     '''
 
     plt.xlabel(r'Radial Velocity [km/s]')
@@ -97,8 +101,9 @@ def main():
     plt.ylim(-2.8e-14,8.0e-14)
 
     #plt.legend(loc='upper left', numpoints=1)
+    plt.minorticks_on()
     fig.tight_layout()
-    plt.savefig('../plots/DiffColDens3.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
+    plt.savefig('../plots/AG_corrected.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
     plt.show()
 
 
