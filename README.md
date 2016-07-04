@@ -13,7 +13,7 @@ This is a collection of python programs used to work with _HST_/COS data. It is 
 
 **Ly_AG_subtract.py** - Subtracts the airglow contamination of the Ly-alpha line and combines all obtained data into a final spectrum.
 
-**Ly_fit.py** - Fits the Ly-alpha line using voigt profiles and estimates column densities. Can also run a basic Metropolis-Hastings MCMC which outputs the random walk chains.
+**LyFit.py** - Fits the Ly-alpha line using voigt profiles and estimates column densities. Can also run a basic Metropolis-Hastings MCMC which outputs the random walk chains.
 
 **BestFit.py** - Produces a plot of the best fit to the Ly-alpha line. Both with and without sky subtraction.
 
