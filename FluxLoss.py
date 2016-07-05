@@ -60,7 +60,7 @@ def main():
     line1           = 0.9
     line2           = 1.2
 
-    FWHM		= 2.25	# FWHM in Cross dispersion direction p.56 COS manual
+    FWHM		= 2.3	# FWHM in Cross dispersion direction p.56 COS manual
     R       	= 1.25	# Aperture size. R = Diameter of 2.5"/2 = 1.25"
 	
     sigma   	= FWHM/ 2*np.sqrt(2*np.log(2))	# Convert from FWHM --> sigma
@@ -90,11 +90,8 @@ def main():
     plt.scatter(S[2],np.median(F3_3[r1:r2]),marker='o',s=70,facecolor='none', edgecolor='k')
 
     plt.plot(shift,flux_N,'-r',lw=1.2)
-
-
     
-
-
+   
 
     # These are dummy arrays used for the 10 Dec 2015 observations
     f_empty = []
@@ -106,6 +103,7 @@ def main():
     
     print decrease1
     print decrease2
+    plt.minorticks_on()
     
     plt.plot([line1-0.05,line1],[flux_0_arcsec,flux_0_arcsec],lw=1.2,color='black')
     plt.plot([line1-0.05,line1],[flux_08_arcsec,flux_08_arcsec],lw=1.2,color='black')
@@ -165,7 +163,7 @@ def main():
     #  print shift[j], 100*(flux_N[0] - flux_N[j])/flux_N[0]#[0.8]
     #print np.argmax(flux_N[0.8])
     #sys.exit()
-
+    
     fig.tight_layout()
     plt.savefig('../plots/theoretical_flux_loss.pdf', bbox_inches='tight', pad_inches=0.1)
     
