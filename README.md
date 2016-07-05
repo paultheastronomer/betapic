@@ -2,7 +2,7 @@
 
 [![GPL](https://img.shields.io/badge/license-GNU%20GPLv3-brightgreen.svg)](http://choosealicense.com/licenses/gpl-3.0/)
 
-This is a collection of python programs used to work with _HST_/COS data. It is still very much in progress.
+This is a collection of python programs used to work with _HST_/COS data. It is still very much in progress. The results of much of this code will be published in Wilson et al. (2016).
 
 
 **shift_calc.py** - Shifts the offset COS spectra and outputs aligned spectra using Numpy's correlate package.
