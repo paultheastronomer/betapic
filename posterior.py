@@ -148,7 +148,7 @@ plt.rcParams.update(params)
 #plt.rc('text', usetex=True)
 
 
-figure = corner.corner(data,labels=[r"$\log(N_{\mathrm{H}})_{\mathrm{disk}}$", r"$F_{\mathrm{max}}/1\times10^{-10}$",r"$v_{\mathrm{disk}}$",r"$\log(N_{\mathrm{H}})_{\mathrm{ISM}}$"],#$\mathrm{v_X}/1\times10^{-4}$
+figure = corner.corner(data,labels=[r"$\log(N_{\mathrm{H}})_{\mathrm{disk}}$", r"$E_{\mathrm{max}}/1\times10^{-10}$",r"$v_{\mathrm{disk}}$",r"$\log(N_{\mathrm{H}})_{\mathrm{ISM}}$"],#$\mathrm{v_X}/1\times10^{-4}$
                                      quantiles=[0.16, 0.5,0.8413],
                                      levels=(1-np.exp(-0.5),),
                                      #truths=[18.522,4.358,0.0031516,0.01880,64.629,18.1306],
@@ -183,4 +183,4 @@ figure = corner.corner(data,labels=[r"$\log(N_{\mathrm{H}})_{\mathrm{disk}}$", r
                                      use_math_text=True)
 plt.show()
 '''
-figure.savefig("../plots/mcmc_"+letter+".pdf")
+#figure.savefig("../plots/mcmc_"+letter+".pdf")
