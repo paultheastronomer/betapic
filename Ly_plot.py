@@ -120,7 +120,7 @@ def main():
     
     fig.tight_layout()
     plt.subplots_adjust(left=0.10)
-    plt.savefig('../plots/Ly_only_cut.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
+    #plt.savefig('../plots/Ly_only_cut.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
     plt.show()
 
 if __name__ == '__main__':
