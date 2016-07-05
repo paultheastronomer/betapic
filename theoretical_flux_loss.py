@@ -14,7 +14,7 @@ def main():
 	R       	= 1.25	# Aperture size. R = Diameter of 2.5"/2 = 1.25"
 	
 	sigma   	= FWHM/ 2*np.sqrt(2*np.log(2))	# Convert from FWHM --> sigma
-	rho     	= np.arange(0,1.5,0.1)			# [arcsec]
+	rho     	= np.arange(0,2.5,0.1)			# [arcsec]
 
 	flux	= []
 	shift	= []
