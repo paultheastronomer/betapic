@@ -140,18 +140,24 @@ def main():
     # =========================================
     # =========================================
 
-    blue                = np.array([m082,m083,m084])
-    blue_err            = np.array([em082,em083,em084])
+    #blue                = np.array([m082,m083,m084])
+    #blue_err            = np.array([em082,em083,em084])
 
-    red                 = np.array([p082,p083,p084,p113,p114])
-    red_err             = np.array([ep082,ep083,ep084,ep113,ep114])    
+    blue                = np.array([n001,n002,n003,n004,m082,m083,m084])
+    blue_err            = np.array([en001,en002,en003,en004,em082,em083,em084])
+
+    #red                 = np.array([p082,p083,p084,p113,p114])
+    #red_err             = np.array([ep082,ep083,ep084,ep113,ep114])    
+
+    red                 = np.array([n001,n002,n003,n004,p082,p083,p084,p113,p114])
+    red_err             = np.array([en001,en002,en003,en004,ep082,ep083,ep084,ep113,ep114]) 
     
     F_blue, F_err_blue  = c.WeightedAvg(blue,blue_err)
     F_red, F_err_red    = c.WeightedAvg(red,red_err)
 
     plt.plot(RVo,Fo,marker='o',color="black")
 
-    f = open(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt','w+')
+    f = open(dat_directory+'Ly_sky_subtracted_2016_07_27.txt','w+')
     for i in range(len(W)):
         if W[i] > LyA:
             print >> f, W[i], F_red[i], F_err_red[i]
