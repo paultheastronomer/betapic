@@ -136,6 +136,7 @@ def main():
         print "Calculating the best parameters..."
         X = F, E, m.LyModel(Par, Const, ModelType)[0]
         print "Chi2:\t\t",s.chi2(X)
+        print "DOF:\t\t",len(RV)-len(Par)
         print "Chi2 reduced:\t",s.chi2(X)/(len(F)-len(Par)),"\n"
 
         Const[0] = l    # Since we want to plot the region where there is no data.
@@ -180,7 +181,7 @@ def main():
         #np.savetxt(dat_directory+"Ly_Fit.dat",np.column_stack((v,f_star,f_abs_ism,f_abs_bp,f_before_fit)))
         #np.savetxt(dat_directory+"Ly_Fit_19.dat",np.column_stack((f_before_fit)))
 
-        #sys.exit()            
+        sys.exit()            
         
         Const[0] = W
         
@@ -213,6 +214,7 @@ def main():
 
         X = F,E,m.LyModel(P,Const, ModelType)[0]
         print "Chi2:\t\t",s.chi2(X)
+        print "DOF:\t\t",len(RV)-len(P)
         print "Chi2 reduced:\t",s.chi2(X)/(len(RV)-len(P)),"\n"
 
         # To save data used to make a plot with varying b, N_H etc.
