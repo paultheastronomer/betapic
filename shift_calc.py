@@ -298,12 +298,12 @@ def main():
     RV = wave2RV(W,LyA,RV_BP)
 
     # Save data into .dat file
-    '''
-    np.savetxt(dat_directory+part+"_2014.dat",np.column_stack((W, RV, f0_0, e0_0, f_AG_0, e_AG_0)))
-    np.savetxt(dat_directory+part+"_10Dec.dat",np.column_stack((W, RV, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1)))
-    np.savetxt(dat_directory+part+"_24Dec.dat",np.column_stack((W, RV, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2)))
-    np.savetxt(dat_directory+part+"_30Jan.dat",np.column_stack((W, RV, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3)))
-    '''
+    #'''
+    np.savetxt(dat_directory+part+"_N_2014.dat",np.column_stack((W, RV, f0_0, e0_0, f_AG_0, e_AG_0)))
+    np.savetxt(dat_directory+part+"_N_10Dec.dat",np.column_stack((W, RV, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1)))
+    np.savetxt(dat_directory+part+"_N_24Dec.dat",np.column_stack((W, RV, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2)))
+    np.savetxt(dat_directory+part+"_N_30Jan.dat",np.column_stack((W, RV, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3)))
+    #'''
     
 if __name__ == '__main__':
     main()
