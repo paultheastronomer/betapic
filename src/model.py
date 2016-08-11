@@ -44,7 +44,7 @@ class Model:
         dl                  = np.mean((l-np.roll(l,1))[1:])
         dwave               = np.median((W-np.roll(W,1))[1:])   # Dispersion [Ang /pix]
         fwhm_cos_G130M_Ang  = sigma_kernel * dwave              # FWHM in Ang. 0.0648 Ang eq. to 6.5 pix.
-        fwhm_cos_G130M_dl   = fwhm_cos_G130M_Ang / dl           # FWHM in Pix?
+        fwhm_cos_G130M_dl   = fwhm_cos_G130M_Ang / dl           # FWHM in Pix
         c                   = fwhm_cos_G130M_dl/(2*np.sqrt(2*np.log(2.)))
         kernel              = np.arange(-len(W)/2.,len(W)/2.,1) # W choosen but another value would also work like 500.
         kernel              = np.exp(-kernel**2/(2*c**2))
