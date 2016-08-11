@@ -34,26 +34,23 @@ class Model:
         else:
              return wofz(u + 1j * a).real
 
-
     def K(self, W, l, sigma_kernel):
         ''' LSF
         Dispersion of the theoretical wavelength range
         np.roll is equivalent to the IDL shift function
         '''
-        dispersion          =   9.97e-3                 # Ang /pix
+        # dl is the step size of the wavelength (l) in units of Angstrom
+        # on which "kernel" is to be calculated.
         dl                  = np.mean((l-np.roll(l,1))[1:])
-        # dl is the step size of the wavelength on which "kernel" is to be calculated.
-        dwave               = np.median((W-np.roll(W,1))[1:])
-        fwhm_cos_G130M_Ang  = sigma_kernel * dispersion # FWHM in Ang.
-        fwhm_cos_G130M_dl   = fwhm_cos_G130M_Ang / dl
-        sigma_kernel_dl     = fwhm_cos_G130M_dl / (2.*np.sqrt(2.*np.log(2.)))
-        kernel              = np.arange(-len(W)/2.,len(W)/2.,1)
-        kernel              = np.exp(-kernel**2/2./((sigma_kernel*dwave/dl)**2))
+        dwave               = np.median((W-np.roll(W,1))[1:])   # Dispersion [Ang /pix]
+        fwhm_cos_G130M_Ang  = sigma_kernel * dwave              # FWHM in Ang. 0.0648 Ang eq. to 6.5 pix.
+        fwhm_cos_G130M_dl   = fwhm_cos_G130M_Ang / dl           # FWHM in Pix?
+        c                   = fwhm_cos_G130M_dl/(2*np.sqrt(2*np.log(2.)))
+        kernel              = np.arange(-len(W)/2.,len(W)/2.,1) # W choosen but another value would also work like 500.
+        kernel              = np.exp(-kernel**2/(2*c**2))
         kernel              = kernel/np.sum(kernel)     
         
         return kernel
-
-
         
     def flux_star(self, LyA,BetaPicRV,l,kernel,max_f,dp,uf,av,continuum_fit):  
 
