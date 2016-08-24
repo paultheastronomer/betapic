@@ -18,13 +18,13 @@ def main():
     # i.e. F1_2 => Flux measurement during second position during the third visit)
     #
     ############################################################################################# 
-    W, RV, F0_0, E0_0, AG0, AG0err = np.genfromtxt('/home/paw/science/betapic/data/HST/dat/B_2014.dat',unpack=True)
+    W, RV, F0_0, E0_0, AG0, AG0err = np.genfromtxt('/home/paw/science/betapic/data/HST/dat/B2_2014.dat',unpack=True)
 
-    W, RV, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1 = np.genfromtxt('/home/paw/science/betapic/data/HST/dat/B_10Dec.dat',unpack=True)
+    W, RV, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1, E_ave_w_1 = np.genfromtxt('/home/paw/science/betapic/data/HST/dat/B2_10Dec.dat',unpack=True)
 
-    W, RV, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2 = np.genfromtxt('/home/paw/science/betapic/data/HST/dat/B_24Dec.dat',unpack=True)
+    W, RV, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2, E_ave_w_2 = np.genfromtxt('/home/paw/science/betapic/data/HST/dat/B2_24Dec.dat',unpack=True)
 
-    W, RV, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3 = np.genfromtxt('/home/paw/science/betapic/data/HST/dat/B_30Jan.dat',unpack=True)
+    W, RV, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3, E_ave_w_3 = np.genfromtxt('/home/paw/science/betapic/data/HST/dat/B2_30Jan.dat',unpack=True)
     ############################################################################################# 
 
     dat_directory = "/home/paw/science/betapic/data/HST/dat/"
@@ -36,20 +36,20 @@ def main():
     n2 = 8900
 
     # Uncomment to see region
-    #'''
+    '''
     plt.plot(W,F0_0)
     plt.plot(W,F0_1)
     plt.plot(W[n1:n2],F0_1[n1:n2])
     plt.show()
     sys.exit()
-    #'''
+    '''
     
     # Calculate the Correction Factor 
     C   = [c.CF(F0_1,E0_1,F0_0,E0_0,n1,n2),c.CF(F1_1,E1_1,F0_0,E0_0,n1,n2),c.CF(F2_1,E2_1,F0_0,E0_0,n1,n2),\
     c.CF(F0_2,E0_2,F0_0,E0_0,n1,n2),c.CF(F1_2,E1_2,F0_0,E0_0,n1,n2),c.CF(F2_2,E2_2,F0_0,E0_0,n1,n2),c.CF(F3_2,E3_2,F0_0,E0_0,n1,n2),\
     c.CF(F0_3,E0_3,F0_0,E0_0,n1,n2),c.CF(F1_3,E1_3,F0_0,E0_0,n1,n2),c.CF(F2_3,E2_3,F0_0,E0_0,n1,n2),c.CF(F3_3,E3_3,F0_0,E0_0,n1,n2)]
     
-    np.savetxt(dat_directory+"rescaling_factors.txt",C)
+    np.savetxt(dat_directory+"rescaling_factors2.txt",C)
     
     F  = [F0_1,F1_1,F2_1,F0_2,F1_2,F2_2,F3_2,F0_3,F1_3,F2_3,F3_3]
     E  = [E0_1,E1_1,E2_1,E0_2,E1_2,E2_2,E3_2,E0_3,E1_3,E2_3,E3_3]
@@ -107,6 +107,8 @@ def main():
     # For 30 Jan data uncomment the two lines below
     #Flux = np.array([Fc[9]])
     #Err  = np.array([Ec[9]])
+    print Err
+    sys.exit()
 
     F2, F2_err    =  c.WeightedAvg(Flux,Err)         
     #############################################################################################
@@ -155,15 +157,15 @@ def main():
     AirG_err            = np.array([AG0err,AG1err,AG3err])
     AirG_W, AirG_W_err  = c.WeightedAvg(AirG,AirG_err) 
     
-    AG1    = c.ShiftAG(AirG_W,-28)    #2015v1 +0.8" AG
-    AG2    = c.ShiftAG(AirG_W,-32)    #2015v2 +0.8" AG
-    AG3    = c.ShiftAG(AirG_W,-25)    #2016 +0.8" AG
+    AG1    = c.ShiftAG(AirG_W,-27)    #2015v1 +0.8" AG
+    AG2    = c.ShiftAG(AirG_W,-31)    #2015v2 +0.8" AG
+    AG3    = c.ShiftAG(AirG_W,-29)    #2016 +0.8" AG
 
-    AG4    = c.ShiftAG(AirG_W,-42)    #2015v2 +1.1" AG
-    AG5    = c.ShiftAG(AirG_W,-43)    #2016 +1.1" AG
+    AG4    = c.ShiftAG(AirG_W,-40)    #2015v2 +1.1" AG
+    AG5    = c.ShiftAG(AirG_W,-41)    #2016 +1.1" AG
 
-    AG6    = c.ShiftAG(AirG_W,32)     #2015v1 -0.8" AG
-    AG7    = c.ShiftAG(AirG_W,35)     #2015v2 -0.8" AG
+    AG6    = c.ShiftAG(AirG_W,33)     #2015v1 -0.8" AG
+    AG7    = c.ShiftAG(AirG_W,37)     #2015v2 -0.8" AG
     AG8    = c.ShiftAG(AirG_W,33)     #2016 -0.8" AG
 
 
@@ -228,7 +230,7 @@ def main():
     shift_08_r      = 122
     shift_11_r      = 106
     
-    f = open(dat_directory+'Ly-alpha_no_AG_2016_06_23.txt', 'w+')  #Ly-alpha_no_AG.txt
+    f = open(dat_directory+'Ly-alpha_no_AG_2016_08_24.txt', 'w+')  #Ly-alpha_no_AG.txt
     for j in range(len(RV)):
         # Save 0.0" shift data
         if RV[j] < shift_0_l:

@@ -12,12 +12,12 @@ def main():
     dat_directory = "/home/paw/science/betapic/data/HST/dat/"
 
     #Wc, Fc, Ec  = np.genfromtxt('Ly-alpha.dat',skip_header=830,skip_footer=0,unpack=True)
-    W, RV, F0_0, E0_0, AG0, AG0err                                                  = np.genfromtxt(dat_directory+'B_2014.dat',unpack=True)
-    W, RV, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1               = np.genfromtxt(dat_directory+'B_10Dec.dat',unpack=True)
-    W, RV, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2   = np.genfromtxt(dat_directory+'B_24Dec.dat',unpack=True)
-    W, RV, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3   = np.genfromtxt(dat_directory+'B_30Jan.dat',unpack=True)
+    W, RV, F0_0, E0_0, AG0, AG0err                                                             = np.genfromtxt(dat_directory+'B2_2014.dat',unpack=True)
+    W, RV, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1, E_ave_w_1               = np.genfromtxt(dat_directory+'B2_10Dec.dat',unpack=True)
+    W, RV, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2, E_ave_w_2   = np.genfromtxt(dat_directory+'B2_24Dec.dat',unpack=True)
+    W, RV, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3, E_ave_w_3   = np.genfromtxt(dat_directory+'B2_30Jan.dat',unpack=True)
     
-    rescale    = np.genfromtxt(dat_directory+'rescaling_factors.txt',unpack=True)
+    rescale    = np.genfromtxt(dat_directory+'rescaling_factors2.txt',unpack=True)
     rescale    = np.array(np.append(1.,rescale))# added 1. since we scaled to 2014 data.  
     rescale    = np.array([rescale])            # 
 
@@ -123,7 +123,7 @@ def main():
     ep114 = np.sqrt(E[11]**2+(factor*AirG_W_err)**2)
     #===============================
 
-    Wo, Fo, Eo  = np.genfromtxt(dat_directory+'Ly-alpha_no_AG_2016_06_21.txt',unpack=True)
+    Wo, Fo, Eo  = np.genfromtxt(dat_directory+'Ly-alpha_no_AG_2016_08_24.txt',unpack=True)
 
     RVo         = c.Wave2RV(Wo,LyA,0.)
 
@@ -157,7 +157,7 @@ def main():
 
     plt.plot(RVo,Fo,marker='o',color="black")
 
-    f = open(dat_directory+'N_2016v1_2016_07_27.txt','w+')
+    f = open(dat_directory+'Ly_sky_subtracted_no_central_data_2016_08_24.txt','w+')
     for i in range(len(W)):
         if W[i] > LyA:
             print >> f, W[i], F_red[i], F_err_red[i]
