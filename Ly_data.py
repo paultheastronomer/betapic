@@ -34,15 +34,15 @@ def main():
     # units refer to array elements.
     n1 = 8400
     n2 = 8900
-    
+
     # Uncomment to see region
-    '''
+    #'''
     plt.plot(W,F0_0)
     plt.plot(W,F0_1)
     plt.plot(W[n1:n2],F0_1[n1:n2])
     plt.show()
     sys.exit()
-    '''
+    #'''
     
     # Calculate the Correction Factor 
     C   = [c.CF(F0_1,E0_1,F0_0,E0_0,n1,n2),c.CF(F1_1,E1_1,F0_0,E0_0,n1,n2),c.CF(F2_1,E2_1,F0_0,E0_0,n1,n2),\
