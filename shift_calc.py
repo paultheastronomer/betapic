@@ -3,6 +3,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 
+from src.calculations import Calc
+c   = Calc()
+
 def Extract(fits_file, part,start,stop):
     f           = pyfits.open(fits_file)
     tbdata      = f[1].data
@@ -144,15 +147,17 @@ def ExportShitedSpectra(w0,f0,f1,f2,f3,f4,AG,e0,e1,e2,e3,e4,eAG,NumFits,start,st
     F = np.array(F)
     E = np.array(E)
     
-    F_ave_w =  np.average(F, axis=0,weights=1./E**2)
+    #F_ave_w =  np.average(F, axis=0,weights=1./E**2)
+    
+    F_ave_w, E_ave_w    = c.WeightedAvg(F, E)
     
 
     if NumFits > 4:
-        return W[0], F[0], E[0], F[1], E[1], F[2], E[2], F[3], E[3], AG, eAG, F_ave_w
+        return W[0], F[0], E[0], F[1], E[1], F[2], E[2], F[3], E[3], AG, eAG, F_ave_w, E_ave_w
     elif NumFits < 4:
-        return W[0], F[0], E[0], AG, eAG, F_ave_w
+        return W[0], F[0], E[0], AG, eAG, F_ave_w, E_ave_w
     else:
-        return W[0], F[0], E[0], F[1], E[1], F[2], E[2], AG, eAG, F_ave_w
+        return W[0], F[0], E[0], F[1], E[1], F[2], E[2], AG, eAG, F_ave_w, E_ave_w
 
 
 def main():
@@ -285,13 +290,13 @@ def main():
     e_empty = []
     
     print "\n\nShifting 10 Dec 2015 observations:"
-    W, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1 = ExportShitedSpectra(w0_0,f0_0,f0_1,f1_1,f2_1,f_empty,f_AG_1,e0_0,e0_1,e1_1,e2_1,e_empty,e_AG_1,NumFits_1,s1,s2,LyA)
+    W, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1, E_ave_w_1 = ExportShitedSpectra(w0_0,f0_0,f0_1,f1_1,f2_1,f_empty,f_AG_1,e0_0,e0_1,e1_1,e2_1,e_empty,e_AG_1,NumFits_1,s1,s2,LyA)
     
     print "\n\nShifting 24 Dec 2015 observations:"
-    W, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2 = ExportShitedSpectra(w0_0,f0_0,f0_2,f1_2,f2_2,f3_2,f_AG_2,e0_0,e0_2,e1_2,e2_2,e3_2,e_AG_2,NumFits_2,s1,s2,LyA)
+    W, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2, E_ave_w_2 = ExportShitedSpectra(w0_0,f0_0,f0_2,f1_2,f2_2,f3_2,f_AG_2,e0_0,e0_2,e1_2,e2_2,e3_2,e_AG_2,NumFits_2,s1,s2,LyA)
     
     print "\n\nShifting 30 Jan 2016 observations:"
-    W, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3 = ExportShitedSpectra(w0_0,f0_0,f0_3,F0_3,F1_3,F2_3,f_AG_3,e0_0,e0_3,e1_3,e2_3,e3_3,e_AG_3,NumFits_3,s1,s2,LyA)
+    W, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3, E_ave_w_3 = ExportShitedSpectra(w0_0,f0_0,f0_3,F0_3,F1_3,F2_3,f_AG_3,e0_0,e0_3,e1_3,e2_3,e3_3,e_AG_3,NumFits_3,s1,s2,LyA)
 
 
     # Convert from wavlength to radial velocity
@@ -300,9 +305,9 @@ def main():
     # Save data into .dat file
     #'''
     np.savetxt(dat_directory+part+"_N_2014.dat",np.column_stack((W, RV, f0_0, e0_0, f_AG_0, e_AG_0)))
-    np.savetxt(dat_directory+part+"_N_10Dec.dat",np.column_stack((W, RV, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1)))
-    np.savetxt(dat_directory+part+"_N_24Dec.dat",np.column_stack((W, RV, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2)))
-    np.savetxt(dat_directory+part+"_N_30Jan.dat",np.column_stack((W, RV, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3)))
+    np.savetxt(dat_directory+part+"_N_10Dec.dat",np.column_stack((W, RV, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1, E_ave_w_1)))
+    np.savetxt(dat_directory+part+"_N_24Dec.dat",np.column_stack((W, RV, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2, E_ave_w_2)))
+    np.savetxt(dat_directory+part+"_N_30Jan.dat",np.column_stack((W, RV, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3, E_ave_w_3)))
     #'''
     
 if __name__ == '__main__':
