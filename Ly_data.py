@@ -107,8 +107,6 @@ def main():
     # For 30 Jan data uncomment the two lines below
     #Flux = np.array([Fc[9]])
     #Err  = np.array([Ec[9]])
-    print Err
-    sys.exit()
 
     F2, F2_err    =  c.WeightedAvg(Flux,Err)         
     #############################################################################################
@@ -155,7 +153,11 @@ def main():
     # Combining AG measurements. Not including AG2 due to problem with data.
     AirG                = np.array([AG0,AG1,AG3])
     AirG_err            = np.array([AG0err,AG1err,AG3err])
-    AirG_W, AirG_W_err  = c.WeightedAvg(AirG,AirG_err) 
+    AirG_W, AirG_W_err  = c.WeightedAvg(AirG,AirG_err)
+
+    #np.savetxt(dat_directory+"B_AIRGLOW_30Jan2016_2016_08_25.dat",np.column_stack((W, AG3, AG3err)))
+    #sys.exit()
+
     
     AG1    = c.ShiftAG(AirG_W,-27)    #2015v1 +0.8" AG
     AG2    = c.ShiftAG(AirG_W,-31)    #2015v2 +0.8" AG
