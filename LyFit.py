@@ -16,20 +16,16 @@ c   = Calc()
 
 
 def FindBestParams(params,F,E,Const,ModelType):
-    best_P, success = leastsq(s.chi2_lm, params, args=(F,E,Const,ModelType), maxfev=1000)
-    return best_P
+	best_P, success = leastsq(s.chi2_lm, params, args=(F,E,Const,ModelType), maxfev=1000)
+	return best_P
 
 def main():    
 
     dat_directory   = "/home/paw/science/betapic/data/HST/dat/"
 
-    Wa, Fa, Ea      = np.genfromtxt(dat_directory+'Ly-alpha_no_AG_2016_06_23.txt',unpack=True,skip_header=7500,skip_footer= 4500)
-    Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_08_24.txt',unpack=True,skip_header=8300,skip_footer= 6700)
-    #Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=7500,skip_footer= 4000)
-    #Original:
-    #W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=8850,skip_footer= 7110)
-    W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_08_24.txt',unpack=True,skip_header=9027,skip_footer= 7155)
-    #W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=8650,skip_footer= 7110)
+    Wa, Fa, Ea      = np.genfromtxt(dat_directory+'Ly-alpha_no_AG_2016_08_24.txt',unpack=True,skip_header=7500,skip_footer= 4500)
+    Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_09_12_w20.txt',unpack=True,skip_header=8300,skip_footer= 6700)
+    W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_09_12_w20.txt',unpack=True,skip_header=9027,skip_footer= 7155)
     
     x1  = 920
     x2  = 1200
@@ -74,6 +70,11 @@ def main():
     slope       = -0.0008205
 
     sigma_kernel= 6.5
+
+    #mu			= 0.
+    #A 			= 4.4e-11
+    #sigma1		= 2.4e2
+    #sigma2		= 2.4e1
 
     v   = np.arange(-len(Wo),len(Wo),1) # RV values
     l   = LyA*(1.0 + v/3e5)                     # Corresponding wavengths
@@ -125,6 +126,8 @@ def main():
     if ModelType == 5:
         Par     = [nh_bp,max_f,uf,av,v_bp,nh_ism] # Free parameters
         Const   = [W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,b_bp,T_bp,continuum_fit]
+        #Par     = [A, sigma1, sigma2, continuum_fit, nh_bp, v_bp, nh_ism]
+        #Const 	= [W,l,LyA,BetaPicRV,sigma_kernel,mu,v,v_ism,b_ism,T_ism,b_bp,T_bp,continuum_fit]
         step= np.array([0.03,2e-12,0.08,.01,1])/3.
     if ModelType == 6:
         Par     = [nh_bp,max_f,uf,av,v_X,nh_X,nh_ism] # Free parameters
@@ -141,6 +144,7 @@ def main():
 
         Const[0] = l    # Since we want to plot the region where there is no data.
 
+
         if ModelType in [3,6]:
             f_before_fit, f_star, f_abs_ism, f_abs_bp, f_abs_X  = m.LyModel(Par,Const,ModelType)
         else:
@@ -156,7 +160,6 @@ def main():
         plt.rcParams['text.usetex'] = True
         plt.rcParams['text.latex.unicode'] = True    
 
-
         plt.scatter(RVo,Fo,color='black',alpha=0.25,label='Data not used for fit')
         plt.scatter(RV,F,color='black',label='Data used for fit')
 
@@ -171,19 +174,18 @@ def main():
         plt.xlabel(r'Radial Velocity [km/s]')
         plt.ylabel('Flux (erg/s/cm$^2$/\AA)')
         
-        plt.xlim(-700,600)
-        plt.ylim(-2.0e-14,0.8e-13)
+        plt.xlim(-250,270) 
+        plt.ylim(-2.8e-14,8.0e-14)
     
         fig.tight_layout()
         plt.show()
 
         # Saving the data for plotting
         #np.savetxt(dat_directory+"Ly_Fit.dat",np.column_stack((v,f_star,f_abs_ism,f_abs_bp,f_before_fit)))
-        #np.savetxt(dat_directory+"Ly_Fit_19.dat",np.column_stack((f_before_fit)))
-
-        #sys.exit()            
+        #np.savetxt(dat_directory+"Ly_Fit_19.dat",np.column_stack((f_before_fit)))       
         
         Const[0] = W
+
         
         print "\nBest fit paramters:"
         P =  FindBestParams(Par, F, E, Const, ModelType)
@@ -229,10 +231,10 @@ def main():
 
         
         # Saving the data for plotting
-        np.savetxt(dat_directory+"Ly_Fit.dat",np.column_stack((v,f_star,f_abs_ism,f_abs_bp,f_after_fit)))
-        np.savetxt(dat_directory+"PolyFit.dat",np.column_stack((RVa,pn(Wa))))
+        #np.savetxt(dat_directory+"Ly_Fit.dat",np.column_stack((v,f_star,f_abs_ism,f_abs_bp,f_after_fit)))
+        #np.savetxt(dat_directory+"PolyFit.dat",np.column_stack((RVa,pn(Wa))))
 
-        bin_pnts = 5
+        bin_pnts = 3
         RVb, Fb, Eb     = c.BinData(RV,F,E,bin_pnts)
         #RVob, Fob, Eob  = c.BinData(RVo,Fo,Eo,bin_pnts)
         RVab, Fab, Eab  = c.BinData(RVa,Fa,Ea,bin_pnts)
@@ -242,7 +244,7 @@ def main():
         #plt.scatter(RVob,Fob,color='black',alpha=0.25,label='Data not used for fit')
         plt.scatter(RVab,Fab,color='black',alpha=0.25,label='Data not used for fit')
 
-        plt.errorbar(RVb,Fb,yerr=Eb,fmt=None,ecolor='black',zorder=3)
+        plt.errorbar(RVb,Fb,yerr=Eb,fmt='none',ecolor='black',zorder=3)
         plt.scatter(RVb,Fb, marker='o', color='k',zorder=3,label='Data used for fit')
         
         plt.plot(vBP,f_star,lw=3,color='gray',label=r'$\beta$ Pictoris')
@@ -255,8 +257,8 @@ def main():
         plt.xlabel(r'Radial Velocity [km/s]')
         plt.ylabel('Flux (erg/s/cm$^2$/\AA)')
 
-        #plt.xlim(-710,600)
-        plt.ylim(-2.2e-14,7.3e-14)
+        plt.xlim(-250,270) 
+        plt.ylim(-2.8e-14,8.0e-14)
         fig.tight_layout()
         plt.show()
 

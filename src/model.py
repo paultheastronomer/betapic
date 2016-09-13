@@ -51,6 +51,83 @@ class Model:
         kernel              = kernel/np.sum(kernel)     
         
         return kernel
+
+    def VoigtModel(self,params,Const):
+
+        max_f, av, a, b    = params
+        S,BetaPicRV,RV,kernel    = Const
+
+        # Double Voigt profile
+        #delta_lambda =   S*(BetaPicRV/3e5)
+         
+        #lambda0 =   S                       # Species wavelength center
+        #lambda_ =   S + delta_lambda        # peak center
+        u       =   RV#+uf#uf*(l-lambda_)           # central wavelengths
+
+        #print np.median(uf)
+
+        f       =   max_f*self.voigt_wofz(av,u)
+        f       = f + (a*u + b)
+        f_star  =   np.convolve(f,kernel,mode='same')
+        
+        #f_star      =   f_star*(u*slope+1.0)
+
+        return f_star
+
+    def GaussianModel(self,params,Const):
+
+        A, sigma,  a, b     = params
+        S,BetaPicRV,RV,kernel,mu        = Const
+
+        u = RV + mu
+
+        G = A*np.exp(-(u)**2/(2.*sigma**2))
+        G = G + (a*u + b)
+
+        f_star  =   np.convolve(G,kernel,mode='same')
+        
+        #f_star      =   f_star*(shift*slope+1.0)
+
+        return f_star
+
+    def GaussianModelDouble(self,params,Const):
+
+        A, sigma1, sigma2, a, b = params
+        S,BetaPicRV,RV,kernel,mu        = Const
+
+        u = RV + mu
+
+        G1 = np.exp(-(u)**2/(2.*sigma1**2))
+        G2 = np.exp(-(u)**2/(2.*sigma2**2))
+
+        Gtot = A*(G1+G2)+(a*u + b)
+
+        f_star  =   np.convolve(Gtot,kernel,mode='same')
+        
+        #f_star      =   f_star*(shift*slope+1.0)
+
+        return f_star
+
+    def GaussianDouble(self,params,Const):
+        # Discontinued. Do not use.
+        #A, sigma1, sigma2, slope, continuum_fit = params
+        #S,BetaPicRV,RV,kernel,mu = Const
+        A, sigma1, sigma2, continuum_fit, nh_bp, v_bp, nh_ism = params
+        W,l,S,BetaPicRV,kernel,mu,RV,v_ism,b_ism,T_ism,b_bp,T_bp,continuum_fit = Const
+
+        shift   = RV + mu
+
+        G1      = np.exp(-(shift)**2/(2.*sigma1**2))
+        G2      = np.exp(-(shift)**2/(2.*sigma2**2))
+
+        f       = A*(G1+G2)
+        f       += continuum_fit
+        f_star  = np.convolve(f,kernel,mode='same')
+
+        #f_star      =   f_star*(shift*slope+1.0)
+
+        return f, f_star
+        
         
     def flux_star(self, LyA,BetaPicRV,l,kernel,max_f,dp,uf,av,continuum_fit):  
 
@@ -163,6 +240,7 @@ class Model:
 
         if ModelType == 5:
             nh_bp, max_f, uf, av, v_bp, nh_ism      = params
+            #A, sigma1, sigma2, continuum_fit, nh_bp, v_bp, nh_ism = params
 
         if ModelType == 6:
             nh_bp, max_f, uf, av, v_X, nh_X, nh_ism = params
@@ -182,7 +260,8 @@ class Model:
 
         if ModelType == 5:
             W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,b_bp,T_bp,continuum_fit         = Const
-
+            #W,l,LyA,BetaPicRV,sigma_kernel,mu,RV,v_ism,b_ism,T_ism,b_bp,T_bp,continuum_fit = Const
+        
         if ModelType == 6:
             W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,v_bp,b_bp,T_bp,b_X,T_X,continuum_fit          = Const
 
@@ -197,6 +276,8 @@ class Model:
 
         # Stellar Ly-alpha line
         f, f_star   =   self.flux_star(LyA,BetaPicRV,l,kernel,max_f,dp,uf,av,continuum_fit)
+
+        #f, f_star   = self.GaussianDouble(params,Const)
        
         # Stellar spectral profile, as seen from Earth
         # after absorption by the ISM and BP CS disk.

@@ -20,6 +20,15 @@ class Stats:
     def chi2_lm(self, params,F,E,Const, ModelType):
         c = m.LyModel(params,Const, ModelType)[0]
         return (c - F)**2 / E**2
+
+    def chi2Mods(self, params,F,E,Const, ModelType):
+        if ModelType == 'Voigt':
+            c = m.VoigtModel(params, Const)
+        if ModelType == 'Gaussian':
+            c = m.GaussianModel(params, Const)
+        if ModelType == 'GaussianDouble':
+            c = m.GaussianModelDouble(params, Const)
+        return (c - F)**2 / E**2
     
     def Merit(self, X):
         ''' Given a Chi2 value

@@ -16,7 +16,12 @@ def main():
     W, RV, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1, E_ave_w_1               = np.genfromtxt(dat_directory+'B2_10Dec.dat',unpack=True)
     W, RV, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2, E_ave_w_2   = np.genfromtxt(dat_directory+'B2_24Dec.dat',unpack=True)
     W, RV, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3, E_ave_w_3   = np.genfromtxt(dat_directory+'B2_30Jan.dat',unpack=True)
-    
+ 
+    # Ly- model by Dr. Vincent Bourrier
+    #WV, AGV      = np.genfromtxt(dat_directory+'Model_HR_HI_airglow.d', unpack=True)
+    #AGV          = np.interp(W,WV,AGV)
+    #AGV    = c.ShiftAG(AGV,-3)
+
     rescale    = np.genfromtxt(dat_directory+'rescaling_factors2.txt',unpack=True)
     rescale    = np.array(np.append(1.,rescale))# added 1. since we scaled to 2014 data.  
     rescale    = np.array([rescale])            # 
@@ -39,27 +44,41 @@ def main():
     AirG_err            = np.array([AG0err,AG1err,AG3err])    
     AirG_W, AirG_W_err  = c.WeightedAvg(AirG,AirG_err)
 
+
+    '''
+    # This code is cused to check position of AG before devision.
+    plt.scatter(RV,p083)
+    plt.ylim(-3e-13,3.0e-13)
+    plt.xlim(-610,610)
+    plt.show()
+    sys.exit()
+    '''
+
+
     # 1 visit 0.0" offset
     AGs    = c.ShiftAG(AirG_W,-1)
+    #AGs    = AGV#c.ShiftAG(AGV,-1)
     factor, ferr    = c.FindFactor(RV,F[0]/AGs,E[0],AirG_W_err,l1,l2)
     n001 = F[0]-AGs*factor
-    en001 = np.sqrt(E[0]**2+(factor*AirG_W_err)**2)
-
+    en001 = np.sqrt(E[0]**2+(factor*AirG_W_err)**2)    
+    
     # 2 visit 0.0" offset
     AGs    = c.ShiftAG(AirG_W,-1)
-    
+    #AGs    = c.ShiftAG(AGV,-1)   
     factor, ferr    = c.FindFactor(RV,F[1]/AGs,E[1],AirG_W_err,l1,l2)
     n002 = F[1]-AGs*factor
-    en002 = np.sqrt(E[1]**2+(factor*AirG_W_err)**2)
+    en002 = np.sqrt(E[1]**2+(factor*AirG_W_err)**2)    
 
     # 3 visit 0.0" offset
     AGs    = c.ShiftAG(AirG_W,2)    
+    #AGs    = c.ShiftAG(AGV,1) 
     factor, ferr    = c.FindFactor(RV,F[4]/AGs,E[4],AirG_W_err,l1,l2)
     n003 = F[4]-AGs*factor
     en003 = np.sqrt(E[4]**2+(factor*AirG_W_err)**2)
-    
+
     # 4 visit 0.0" offset
     AGs    = c.ShiftAG(AirG_W,-2)
+    #AGs    = c.ShiftAG(AGV,-2)
     factor, ferr    = c.FindFactor(RV,F[8]/AGs,E[8],AirG_W_err,l1,l2)
     n004 = F[8]-AGs*factor
     en004 = np.sqrt(E[8]**2+(factor*AirG_W_err)**2)
@@ -67,6 +86,7 @@ def main():
     # 2 visit -0.8" offset
     #===============================
     AGs    = c.ShiftAG(AirG_W,33)
+    #AGs    = c.ShiftAG(AGV,30)
     factor, ferr    = c.FindFactor(RV,F[2]/AGs,E[2],AirG_W_err,l1,l2)
     m082 = F[2]-AGs*factor
     em082 = np.sqrt(E[2]**2+(factor*AirG_W_err)**2)
@@ -74,13 +94,15 @@ def main():
     # 3 visit -0.8" offset
     #===============================
     AGs    = c.ShiftAG(AirG_W,37)
+    #AGs    = c.ShiftAG(AGV,34)
     factor, ferr    = c.FindFactor(RV,F[5]/AGs,E[5],AirG_W_err,l1,l2)
     m083 = F[5]-AGs*factor
     em083 = np.sqrt(E[5]**2+(factor*AirG_W_err)**2)  
-    
+ 
     # 4 visit -0.8" offset
     #===============================
     AGs    = c.ShiftAG(AirG_W,33)
+    #AGs    = c.ShiftAG(AGV,30)
     factor, ferr    = c.FindFactor(RV,F[9]/AGs,E[9],AirG_W_err,l1,l2)
     m084 = F[9]-AGs*factor
     em084 = np.sqrt(E[9]**2+(factor*AirG_W_err)**2)
@@ -88,6 +110,7 @@ def main():
     # 2 visit +0.8" offset
     #===============================
     AGs    = c.ShiftAG(AirG_W,-28)
+    #AGs    = c.ShiftAG(AGV,-30)
     factor, ferr    = c.FindFactor(RV,F[3]/AGs,E[3],AirG_W_err,l1,l2)    
     p082 = F[3]-AGs*factor
     ep082 = np.sqrt(E[3]**2+(factor*AirG_W_err)**2)
@@ -95,6 +118,7 @@ def main():
     # 3 visit +0.8" offset
     #===============================
     AGs    = c.ShiftAG(AirG_W,-32)        # or -33
+    #AGs    = c.ShiftAG(AGV,-35)            # POOR DATA
     factor, ferr    = c.FindFactor(RV,F[6]/AGs,E2_2,AirG_W_err,l1,l2)
     p083 = F[6]-AGs*factor
     ep083 = np.sqrt(E[6]**2+(factor*AirG_W_err)**2)
@@ -102,6 +126,7 @@ def main():
     # 4 visit +0.8" offset
     #===============================
     AGs    = c.ShiftAG(AirG_W,-28)
+    #AGs    = c.ShiftAG(AGV,-33)
     factor, ferr    = c.FindFactor(RV,F[10]/AGs,E[10],AirG_W_err,l1,l2)
     p084 = F[10]-AGs*factor
     ep084 = np.sqrt(E[10]**2+(factor*AirG_W_err)**2)
@@ -109,19 +134,22 @@ def main():
     # 3 visit +1.1" offset
     #===============================
     AGs    = c.ShiftAG(AirG_W,-41)
+    #AGs    = c.ShiftAG(AGV,-43)
     factor, ferr    = c.FindFactor(RV,F[7]/AGs,E[7],AirG_W_err,l1,l2)
     p113 = F[7]-AGs*factor
     ep113 = np.sqrt(E[7]**2+(factor*AirG_W_err)**2)
     #===============================
 
-
     # 4 visit +1.1" offset
     #===============================
     AGs    = c.ShiftAG(AirG_W,-42)
+    #AGs    = c.ShiftAG(AGV,-45)
     factor, ferr    = c.FindFactor(RV,F[11]/AGs,E[11],AirG_W_err,l1,l2)
     p114 = F[11]-AGs*factor
     ep114 = np.sqrt(E[11]**2+(factor*AirG_W_err)**2)
     #===============================
+
+
 
     Wo, Fo, Eo  = np.genfromtxt(dat_directory+'Ly-alpha_no_AG_2016_08_24.txt',unpack=True)
 
@@ -155,9 +183,9 @@ def main():
     F_blue, F_err_blue  = c.WeightedAvg(blue,blue_err)
     F_red, F_err_red    = c.WeightedAvg(red,red_err)
 
-    plt.plot(RVo,Fo,marker='o',color="black")
+    #plt.plot(RVo,Fo,marker='o',color="black")
 
-    f = open(dat_directory+'Ly_sky_subtracted_no_central_data_2016_08_24.txt','w+')
+    f = open(dat_directory+'Ly_sky_subtracted_no_central_data_2016_09_12_w20.txt','w+')
     for i in range(len(W)):
         if W[i] > LyA:
             print >> f, W[i], F_red[i], F_err_red[i]
@@ -167,7 +195,7 @@ def main():
             plt.plot(RV[i],F_blue[i],marker='o',color="blue")
     f.close()
 
-    plt.ylim(-3e-13,3.0e-13)
+    #plt.ylim(-3e-13,3.0e-13)
     plt.xlim(-610,610)
     plt.show()
     
