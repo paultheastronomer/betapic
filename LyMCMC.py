@@ -20,10 +20,10 @@ def wave2RV(Wave,rest_wavelength,RV_BP):
 def main():    
 
     dat_directory   = "/nethome/pwilson/betapic/data/HST/dat/"
-    Wa, Fa, Ea      = np.genfromtxt(dat_directory+'Ly-alpha_no_AG_2016_06_23.txt',unpack=True,skip_header=7500,skip_footer= 4500)
-    Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=8300,skip_footer= 6700)
+    Wa, Fa, Ea      = np.genfromtxt(dat_directory+'Ly-alpha_no_AG_2016_08_24.txt',unpack=True,skip_header=7500,skip_footer= 4500)
+    Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_09_14.txt',unpack=True,skip_header=8300,skip_footer= 6700)
     #Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=7500,skip_footer= 4000)
-    W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=9027,skip_footer= 7155)
+    W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_09_14.txt',unpack=True,skip_header=9027,skip_footer= 7155)
     #W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=8980,skip_footer= 7110)
     #W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=8650,skip_footer= 7110)
     
@@ -68,13 +68,13 @@ def main():
 
     # ISM parameters
     v_ism       = 10.0      # RV of the ISM (relative to Heliocentric)  
-    nh_ism      = 18.13     # Column density ISM
+    nh_ism      = 18.2     # Column density ISM
     b_ism       = 2.9       # Turbulent velocity
     T_ism       = 6000.     # Temperature of ISM
 
     # Beta Pic parameters
-    v_bp        = 61.37     #20.5# RV of the beta Pic (relative to Heliocentric)
-    nh_bp       = 18.578    # Column density beta Pic, Fitting param
+    v_bp        = 64.7     #20.5# RV of the beta Pic (relative to Heliocentric)
+    nh_bp       = 18.6    # Column density beta Pic, Fitting param
     b_bp        = 7.0       # Turbulent velocity
     T_bp        = 1000.     # Temperture of gas in beta Pic disk
 
@@ -85,10 +85,10 @@ def main():
     T_X         = 1000.     # Temperture of gas in beta Pic disk
 
     # Stellar emission line parameters
-    max_f       = 4.07e-10 # Fitting param 
+    max_f       = 3.62e-10 # Fitting param 
     dp          = 0.0 
-    uf          = 313.125     # Fitting param
-    av          = 4.9461     # Fitting param
+    uf          = 313     # Fitting param
+    av          = 4.95     # Fitting param
 
     slope       = -0.0008205
 
@@ -130,7 +130,7 @@ def main():
 
     chain, moves = mc.McMC(W,X,m.LyModel, ModelType, Par, Const, step,1.67e5)
     
-    outfile = 'chains/chain_O_'+sys.argv[1]
+    outfile = 'chains/chain_P_'+sys.argv[1]
     np.savez(outfile, nh_bp = chain[:,0], max_f = chain[:,1], uf = chain[:,2], av = chain[:,3], v_H = chain[:,4], nh_ISM = chain[:,5])
     
     Pout = chain[moves,:]
