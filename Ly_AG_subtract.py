@@ -185,7 +185,7 @@ def main():
 
     #plt.plot(RVo,Fo,marker='o',color="black")
 
-    f = open(dat_directory+'Ly_sky_subtracted_no_central_data_2016_09_12_w20.txt','w+')
+    f = open(dat_directory+'Ly_sky_subtracted_no_central_data_2016_09_14.txt','w+')
     for i in range(len(W)):
         if W[i] > LyA:
             print >> f, W[i], F_red[i], F_err_red[i]

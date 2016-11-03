@@ -24,7 +24,7 @@ def Uncertainties(x):
    return med,up-med,med-down   
 
 # Select which posterior distributions to use.
-letter = 'O'
+letter = 'P2'
 
 # Load the MCMC data
 chain1 = np.load('../chains/chain_'+letter+'_1.npz')
@@ -111,6 +111,7 @@ chain16['nh_X'],chain17['nh_X'],chain18['nh_X'],chain19['nh_X'],\
 chain20['nh_X'],chain21['nh_X'],chain22['nh_X'],chain23['nh_X'],\
 chain24['nh_X']))
 '''
+
 nh_ISM   =   np.concatenate((chain1['nh_ISM'],chain2['nh_ISM'],chain3['nh_ISM'],\
 chain4['nh_ISM'],chain5['nh_ISM'],chain6['nh_ISM'],chain7['nh_ISM'],\
 chain8['nh_ISM'],chain9['nh_ISM'],chain10['nh_ISM'],chain11['nh_ISM'],\
@@ -122,9 +123,9 @@ chain24['nh_ISM']))
 # Arange the data into pandas format to be compatible with corner.py
 print Uncertainties(nh_bp)
 print Uncertainties(max_f)
-#print Uncertainties(uf)
+print "\t",Uncertainties(uf)
 print Uncertainties(1./uf)
-#print Uncertainties(av)
+print "\t",Uncertainties(av)
 print Uncertainties(av*(1./uf)*np.sqrt(2))
 print Uncertainties(v_H)
 print Uncertainties(nh_ISM)
@@ -152,7 +153,7 @@ figure = corner.corner(data,labels=[r"$\log(N_{\mathrm{H}})_{\mathrm{disk}}$", r
                                      quantiles=[0.16, 0.5,0.8413],
                                      levels=(1-np.exp(-0.5),),
                                      #truths=[18.522,4.358,0.0031516,0.01880,64.629,18.1306],
-                                     range=[(18.20,18.92),(3.2,5),(20.0,65.0),(17.8,18.4)],
+                                     range=[(18.20,18.92),(3.2,5.35),(20.0,65.0),(17.7,18.48)],
                                      #fill_contours=True,
                                      #ret=True,
                                      bins=40,
@@ -183,4 +184,4 @@ figure = corner.corner(data,labels=[r"$\log(N_{\mathrm{H}})_{\mathrm{disk}}$", r
                                      use_math_text=True)
 plt.show()
 '''
-#figure.savefig("../plots/mcmc_"+letter+".pdf")
+figure.savefig("../plots/mcmc_"+letter+".pdf")
