@@ -20,13 +20,10 @@ def wave2RV(Wave,rest_wavelength,RV_BP):
 def main():    
 
     dat_directory   = "/nethome/pwilson/betapic/data/HST/dat/"
+    #dat_directory   = "/home/paw/science/betapic/data/HST/dat/"
     Wa, Fa, Ea      = np.genfromtxt(dat_directory+'Ly-alpha_no_AG_2016_08_24.txt',unpack=True,skip_header=7500,skip_footer= 4500)
     Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_09_14.txt',unpack=True,skip_header=8300,skip_footer= 6700)
-    #Wo, Fo, Eo      = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=7500,skip_footer= 4000)
     W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_09_14.txt',unpack=True,skip_header=9027,skip_footer= 7155)
-    #W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=8980,skip_footer= 7110)
-    #W, F, E         = np.genfromtxt(dat_directory+'Ly_sky_subtracted_no_central_data_2016_06_21.txt',unpack=True,skip_header=8650,skip_footer= 7110)
-    
     
     x1  = 920
     x2  = 1200
@@ -42,7 +39,6 @@ def main():
     weights = 1/fitting_region_err**2
     z       = np.polyfit(fitting_region_x, fitting_region_y, 3, rcond=None, full=False, w=weights)
     pn = np.poly1d(z)
-    print pn
     
     '''
     plt.step(Wa,Fa)
@@ -85,7 +81,7 @@ def main():
     T_X         = 1000.     # Temperture of gas in beta Pic disk
 
     # Stellar emission line parameters
-    max_f       = 3.62e-10 # Fitting param 
+    max_f       = 5.00e-10 # Fitting param 
     dp          = 0.0 
     uf          = 313     # Fitting param
     av          = 4.95     # Fitting param
@@ -118,11 +114,11 @@ def main():
     if ModelType == 5:
         Par     = [nh_bp,max_f,uf,av,v_bp,nh_ism] # Free parameters
         Const   = [W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,b_bp,T_bp,continuum_fit]
-        step= np.array([0.06,1e-12,0.005,.0005,4.,0.05])
+        step= np.array([0.05,1e-11,0.01,.002,3.,0.05])
     if ModelType == 6:
         Par     = [nh_bp,max_f,uf,av,v_X,nh_X,nh_ism] # Free parameters
         Const   = [W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,v_bp,b_bp,T_bp,b_X,T_X,continuum_fit]
-        step= np.array([0.1,2e-12,0.03,.001,5,0.1,0.1])/3.
+        step= np.array([0.06,1e-12,0.005,.0005,4.,0.06,0.05])
     #############################################
 
 
@@ -130,9 +126,11 @@ def main():
 
     chain, moves = mc.McMC(W,X,m.LyModel, ModelType, Par, Const, step,1.67e5)
     
-    outfile = 'chains/chain_P_'+sys.argv[1]
+    outfile = 'chains/chain_P2_'+sys.argv[1]
+    #np.savez(outfile, nh_bp = chain[:,0], max_f = chain[:,1], uf = chain[:,2], av = chain[:,3], v_X = chain[:,4], nh_X = chain[:,5], nh_ISM = chain[:,6])
     np.savez(outfile, nh_bp = chain[:,0], max_f = chain[:,1], uf = chain[:,2], av = chain[:,3], v_H = chain[:,4], nh_ISM = chain[:,5])
     
+    #'''
     Pout = chain[moves,:]
     P_plot1 = [0,1]
     P_plot2 = [2,3]
@@ -150,6 +148,7 @@ def main():
     print "v_X=\t\t"        ,PU3[0][0],"\t+",PU3[1][0],"\t-",PU3[2][0]
     print "nh_H=\t\t"       ,PU3[0][1],"\t+",PU3[1][1],"\t-",PU3[2][1]
     #print "nh_ISM=\t\t"     ,PU4[0][0],"\t+",PU4[1][0],"\t-",PU4[2][0]
+
 
 
 if __name__ == '__main__':
