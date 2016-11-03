@@ -56,7 +56,7 @@ def main():
     #W, F, E         = np.genfromtxt(dat_directory+'Ly-alpha_no_AG_2016_06_23.txt',unpack=True,skip_header=8859,skip_footer= 7102)
     
     ### Parameters ##############################
-    ModelType   = 5         # see description in src/model.py
+    ModelType   = 8         # see description in src/model.py
     mode        = 'mcmc'      # mcmc or lm
     LyA         = 1215.6702 # Heliocentric: 1215.6702
     cLight      = 299792458
@@ -119,27 +119,35 @@ def main():
         Par     = [nh_bp,max_f,uf,av,v_X,nh_X,nh_ism] # Free parameters
         Const   = [W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,v_bp,b_bp,T_bp,b_X,T_X,continuum_fit]
         step= np.array([0.06,1e-12,0.005,.0005,4.,0.06,0.05])
+    if ModelType == 8:
+        Par     = [nh_bp,max_f,uf,av,v_bp,nh_ism,b_bp,T_bp] # Free parameters
+        Const   = [W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,continuum_fit]
+        step= np.array([0.05,1e-11,0.01,.002,3.,0.05,0.5,100])
+
     #############################################
 
 
     X = F, E, m.LyModel(Par,Const,ModelType)[0]
 
+    #chain, moves = mc.McMC(W,X,m.LyModel, ModelType, Par, Const, step,1.67e5)
     chain, moves = mc.McMC(W,X,m.LyModel, ModelType, Par, Const, step,1.67e5)
     
-    outfile = 'chains/chain_P2_'+sys.argv[1]
+    outfile = 'chains/chain_Q_'+sys.argv[1]
     #np.savez(outfile, nh_bp = chain[:,0], max_f = chain[:,1], uf = chain[:,2], av = chain[:,3], v_X = chain[:,4], nh_X = chain[:,5], nh_ISM = chain[:,6])
-    np.savez(outfile, nh_bp = chain[:,0], max_f = chain[:,1], uf = chain[:,2], av = chain[:,3], v_H = chain[:,4], nh_ISM = chain[:,5])
+    #np.savez(outfile, nh_bp = chain[:,0], max_f = chain[:,1], uf = chain[:,2], av = chain[:,3], v_H = chain[:,4], nh_ISM = chain[:,5])
+    np.savez(outfile, nh_bp = chain[:,0], max_f = chain[:,1], uf = chain[:,2], av = chain[:,3], v_H = chain[:,4], nh_ISM = chain[:,5], b_BP = chain[:,6], T_BP = chain[:,7])
     
     #'''
     Pout = chain[moves,:]
     P_plot1 = [0,1]
     P_plot2 = [2,3]
     P_plot3 = [4,5]
-    #P_plot4 = [6,6]
+    P_plot4 = [6,7]
+
     PU1 = mc.Median_and_Uncertainties(P_plot1,step,chain)
     PU2 = mc.Median_and_Uncertainties(P_plot2,step,chain)
     PU3 = mc.Median_and_Uncertainties(P_plot3,step,chain)
-    #PU4 = mc.Median_and_Uncertainties(P_plot4,step,chain)
+    PU4 = mc.Median_and_Uncertainties(P_plot4,step,chain)
     
     print "\nlog(N(H)) =\t" ,PU1[0][0],"\t+",PU1[1][0],"\t-",PU1[2][0]
     print "Fmax =\t\t"      ,PU1[0][1],"\t+",PU1[1][1],"\t-",PU1[2][1]
@@ -147,7 +155,8 @@ def main():
     print "av=\t\t"         ,PU2[0][1],"\t+",PU2[1][1],"\t-",PU2[2][1]
     print "v_X=\t\t"        ,PU3[0][0],"\t+",PU3[1][0],"\t-",PU3[2][0]
     print "nh_H=\t\t"       ,PU3[0][1],"\t+",PU3[1][1],"\t-",PU3[2][1]
-    #print "nh_ISM=\t\t"     ,PU4[0][0],"\t+",PU4[1][0],"\t-",PU4[2][0]
+    print "b_BP=\t\t"       ,PU4[0][0],"\t+",PU4[1][0],"\t-",PU4[2][0]
+    print "T_BP=\t\t"       ,PU4[0][1],"\t+",PU4[1][1],"\t-",PU4[2][1]
 
 
 
