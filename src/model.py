@@ -234,25 +234,28 @@ class Model:
         
         # Free parameters
         if ModelType == 1:
-            nh_bp, max_f, uf, av, slope             = params
+            nh_bp, max_f, uf, av, slope                     = params
 
         if ModelType == 2:
-            nh_bp, max_f, uf, av, v_bp              = params
+            nh_bp, max_f, uf, av, v_bp                      = params
             
         if ModelType == 3:
-            nh_bp, max_f, uf, av, v_X, nh_X         = params
+            nh_bp, max_f, uf, av, v_X, nh_X                 = params
 
         if ModelType == 4:
-            nh_bp, max_f, uf, av                    = params
+            nh_bp, max_f, uf, av                            = params
 
         if ModelType == 5:
-            nh_bp, max_f, uf, av, v_bp, nh_ism      = params
+            nh_bp, max_f, uf, av, v_bp, nh_ism              = params
 
         if ModelType == 6:
-            nh_bp, max_f, uf, av, v_X, nh_X, nh_ism = params
+            nh_bp, max_f, uf, av, v_X, nh_X, nh_ism         = params
  
         if ModelType == 7:
-            max_f, uf, av, v_X, nh_X, nh_ism = params
+            max_f, uf, av, v_X, nh_X, nh_ism                = params
+
+        if ModelType == 8:
+            nh_bp, max_f, uf, av, v_bp, nh_ism, b_bp,T_bp   = params
 
         # Fixed parameters
         if ModelType == 1:
@@ -268,7 +271,7 @@ class Model:
             W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,v_bp,b_bp,T_bp,continuum_fit           = Const
 
         if ModelType == 5:
-            W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,b_bp,T_bp,continuum_fit         = Const
+            W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,b_bp,T_bp,continuum_fit                       = Const
             #W,l,LyA,BetaPicRV,sigma_kernel,mu,RV,v_ism,b_ism,T_ism,b_bp,T_bp,continuum_fit = Const
         
         if ModelType == 6:
@@ -277,6 +280,8 @@ class Model:
         if ModelType == 7:
             W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,nh_bp,v_bp,b_bp,T_bp,b_X,T_X,continuum_fit    = Const
 
+        if ModelType == 8:
+            W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,continuum_fit                                 = Const
 
         kernel      =   self.K(W,l,sigma_kernel)
 
