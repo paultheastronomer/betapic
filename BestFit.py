@@ -22,6 +22,7 @@ def main():
 
     RVa,Pa                                  = np.genfromtxt(dat_directory+'PolyFit.dat',unpack=True)
     v,f_star,f_abs_ism,f_abs_bp,f_after_fit = np.genfromtxt(dat_directory+'Ly_Fit.dat',unpack=True)
+    #v,f_star,f_abs_ism,f_abs_bp,f_abs_X,f_after_fit = np.genfromtxt(dat_directory+'Ly_Fit_2mod.dat',unpack=True)
     LyFit18                                 = np.genfromtxt(dat_directory+'Ly_Fit_18.dat',unpack=True)
     LyFit19                                 = np.genfromtxt(dat_directory+'Ly_Fit_19.dat',unpack=True)
     W_cut, F_cut, E_cut = np.genfromtxt(dat_directory+'Ly-alpha_no_AG_2016_06_23.txt',skip_header=500,unpack=True)      
@@ -73,6 +74,7 @@ def main():
     plt.plot(v,f_star,lw=3,color='gray',label=r'$\beta$ Pictoris')
     plt.plot(v,f_abs_ism,lw=1.2,color='#FFA500',label=r'ISM')
     plt.plot(v,f_abs_bp,lw=1.2,color='#0386ff',label=r'Gas disk')
+    #plt.plot(v,f_abs_X,lw=3.0,color='purple',label=r'Component X')
     plt.plot(v,f_after_fit,lw=3,color='#FF281C',label=r'Best fit')
     plt.errorbar(RVb,Fb,yerr=Eb,fmt=None,ecolor='black',zorder=3)
     plt.scatter(RVb,Fb, marker='o', color='k',zorder=3,label=r'Method 2')
@@ -104,6 +106,7 @@ def main():
     plt.minorticks_on()
     fig.tight_layout()
     #plt.savefig('../plots/AG_corrected.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
+    #plt.savefig('../plots/DiffColDens3.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
     plt.show()
 
 

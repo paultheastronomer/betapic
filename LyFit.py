@@ -37,7 +37,7 @@ def main():
     #W, F, E         = np.genfromtxt(dat_directory+'Ly-alpha_no_AG_2016_06_23.txt',unpack=True,skip_header=8859,skip_footer= 7102)
     
     ### Parameters ##############################
-    ModelType   = 5         # see description in src/model.py
+    ModelType   = 7         # see description in src/model.py
     mode        = 'lm'      # mcmc or lm
     LyA         = 1215.6702 # Heliocentric: 1215.6702
     cLight      = 299792458
@@ -46,12 +46,12 @@ def main():
     # ISM parameters
     v_ism       = 10.0      # RV of the ISM (relative to Heliocentric)  
     nh_ism      = 18.16     # Column density ISM
-    b_ism       = 2.9        # Turbulent velocity
+    b_ism       = 2.9       # Turbulent velocity
     T_ism       = 6000.     # Temperature of ISM
 
     # Beta Pic parameters
-    v_bp        = 61.37     #20.5# RV of the beta Pic (relative to Heliocentric)
-    nh_bp       = 18.5781 # Column density beta Pic, Fitting param
+    v_bp        = 58.9785     #20.5# RV of the beta Pic (relative to Heliocentric)
+    nh_bp       = 17.9 	# Column density beta Pic, Fitting param
     b_bp        = 7.0       # Turbulent velocity
     T_bp        = 1000.     # Temperture of gas in beta Pic disk
 
@@ -62,10 +62,10 @@ def main():
     T_X         = 1000.     # Temperture of gas in beta Pic disk
 
     # Stellar emission line parameters
-    max_f       = 4.072e-10 # Fitting param 
+    max_f       = 4.0e-10 # Fitting param 
     dp          = 0.0 
     uf          = 313.125     # Fitting param
-    av          = 4.9461     # Fitting param
+    av          = 4.97086     # Fitting param
 
     slope       = -0.0008205
 
@@ -121,7 +121,7 @@ def main():
         step= np.array([0.1,2e-12,0.03,.001,5,0.1])/3.
     if ModelType == 4:
         Par     = [nh_bp,max_f,uf,av] # Free parameters
-        Const   = [W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,v_bp,b_bp,T_bp]
+        Const   = [W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,v_bp,b_bp,T_bp,continuum_fit]
         step= np.array([0.1,2e-12,0.03,.001,5,0.1])/3.
     if ModelType == 5:
         Par     = [nh_bp,max_f,uf,av,v_bp,nh_ism] # Free parameters
@@ -133,6 +133,10 @@ def main():
         Par     = [nh_bp,max_f,uf,av,v_X,nh_X,nh_ism] # Free parameters
         Const   = [W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,v_bp,b_bp,T_bp,b_X,T_X,continuum_fit]
         step= np.array([0.1,2e-12,0.03,.001,5,0.1])/3.
+    if ModelType == 7:
+        Par     = [max_f,uf,av,v_X,nh_X,nh_ism] # Free parameters
+        Const   = [W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,nh_bp,v_bp,b_bp,T_bp,b_X,T_X,continuum_fit]
+        step= np.array([0.1,2e-12,0.03,.001,5,0.1])/3.
     #############################################
 
     if mode == 'lm':
@@ -141,11 +145,12 @@ def main():
         print "Chi2:\t\t",s.chi2(X)
         print "DOF:\t\t",len(RV)-len(Par)
         print "Chi2 reduced:\t",s.chi2(X)/(len(F)-len(Par)),"\n"
+        print "BIC:\t\t",s.chi2(X)+len(Par)*np.log(len(F))
 
         Const[0] = l    # Since we want to plot the region where there is no data.
 
 
-        if ModelType in [3,6]:
+        if ModelType in [3,6,7]:
             f_before_fit, f_star, f_abs_ism, f_abs_bp, f_abs_X  = m.LyModel(Par,Const,ModelType)
         else:
             f_before_fit, f_star, f_abs_ism, f_abs_bp           = m.LyModel(Par,Const,ModelType)
@@ -182,14 +187,18 @@ def main():
 
         # Saving the data for plotting
         #np.savetxt(dat_directory+"Ly_Fit.dat",np.column_stack((v,f_star,f_abs_ism,f_abs_bp,f_before_fit)))
-        #np.savetxt(dat_directory+"Ly_Fit_19.dat",np.column_stack((f_before_fit)))       
+        #np.savetxt(dat_directory+"Ly_Fit_19.dat",np.column_stack((f_before_fit)))
+
+        #sys.exit()       
         
         Const[0] = W
 
         
         print "\nBest fit paramters:"
         P =  FindBestParams(Par, F, E, Const, ModelType)
-        
+
+        print P
+        '''
         print P[2]
         print P[3]
         
@@ -213,25 +222,26 @@ def main():
             print "v_X\t\t"     ,P[4]
             print "nh_X\t\t"    ,P[5]
             print "nh_ISM\t\t"  ,P[6]
-
+        '''
         X = F,E,m.LyModel(P,Const, ModelType)[0]
         print "Chi2:\t\t",s.chi2(X)
         print "DOF:\t\t",len(RV)-len(P)
         print "Chi2 reduced:\t",s.chi2(X)/(len(RV)-len(P)),"\n"
+        print "BIC:\t\t",s.chi2(X)+len(P)*np.log(len(F))
 
         # To save data used to make a plot with varying b, N_H etc.
         #dat_directory   = "/home/paw/science/betapic/data/HST/dat/"
         #np.savetxt(dat_directory+"b01.dat",np.column_stack((v,f_before_fit)))
 
         Const[0] = l    # Since we want to plot the region where there is no data.
-        if ModelType in [3,6]:
+        if ModelType in [3,6,7]:
             f_after_fit, f_star, f_abs_ism, f_abs_bp, f_abs_X   = m.LyModel(P,Const,ModelType)
         else:
             f_after_fit, f_star, f_abs_ism, f_abs_bp            = m.LyModel(P,Const,ModelType)
 
         
         # Saving the data for plotting
-        #np.savetxt(dat_directory+"Ly_Fit.dat",np.column_stack((v,f_star,f_abs_ism,f_abs_bp,f_after_fit)))
+        #np.savetxt(dat_directory+"Ly_Fit_2mod.dat",np.column_stack((v,f_star,f_abs_ism,f_abs_bp,f_abs_X,f_after_fit)))
         #np.savetxt(dat_directory+"PolyFit.dat",np.column_stack((RVa,pn(Wa))))
 
         bin_pnts = 3
@@ -250,7 +260,7 @@ def main():
         plt.plot(vBP,f_star,lw=3,color='gray',label=r'$\beta$ Pictoris')
         plt.plot(vBP,f_abs_ism,lw=1.2,color='#FF9303',label=r'ISM')
         plt.plot(vBP,f_abs_bp,lw=1.2,color='#0386ff',label=r'Gas disk')
-        if ModelType == 3:
+        if ModelType == 7:
             plt.plot(vBP,f_abs_X,lw=1.2,color='purple',label=r'Component X')
         plt.plot(vBP,f_after_fit,lw=3,color='#FF281C',label=r'Best fit')
 
